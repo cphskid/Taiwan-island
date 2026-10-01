@@ -1,0 +1,32 @@
+:root{
+  --cream:#fff4dc; --wood:#6b3f1f; --wood-2:#8a5429; --gold:#ffc23d; --ink:#3a2412; --sky:#bfe6f5;
+  --f:"Noto Sans TC",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body,#root{height:100%;margin:0}
+body{background:var(--sky);color:var(--ink);font-family:var(--f);overflow:hidden;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;user-select:none}
+.app{height:100%;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:12px;padding:8px 12px;background:linear-gradient(#8a5429,#6b3f1f);color:var(--cream);box-shadow:0 2px 6px rgba(0,0,0,.25);z-index:2}
+.top h1{flex:1;margin:0;font-size:20px;letter-spacing:1px}
+.park-btn{display:flex;align-items:center;gap:6px;color:var(--cream);text-decoration:none;font-weight:700;min-height:48px;padding:0 6px}
+.park-btn img{width:44px;height:44px;object-fit:contain}
+.who{background:rgba(255,244,220,.15);border:2px solid var(--gold);border-radius:20px;padding:4px 12px;font-weight:700}
+.center{flex:1;display:flex;align-items:center;justify-content:center;font-size:20px;padding:16px}
+.panel{background:var(--cream);border:6px solid var(--wood-2);border-radius:24px;box-shadow:inset 0 0 0 3px var(--gold),0 8px 20px rgba(0,0,0,.25);padding:24px}
+.gate{max-width:440px;text-align:center}
+.gate .tick{width:120px;height:120px;object-fit:contain}
+.gate p{font-size:20px;line-height:1.6;margin:8px 0 20px}
+.row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-width:140px;min-height:52px;padding:0 20px;border-radius:26px;border:3px solid var(--gold);font:700 18px var(--f);color:#fff;text-decoration:none;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.btn.green{background:linear-gradient(#7fd85a,#4aa834)}
+.btn.orange{background:linear-gradient(#ffb04a,#f07f1d)}
+.board-wrap{flex:1;position:relative;min-height:0}
+.board{position:absolute;inset:0;touch-action:none}
+.fps,.picked{position:absolute;left:12px;background:rgba(58,36,18,.75);color:#fff;border-radius:12px;padding:4px 10px;font-size:14px}
+.fps{bottom:12px}
+.fps.low{background:#c0392b}
+.picked{bottom:48px}
+.rotate-hint{display:none}
+@media (orientation:portrait) and (max-width:900px){
+  .rotate-hint{display:flex;position:fixed;inset:0;z-index:9;align-items:center;justify-content:center;background:var(--sky);font-size:24px;font-weight:700}
+}
