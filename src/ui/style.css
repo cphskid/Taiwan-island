@@ -287,3 +287,26 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .item,.digs{white-space:nowrap}
 .board-wrap .say{bottom:110px}
 @media (max-height:600px){ .board-wrap .say{bottom:62px} }
+
+/* 手機橫放：分水畫面壓扁成一屏，閘板一定看得到；彈出的板子太高就可以捲 */
+.talk-cover>*{max-height:100%;overflow-y:auto}
+@media (max-height:600px){
+  .share{padding:4px 6px 4px;gap:4px}
+  .share-top{flex-wrap:nowrap;gap:8px;padding:2px 8px}
+  .hold{min-width:140px;font-size:13px}
+  .hold .bar{height:10px;margin-top:2px}
+  .river-head{display:none}
+  .branch{display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:8px;row-gap:2px;padding:4px 8px}
+  .branch .canal-line,.branch .villager,.branch .gate-slider{grid-column:1 / -1}
+  .branch h3{font-size:14px;white-space:nowrap}
+  .paddies{gap:4px}
+  .paddy{width:34px;height:24px;border-width:2px}
+  .gate-slider{flex-direction:row;align-items:center;gap:8px;margin-top:2px}
+  .gate-slider span{white-space:nowrap}
+  .gate-slider input{height:18px}
+  .share .say{bottom:6px}
+  img.gear{width:56px;height:56px}
+  .mission h2{font-size:20px;margin:2px 0}
+  .mission p{font-size:15px;margin:4px 0}
+  .truth p{font-size:15px}
+}
