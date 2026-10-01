@@ -24,3 +24,6 @@ npm run build:dev  # 測試站版本（/Taiwan-island/dev/，測試庫）
 - `src/ui/` React：頂列、對話、選單、進場檢查
 - `src/net/` 跟樂園與 Supabase 接線
 - `src/data/` 章節資料（地圖、題目、知識卡），改難度和文字不用動程式
+- `tools/make_world.py` 由 M-01 大地圖算出地區分界、高度場與地形眼鏡圖（改了 `src/data/world-*.json` 要重跑）
+
+測試用網址：`?step=3` 直接進第五章某一步；`?world=fresh` 大地圖從頭；`?world=clear5` 假裝剛過完第五章，看撥雲動畫。

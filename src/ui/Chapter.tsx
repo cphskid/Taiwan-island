@@ -11,11 +11,12 @@ export interface StepProps {
   p: Progress;
   set: (fn: (p: Progress) => Progress) => void;
   next: () => void;
+  exit: () => void; // 回全台大地圖
 }
 
 // 第五章「八堡圳」：步驟 0～5 串起來，進度存在這台平板。
 // 網址加 ?step=3 可以直接跳到某一步（測試用）。
-export function Chapter() {
+export function Chapter({ onExit }: { onExit: () => void }) {
   const [p, setP] = useState<Progress>(() => {
     const saved = load();
     const jump = Number(new URLSearchParams(location.search).get('step'));
@@ -25,11 +26,12 @@ export function Chapter() {
 
   const set = (fn: (p: Progress) => Progress) => setP((old) => fn(old));
   const next = () => setP((old) => goTo(old, Math.min(5, old.step + 1) as Step));
-  const props: StepProps = { p, set, next };
+  const props: StepProps = { p, set, next, exit: onExit };
 
   return (
     <div className="chapter">
       <nav className="steps">
+        <button className="back-map" onClick={onExit}><img src={`${import.meta.env.BASE_URL}img/island/h-map.webp`} alt="" />大地圖</button>
         {STEPS.map((name, i) => (
           <button
             key={name}

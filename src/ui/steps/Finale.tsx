@@ -8,7 +8,7 @@ const BASE = import.meta.env.BASE_URL;
 type Phase = 'harvest' | 'truth' | 'quiz' | 'stars';
 
 // 步驟 5 結算：豐收、拿到時之齒輪、「真的是這樣嗎？」卡、反思題、星星
-export function Finale({ p, set }: StepProps) {
+export function Finale({ p, set, exit }: StepProps) {
   const [phase, setPhase] = useState<Phase>(p.done ? 'stars' : 'harvest');
   const [qi, setQi] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
@@ -89,8 +89,9 @@ export function Finale({ p, set }: StepProps) {
             </ul>
             <p className="cards-got">圖鑑卡：{p.cards.map((c) => CARDS[c]?.title).filter(Boolean).join('、')}</p>
             <div className="row">
+              <button className="btn green" onClick={exit}>回大地圖看看</button>
               <button className="btn orange" onClick={() => set(() => ({ ...fresh() }))}>從頭再玩</button>
-              {PARK_URL && <a className="btn green" href={PARK_URL}>回樂園</a>}
+              {PARK_URL && <a className="btn orange" href={PARK_URL}>回樂園</a>}
             </div>
           </div>
         </div>

@@ -14,15 +14,15 @@ export function fitView(b: Rect, s: Size): View {
   return { scale, x: s.width / 2 - (b.left + b.width / 2) * scale, y: s.height / 2 - (b.top + b.height / 2) * scale };
 }
 
-// 縮放範圍：最小是「放得下」再小一點，最大放大到 3 倍
-export function scaleLimits(b: Rect, s: Size) {
+// 縮放範圍：最小是「放得下」再小一點，最大放大到 maxK 倍（關卡 3 倍，大地圖要看得到小人所以更大）
+export function scaleLimits(b: Rect, s: Size, maxK = 3) {
   const fit = fitView(b, s).scale;
-  return { min: fit * 0.9, max: fit * 3 };
+  return { min: fit * 0.9, max: fit * maxK };
 }
 
 // 以螢幕上某一點為中心縮放（雙指中點、滑鼠位置），那一點底下的地圖不動
-export function zoomAt(v: View, factor: number, fx: number, fy: number, b: Rect, s: Size): View {
-  const { min, max } = scaleLimits(b, s);
+export function zoomAt(v: View, factor: number, fx: number, fy: number, b: Rect, s: Size, maxK = 3): View {
+  const { min, max } = scaleLimits(b, s, maxK);
   const scale = Math.max(min, Math.min(max, v.scale * factor));
   const k = scale / v.scale;
   return clampView({ scale, x: fx - (fx - v.x) * k, y: fy - (fy - v.y) * k }, b, s);

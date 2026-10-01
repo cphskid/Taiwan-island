@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { canEnter, PARK_URL, whoAmI, type Who } from '../net/park';
-import { Chapter } from './Chapter';
+import { Island } from './Island';
 import { Gate } from './Gate';
 
 const BASE = import.meta.env.BASE_URL;
@@ -41,7 +41,7 @@ export function App() {
       </header>
       {state.step === 'checking' && <div className="center">準備穿越中…</div>}
       {state.step === 'blocked' && <Gate reason={state.reason} needLogin={state.needLogin} onRetry={check} />}
-      {state.step === 'play' && <Chapter />}
+      {state.step === 'play' && <Island />}
       <div className="rotate-hint">請把平板轉成橫的</div>
     </div>
   );
