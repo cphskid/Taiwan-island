@@ -9,15 +9,18 @@ import { boardBounds, cellToScreen, drawOrder, screenToCell, inside, TILE_H, TIL
 import { bandColor, contourEdges, type Heights } from '../core/terrain';
 import { fitView, panBy, zoomAt, type View } from '../core/camera';
 import type { Piece } from '../core/pieces';
-import type { Terrain } from '../data/babao-preview';
+import type { FlowResult, Kind } from '../core/flow';
 
 const SIDE = 14; // 方塊側面的厚度（px）
 const TAP_SLOP = 8; // 手指移動超過這麼多 px 就不算點一下
 
 // 色盤照美術提示詞文件（KV-01 近似值）
-const TOP: Record<Terrain, number> = {
+const TOP: Record<Kind, number> = {
   grass: 0x6cc94b, field: 0x9bd35a, bamboo: 0x5bb544, stone: 0xe8dcc4, village: 0x7fd05a, river: 0x8d7a55,
+  rock: 0x8d7a55, canal: 0x6cc94b, gate: 0x6cc94b,
 };
+const CANAL_BED = 0x9a6a3c; // 挖好、還沒水的圳道
+const CANAL_WATER = 0x6fb8d6;
 const WATER_LO = 0x7fa7a3; // 濁水溪：帶泥沙的灰綠水色，在兩色之間起伏
 const WATER_HI = 0xa9c9bf;
 const EARTH_L = 0xa86f3d;
@@ -28,7 +31,7 @@ const GOLD = 0xffc23d;
 export interface BoardOptions {
   cols: number;
   rows: number;
-  terrain: (c: Cell) => Terrain;
+  terrain: (c: Cell) => Kind;
   heights: Heights;
   onTap?: (c: Cell | null) => void;
   // 手指按下時先問介面要不要接手（例如按在竹蛇籠上就改成拖它）；回傳 true 就不平移地圖
@@ -42,6 +45,9 @@ export interface Board {
   setHover: (c: Cell | null, ok: boolean) => void;
   setGrid: (on: boolean) => void;
   setContours: (on: boolean) => void;
+  setCanals: (dug: readonly Cell[]) => void; // 玩家挖的圳道（地圖上原本就有的會自己畫）
+  setFlow: (r: FlowResult | null, t: number) => void; // 放水動畫：畫出第 t 步以前水到的地方
+  setPreview: (r: FlowResult | null) => void; // 預計水路（白點）
   destroy: () => void;
 }
 
@@ -60,7 +66,7 @@ function block(g: Graphics, x: number, y: number, top: number) {
 }
 
 // 格子上的佔位小物（竹子、石頭、房子、田畦），之後換成 O 系列的圖
-function prop(g: Graphics, t: Terrain, x: number, y: number) {
+function prop(g: Graphics, t: Kind, x: number, y: number) {
   if (t === 'field') {
     for (let i = -2; i <= 2; i++) {
       const dx = i * 14, dy = i * 7;
@@ -79,7 +85,20 @@ function prop(g: Graphics, t: Terrain, x: number, y: number) {
     g.poly([x - 26, y - 6, x + 6, y - 22, x + 6, y + 2, x - 26, y + 18]).fill(0xd9805a);
     g.poly([x + 6, y - 22, x + 30, y - 10, x + 30, y + 14, x + 6, y + 2]).fill(0xb86040);
     g.poly([x - 30, y - 8, x + 4, y - 44, x + 34, y - 12, x + 6, y - 24]).fill(0x7a7f8c);
+  } else if (t === 'rock') {
+    g.ellipse(x, y - 4, 34, 22).fill(0x8b8b84).stroke({ width: 3, color: 0x5e5e58 });
+    g.ellipse(x - 8, y - 12, 12, 6).fill({ color: 0xffffff, alpha: 0.25 });
+  } else if (t === 'gate') {
+    // 分水閘佔位：兩根木柱夾一塊閘板，之後換 O-02
+    for (const dx of [-26, 26]) g.roundRect(x + dx - 6, y - 46, 12, 50, 4).fill(0x8a5429);
+    g.roundRect(x - 26, y - 40, 52, 12, 4).fill(0xb7834e).stroke({ width: 2, color: 0x6b3f1f });
   }
+}
+
+// 圳道：格子中間挖下去的一條溝（格子比較小的菱形）
+function channel(g: Graphics, x: number, y: number, color: number, alpha = 1) {
+  diamond(g, x, y, 0.62);
+  g.fill({ color, alpha });
 }
 
 // dir 對應的畫面方向（單位向量）：0 朝 col+1（右下）、1 朝 row+1（左下）、2 左上、3 右上
@@ -128,7 +147,11 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
   const hover = new Graphics();
   const cursor = new Graphics();
   const pieces = new Graphics();
-  world.addChild(ground, water, relief, props, grid, hover, cursor, pieces);
+  const canalG = new Graphics();
+  const flowG = new Graphics();
+  const preview = new Graphics();
+  const marks = new Graphics();
+  world.addChild(ground, canalG, water, flowG, relief, props, preview, grid, hover, cursor, pieces, marks);
 
   const order = drawOrder(opt.cols, opt.rows);
   const rivers: Cell[] = [];
@@ -308,6 +331,69 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
     setContours(on) {
       relief.visible = on;
       water.alpha = on ? 0.35 : 1;
+    },
+    setCanals(dug) {
+      canalG.clear();
+      const all = [...order.filter((c) => opt.terrain(c) === 'canal'), ...dug];
+      for (const c of all) {
+        const { x, y } = cellToScreen(c);
+        channel(canalG, x, y, CANAL_BED);
+        diamond(canalG, x, y, 0.62);
+        canalG.stroke({ width: 3, color: 0x6b3f1f, alpha: 0.6 });
+      }
+    },
+    setFlow(r, now) {
+      flowG.clear();
+      marks.clear();
+      if (!r) return;
+      for (const w of r.river) {
+        if (w.t > now) continue;
+        const { x, y } = cellToScreen(w.cell);
+        diamond(flowG, x, y, 0.8);
+        flowG.fill({ color: 0xdff4ff, alpha: 0.35 });
+      }
+      for (const w of r.canal) {
+        if (w.t > now) continue;
+        const { x, y } = cellToScreen(w.cell);
+        channel(flowG, x, y, CANAL_WATER);
+      }
+      for (const w of r.flooded) {
+        if (w.t > now) continue;
+        const { x, y } = cellToScreen(w.cell);
+        diamond(marks, x, y, 0.85);
+        marks.fill({ color: 0x3f7fb0, alpha: 0.6 }).stroke({ width: 4, color: 0xe0533a });
+      }
+      for (const w of r.broken) {
+        if (w.t > now) continue;
+        const { x, y } = cellToScreen(w.cell);
+        marks.moveTo(x - 18, y - 28).lineTo(x + 18, y + 4).moveTo(x + 18, y - 28).lineTo(x - 18, y + 4);
+        marks.stroke({ width: 8, color: 0xe0533a, cap: 'round' });
+      }
+      for (const w of r.blocked) {
+        if (w.t > now) continue;
+        const { x, y } = cellToScreen(w.cell);
+        marks.circle(x, y - 12, 14).fill(0xf07f1d).stroke({ width: 3, color: 0xffffff });
+      }
+      if (now >= r.steps)
+        for (const c of r.gates) {
+          const { x, y } = cellToScreen(c);
+          diamond(marks, x, y, 1);
+          marks.stroke({ width: 6, color: GOLD });
+        }
+    },
+    setPreview(r) {
+      preview.clear();
+      if (!r) return;
+      for (const w of [...r.river, ...r.canal]) {
+        const { x, y } = cellToScreen(w.cell);
+        preview.circle(x, y, 7);
+      }
+      preview.fill({ color: 0xffffff, alpha: 0.85 });
+      for (const w of [...r.flooded, ...r.broken]) {
+        const { x, y } = cellToScreen(w.cell);
+        preview.circle(x, y, 9);
+      }
+      preview.fill({ color: 0xe0533a, alpha: 0.9 });
     },
     destroy() {
       el.removeEventListener('pointerdown', down);

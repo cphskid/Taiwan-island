@@ -21,7 +21,7 @@ body{background:var(--sky);color:var(--ink);font-family:var(--f);overflow:hidden
 .btn.green{background:linear-gradient(#7fd85a,#4aa834)}
 .btn.orange{background:linear-gradient(#ffb04a,#f07f1d)}
 .board-wrap{flex:1;position:relative;min-height:0}
-.board{position:absolute;inset:0;touch-action:none}
+.board{position:absolute;inset:76px 104px 104px 0;touch-action:none}
 .fps,.picked{position:absolute;left:12px;background:rgba(58,36,18,.75);color:#fff;border-radius:12px;padding:4px 10px;font-size:14px}
 .fps{bottom:12px}
 .fps.low{background:#c0392b}
@@ -48,3 +48,17 @@ body{background:var(--sky);color:var(--ink);font-family:var(--f);overflow:hidden
 .legend em{font-style:normal;margin-left:10px;color:var(--wood-2)}
 .band{display:inline-block;width:24px;height:18px;border-radius:4px}
 .b0{background:#7cc46a}.b1{background:#b4d46b}.b2{background:#e4d77d}.b3{background:#e9b866}.b4{background:#cf8b4f}.b5{background:#a8653c}
+
+/* P6-2 導水解謎：關卡按鈕與提示、放水結果、挖圳道模式 */
+.levels{position:absolute;top:12px;left:12px;right:110px;display:flex;align-items:flex-start;gap:8px;pointer-events:none}
+.lv{pointer-events:auto;width:52px;height:52px;border-radius:50%;border:4px solid var(--gold);background:linear-gradient(#a8703d,#6b3f1f);color:var(--cream);font:700 22px var(--f);cursor:pointer}
+.lv.on{background:linear-gradient(#7fd85a,#4aa834)}
+.hint{pointer-events:auto;max-width:520px;background:rgba(255,244,220,.95);border:3px solid var(--wood-2);border-radius:16px;padding:6px 12px;font-size:16px;line-height:1.5}
+.hint b{display:block;font-size:17px}
+.legend{top:auto;bottom:110px}
+.btn.go{min-width:96px;min-height:64px;font-size:20px}
+.btn:disabled{opacity:.5}
+.mode{position:absolute;left:50%;bottom:104px;transform:translateX(-50%);background:#4aa834;color:#fff;font-weight:700;border-radius:16px;padding:6px 14px}
+.result{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:420px;text-align:center;background:var(--cream);border:6px solid var(--wood-2);border-radius:24px;box-shadow:inset 0 0 0 3px var(--gold),0 8px 20px rgba(0,0,0,.3);padding:18px 22px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.result p{margin:0;font-size:20px;font-weight:700;line-height:1.5;color:#c0392b}
+.result.ok p{color:#2e8b2e}
