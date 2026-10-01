@@ -8,6 +8,7 @@ import { ShareStep } from './steps/ShareStep';
 import { Finale } from './steps/Finale';
 import { Album } from './Album';
 import { CARD_ORDER } from '../data/babao-chapter';
+import { awardStamp, pushCloud } from '../net/cloud';
 
 export interface StepProps {
   p: Progress;
@@ -25,7 +26,8 @@ export function Chapter({ onExit, album }: { onExit: () => void; album: readonly
     const jump = Number(new URLSearchParams(location.search).get('step'));
     return jump >= 0 && jump <= 5 && location.search.includes('step=') ? goTo(saved, jump as Step) : saved;
   });
-  useEffect(() => save(p), [p]);
+  useEffect(() => { save(p); pushCloud('ch5', p); }, [p]);
+  useEffect(() => { if (p.done) void awardStamp('ch5'); }, [p.done]);
 
   const set = (fn: (p: Progress) => Progress) => setP((old) => fn(old));
   const next = () => setP((old) => goTo(old, Math.min(5, old.step + 1) as Step));

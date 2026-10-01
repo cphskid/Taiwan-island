@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { canEnter, PARK_URL, whoAmI, type Who } from '../net/park';
 import { Island } from './Island';
+import { setSaveOwner } from '../core/owner';
+import { load, save } from '../core/save';
+import { loadWorld, saveWorld } from '../core/world';
+import { mergeWorld, pickProgress } from '../core/sync';
+import { loadCloud } from '../net/cloud';
 import { Gate } from './Gate';
 
 const BASE = import.meta.env.BASE_URL;
@@ -22,7 +27,10 @@ export function App() {
     }
     const gate = await canEnter();
     if (!gate.ok) setState({ step: 'blocked', reason: gate.reason ?? '現在還不能進來', needLogin: false });
-    else setState({ step: 'play', who });
+    else {
+      await syncSaves(who);
+      setState({ step: 'play', who });
+    }
   };
 
   useEffect(() => { void check(); }, []);
@@ -45,6 +53,16 @@ export function App() {
       <div className="rotate-hint">請把平板轉成橫的</div>
     </div>
   );
+}
+
+// 進遊戲前：本機存檔換成這個人的那一格，再跟雲端那份比一比、用比較完整的
+async function syncSaves(who: Who) {
+  setSaveOwner(who.kind === 'student' ? who.id : who.kind === 'staff' ? 'staff' : null);
+  if (who.kind !== 'student') return;
+  const cloud = await loadCloud();
+  if (!cloud) return;
+  save(pickProgress(load(), cloud.ch5 as never));
+  saveWorld(mergeWorld(loadWorld(), cloud.world as never));
 }
 
 function WhoBadge({ who }: { who: Who }) {

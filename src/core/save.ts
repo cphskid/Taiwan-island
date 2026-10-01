@@ -1,6 +1,8 @@
-// 第五章的進度，先存在這台平板（localStorage）；P6-6 再接雲端。
+// 第五章的進度，存在這台平板（localStorage，一人一格）；有登入就同步到雲端（net/cloud.ts）。
 //
 // 讀不到或格式不對就從頭開始，不會讓遊戲壞掉。
+
+import { keyFor } from './owner';
 
 export const STEPS = ['開場', '認識地形', '做竹蛇籠', '導水', '分水', '豐收'] as const;
 export type Step = 0 | 1 | 2 | 3 | 4 | 5;
@@ -37,7 +39,7 @@ const KEY = 'island.ch5.v1';
 
 export function load(store: Pick<Storage, 'getItem'> | undefined = globalThis.localStorage): Progress {
   try {
-    const raw = store?.getItem(KEY);
+    const raw = store?.getItem(keyFor(KEY));
     if (!raw) return fresh();
     const p = JSON.parse(raw) as Partial<Progress>;
     if (p.v !== 1) return fresh();
@@ -49,7 +51,7 @@ export function load(store: Pick<Storage, 'getItem'> | undefined = globalThis.lo
 
 export function save(p: Progress, store: Pick<Storage, 'setItem'> | undefined = globalThis.localStorage) {
   try {
-    store?.setItem(KEY, JSON.stringify(p));
+    store?.setItem(keyFor(KEY), JSON.stringify(p));
   } catch {
     /* 私密瀏覽或空間滿了：這次不存，遊戲照玩 */
   }

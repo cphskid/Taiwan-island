@@ -3,6 +3,7 @@ import { addCards, freshWorld, loadWorld, markCleared, saveWorld, type WorldSave
 import { load } from '../core/save';
 import type { ChapterId } from '../data/world';
 import { Chapter } from './Chapter';
+import { pushCloud } from '../net/cloud';
 import { WorldMap } from './WorldMap';
 
 // 整個遊戲的兩層：全台大地圖（選章）⇄ 章節關卡。
@@ -25,7 +26,7 @@ export function Island() {
   const [world, setWorld] = useState<WorldSave>(initialWorld);
   const [mode, setMode] = useState<{ at: 'map'; back: boolean } | { at: 'chapter'; id: ChapterId }>(() =>
     location.search.includes('step=') ? { at: 'chapter', id: 'ch5' } : { at: 'map', back: false });
-  useEffect(() => saveWorld(world), [world]);
+  useEffect(() => { saveWorld(world); pushCloud('world', world); }, [world]);
 
   if (mode.at === 'chapter')
     return <Chapter album={world.cards} onExit={() => { setWorld((w) => syncChapters(w)); setMode({ at: 'map', back: true }); }} />;

@@ -3,6 +3,8 @@
 //
 // 大地圖的進度跟章節分開存：章節「從頭再玩」不會讓撥開的雲霧又蓋回去。
 
+import { keyFor } from './owner';
+
 export interface Pt { x: number; y: number }
 
 export interface WorldSave {
@@ -19,7 +21,7 @@ const KEY = 'island.world.v1';
 
 export function loadWorld(store: Pick<Storage, 'getItem'> | undefined = globalThis.localStorage): WorldSave {
   try {
-    const raw = store?.getItem(KEY);
+    const raw = store?.getItem(keyFor(KEY));
     if (!raw) return freshWorld();
     const w = JSON.parse(raw) as Partial<WorldSave>;
     if (w.v !== 1) return freshWorld();
@@ -31,7 +33,7 @@ export function loadWorld(store: Pick<Storage, 'getItem'> | undefined = globalTh
 
 export function saveWorld(w: WorldSave, store: Pick<Storage, 'setItem'> | undefined = globalThis.localStorage) {
   try {
-    store?.setItem(KEY, JSON.stringify(w));
+    store?.setItem(keyFor(KEY), JSON.stringify(w));
   } catch {
     /* 存不了就算了，遊戲照玩 */
   }
