@@ -201,7 +201,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
   const remaining = avail - pieces.length;
   const running = run !== null && !run.done;
   const result = run?.done ? verdict(run.result, level.need) : null;
-  const lin = topped ? '竹蛇籠被沖壞了沒關係，我幫你補做好了。'
+  const lin = topped ? '竹蛇籠不夠用，我幫你補做好了。'
     : fails >= DEMO_AT ? '我做一次給你看：按「看示範」。'
     : fails >= HINT_AT ? '白色的是我的提示：竹蛇籠放在白框裡、箭頭照白色箭頭，白色的格子就是要挖的圳道。'
     : null;

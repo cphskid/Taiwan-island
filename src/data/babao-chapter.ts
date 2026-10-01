@@ -165,4 +165,5 @@ export const img = (name: string) => `${import.meta.env.BASE_URL}img/island/${na
 export const PUZZLE_ART = {
   props: { bamboo: img('o4-bamboo'), stone: img('o4-stones'), village: img('o3-zhang'), tribe: img('o3-tribe'), gate: img('gate') },
   cage: img('cage'),
+  tiles: { grass: img('t1-grass'), canal: img('t1-grass'), gate: img('t1-grass'), stone: img('t1-grass'), bamboo: img('t1-grass'), village: img('t1-grass'), tribe: img('t1-grass'), field: img('t1-paddy'), dry: img('t1-cracked') },
 };

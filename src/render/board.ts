@@ -47,7 +47,7 @@ export interface BoardOptions {
   // 有底圖就不畫程式的地塊和小物，格子只用來點選、雲霧、地形眼鏡。
   backdrop?: { src: string; corners: readonly number[] };
   // 換成 Chuck 的圖：哪一種地上的東西用哪張圖、竹蛇籠用哪張圖
-  art?: { props?: Partial<Record<Kind, string>>; cage?: string }; // 聚落插的旗子顏色（漳州莊藍、泉州莊橘）
+  art?: { props?: Partial<Record<Kind, string>>; cage?: string; tiles?: Partial<Record<Kind, string>> }; // 聚落插的旗子顏色（漳州莊藍、泉州莊橘）
 }
 
 // 提示用的記號：林先生指出該放竹蛇籠的格子（含方向）、該挖的圳道、要找的地方
@@ -208,12 +208,13 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
   const hints = new Graphics();
   const fog = new Graphics();
   const propArt = new Container();
+  const groundArt = new Container();
   const cageArt = new Container();
-  world.addChild(ground, relief, canalG, water, flowG, props, propArt, preview, grid, hints, hover, cursor, cageArt, pieces, marks, fog);
+  world.addChild(ground, groundArt, relief, canalG, water, flowG, props, propArt, preview, grid, hints, hover, cursor, cageArt, pieces, marks, fog);
 
   // 預先載入要用的圖
   const tex: Record<string, Texture> = {};
-  const urls = [...Object.values(opt.art?.props ?? {}), ...(opt.art?.cage ? [opt.art.cage] : [])].filter((u): u is string => !!u);
+  const urls = [...Object.values(opt.art?.props ?? {}), ...Object.values(opt.art?.tiles ?? {}), ...(opt.art?.cage ? [opt.art.cage] : [])].filter((u): u is string => !!u);
   await Promise.all(urls.map(async (u) => { tex[u] = await Assets.load<Texture>(u); }));
   const place = (url: string, x: number, y: number, width: number, flip = false) => {
     const sp = new Sprite(tex[url]);
@@ -237,9 +238,19 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
     ground.clear();
     props.clear();
     if (opt.backdrop) return;
+    for (const ch of groundArt.removeChildren()) ch.destroy();
     for (const c of order) {
       const { x, y } = cellToScreen(c);
       block(ground, x, y, TOP[opt.terrain(c)]);
+      const url = opt.art?.tiles?.[opt.terrain(c)];
+      if (!url) continue;
+      // T-01 地面方塊：頂面約 607×448、中心在圖的 (0.5, 0.41)；壓扁成 2:1 的格子
+      const sp = new Sprite(tex[url]);
+      sp.anchor.set(0.5, 0.41);
+      const sx = (TILE_W * 1.06) / (sp.texture.width * 0.965), sy = (TILE_H * 1.06) / (sp.texture.height * 0.80);
+      sp.scale.set(sx, sy);
+      sp.position.set(x, y);
+      groundArt.addChild(sp);
     }
     for (const ch of propArt.removeChildren()) ch.destroy();
     for (const c of order) {
