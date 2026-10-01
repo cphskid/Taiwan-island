@@ -304,9 +304,16 @@ img.gear{width:110px;height:110px;object-fit:contain}
   .gate-slider{flex-direction:row;align-items:center;gap:8px;margin-top:2px}
   .gate-slider span{white-space:nowrap}
   .gate-slider input{height:18px}
-  .share .say{bottom:6px}
+
   img.gear{width:56px;height:56px}
   .mission h2{font-size:20px;margin:2px 0}
   .mission p{font-size:15px;margin:4px 0}
   .truth p{font-size:15px}
 }
+
+/* 角落提示可以收起來 */
+.say{pointer-events:auto;cursor:pointer;font:inherit;color:inherit;text-align:left}
+.say-x{font-style:normal;align-self:flex-start;color:var(--wood-2);font-weight:900;font-size:14px;padding:0 2px}
+.say.mini{padding:4px;gap:0;border-radius:50%;max-width:none}
+.say-dot{position:absolute;right:-6px;top:-8px;font-style:normal;font-size:18px}
+.share .say{bottom:auto;top:6px}

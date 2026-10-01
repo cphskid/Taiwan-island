@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PEOPLE, type Line } from '../data/babao-chapter';
 
 const BASE = import.meta.env.BASE_URL;
@@ -34,14 +34,28 @@ export function Face({ who, mood, small }: { who: Line['who']; mood?: Line['mood
   );
 }
 
-// 林先生／滴答在角落說一句話（不擋畫面）
+// 林先生／滴答在角落說一句話：點一下縮成小頭像（不擋操作），再點一下展開；
+// 新的一句話會自己展開，8 秒後自己縮起來
 export function Say({ line }: { line: Line | null }) {
+  const text = line?.text;
+  const [small, setSmall] = useState(false);
+  useEffect(() => {
+    setSmall(false);
+    if (!text) return;
+    const t = setTimeout(() => setSmall(true), 8000);
+    return () => clearTimeout(t);
+  }, [text]);
   if (!line) return null;
   return (
-    <div className="say">
+    <button className={`say ${small ? 'mini' : ''}`} onClick={() => setSmall(!small)} aria-label={small ? '打開提示' : '收起提示'}>
       <Face who={line.who} mood={line.mood} small />
-      <p><b style={{ color: PEOPLE[line.who].color }}>{PEOPLE[line.who].name}</b>{line.text}</p>
-    </div>
+      {small ? <i className="say-dot">💬</i> : (
+        <>
+          <p><b style={{ color: PEOPLE[line.who].color }}>{PEOPLE[line.who].name}</b>{line.text}</p>
+          <i className="say-x">✕</i>
+        </>
+      )}
+    </button>
   );
 }
 
