@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MISSIONS, OPENING } from '../../data/babao-chapter';
+import { MISSIONS, OPENING, img } from '../../data/babao-chapter';
 import { Talk } from '../Talk';
 import type { StepProps } from '../Chapter';
 
@@ -10,12 +10,7 @@ export function Opening({ next }: StepProps) {
   const [board, setBoard] = useState(false);
   return (
     <div className="scene opening">
-      <div className="opening-sky">
-        <div className="sun" />
-        <div className="dry-land">
-          {Array.from({ length: 12 }, (_, i) => <span key={i} className="crack-field" />)}
-        </div>
-      </div>
+      <img className="scene-bg" src={img('S-01')} alt="" />
       {!board && <Talk lines={OPENING} onDone={() => setBoard(true)} />}
       {board && (
         <div className="talk-cover">

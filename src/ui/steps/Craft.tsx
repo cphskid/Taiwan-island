@@ -1,13 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { CARDS, CHAPTER, CRAFT_INTRO, key } from '../../data/babao-chapter';
+import { CARDS, CHAPTER, CRAFT_INTRO, img, key } from '../../data/babao-chapter';
 import { CAGES_NEEDED, CAGE_COST, canCraft, craft } from '../../core/save';
-import type { Cell } from '../../core/iso';
 import { useBoard } from '../useBoard';
 import { CardPop, Say, Talk } from '../Talk';
-import { flagOf } from './Explore';
 import type { StepProps } from '../Chapter';
-
-const STONES_PER_PILE = 2;
 
 // 步驟 2 做竹蛇籠：點竹林拿竹子、點石堆拿石頭；編籠（來回滑三下）再把石頭拖進籠子
 export function Craft({ p, set, next }: StepProps) {
@@ -20,14 +16,9 @@ export function Craft({ p, set, next }: StepProps) {
   const live = useRef({ p, taken });
   live.current = { p, taken };
 
-  const kindNow = (c: Cell) => {
-    const k = CHAPTER.kind(c);
-    return (k === 'bamboo' || k === 'stone') && live.current.taken.has(key(c)) ? 'grass' : k;
-  };
-
   const { board, ready, fps } = useBoard(host, {
-    cols: CHAPTER.cols, rows: CHAPTER.rows, terrain: kindNow, heights: CHAPTER.heights, flag: flagOf,
-    start: { cell: { col: 11, row: 4 }, scale: 0.6 },
+    cols: CHAPTER.cols, rows: CHAPTER.rows, terrain: CHAPTER.kind, heights: CHAPTER.heights, backdrop: CHAPTER.backdrop,
+    start: { cell: { col: 6, row: 3 }, scale: 0.6 },
     onTap: (c) => {
       if (!c || live.current.taken.has(key(c))) return;
       const k = CHAPTER.kind(c);
@@ -35,18 +26,21 @@ export function Craft({ p, set, next }: StepProps) {
         set((o) => ({ ...o, bamboo: o.bamboo + 1, taken: [...o.taken, key(c)] }));
         setSay('砍到一根竹子！');
       } else if (k === 'stone') {
-        set((o) => ({ ...o, stone: o.stone + STONES_PER_PILE, taken: [...o.taken, key(c)] }));
-        setSay(`撿到 ${STONES_PER_PILE} 顆石頭！`);
+        const n = CHAPTER.stones(c);
+        set((o) => ({ ...o, stone: o.stone + n, taken: [...o.taken, key(c)] }));
+        setSay(`撿到 ${n} 顆石頭！`);
       }
     },
   }, []);
-  useEffect(() => { board.current?.redraw(); }, [p.taken, ready]);
+  useEffect(() => { board.current?.setMarks(p.taken.map((k) => { const [col, row] = k.split(',').map(Number); return { kind: 'done' as const, cell: { col, row } }; })); }, [p.taken, ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 材料不夠做完 6 個：林先生補給（不會卡死）
-  const all = (k: string) => Array.from({ length: CHAPTER.rows }, (_, row) => Array.from({ length: CHAPTER.cols }, (_, col) => ({ col, row })))
-    .flat().filter((c) => CHAPTER.kind(c) === k && !taken.has(key(c))).length;
+  const left = Array.from({ length: CHAPTER.rows }, (_, row) => Array.from({ length: CHAPTER.cols }, (_, col) => ({ col, row })))
+    .flat().filter((c) => !taken.has(key(c)));
+  const bambooLeft = left.filter((c) => CHAPTER.kind(c) === 'bamboo').length;
+  const stoneLeft = left.reduce((n, c) => n + CHAPTER.stones(c), 0);
   const need = CAGES_NEEDED - p.cages;
-  const short = need > 0 && (p.bamboo + all('bamboo') < need * CAGE_COST.bamboo || p.stone + all('stone') * STONES_PER_PILE < need * CAGE_COST.stone);
+  const short = need > 0 && (p.bamboo + bambooLeft < need * CAGE_COST.bamboo || p.stone + stoneLeft < need * CAGE_COST.stone);
   useEffect(() => {
     if (!short) return;
     set((o) => ({ ...o, bamboo: Math.max(o.bamboo, need * CAGE_COST.bamboo), stone: Math.max(o.stone, need * CAGE_COST.stone) }));
@@ -63,9 +57,9 @@ export function Craft({ p, set, next }: StepProps) {
     <div className="board-wrap">
       <div className="board full" ref={host} />
       <div className="mats">
-        <span>🎋 竹子 <b>{p.bamboo}</b></span>
-        <span>🪨 石頭 <b>{p.stone}</b></span>
-        <span><i className="cage-icon" /> 竹蛇籠 <b>{p.cages} / {CAGES_NEEDED}</b></span>
+        <span><img src={img('g-bamboo')} alt="" />竹子 <b>{p.bamboo}</b></span>
+        <span><img src={img('g-stone')} alt="" />石頭 <b>{p.stone}</b></span>
+        <span><img src={img('g-cage-full')} alt="" />竹蛇籠 <b>{p.cages} / {CAGES_NEEDED}</b></span>
       </div>
       {!finished && (
         <div className="tray">
@@ -129,13 +123,16 @@ function Weave({ onDone, onCancel }: { onDone: () => void; onCancel: () => void 
             track.current = null;
           }}
         >
-          {inside.map((v, i) => v && <span key={i} className="stone in" />)}
+          {inside.map((v, i) => v && <img key={i} className="stone in" src={img('g-stone')} alt="" />)}
         </div>
         {woven && (
           <div className="stones">
             {inside.map((v, i) => !v && (
-              <span
+              <img
                 key={i}
+                src={img('g-stone')}
+                alt=""
+                draggable={false}
                 className="stone"
                 style={drag?.i === i ? { position: 'fixed', left: drag.x, top: drag.y, transform: 'translate(-50%,-50%)', zIndex: 9 } : undefined}
                 onPointerDown={(e) => { (e.target as HTMLElement).setPointerCapture?.(e.pointerId); setDrag({ i, x: e.clientX, y: e.clientY }); }}

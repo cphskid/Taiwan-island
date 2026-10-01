@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CARDS, SHARE_HINT, SHARE_INTRO } from '../../data/babao-chapter';
+import { CARDS, SHARE_HINT, SHARE_INTRO, img } from '../../data/babao-chapter';
 import { DRY_HOLD, FIELDS, FLOW, RAIN_HOLD, goodRange, setGate, startShare, stateOf, tick, type Share, type Side } from '../../core/share';
 import { CardPop, Face, Say, Talk } from '../Talk';
 import type { StepProps } from '../Chapter';
@@ -39,15 +39,15 @@ export function ShareStep({ p, set, next }: StepProps) {
     : null;
 
   return (
-    <div className={`scene share ${s.season}`}>
+    <div className={`scene share ${s.season}`} style={{ backgroundImage: `url(${img('S-02')})` }}>
       <div className="share-top">
-        <span className={`season ${s.season}`}>{s.season === 'dry' ? '☀ 旱季' : '🌧 雨季'}：溪水 {FLOW[s.season]} 份</span>
+        <span className={`season ${s.season}`}><img src={img(s.season === 'dry' ? 'g-sun' : 'g-rain')} alt="" />{s.season === 'dry' ? '旱季' : '雨季'}：溪水 {FLOW[s.season]} 份</span>
         <div className="hold">
           <span>{s.done ? '完成！' : s.season === 'dry' ? '全部綠著撐住，等雨季來' : '雨季也撐住就過關'}</span>
           <div className="bar"><i style={{ width: `${Math.min(100, (s.hold / goal) * 100)}%` }} /></div>
         </div>
       </div>
-      <div className="river-head">濁水溪 → 圳道 → <b>分水閘</b></div>
+      <div className="river-head"><img src={img('g-water')} alt="" />濁水溪 → 圳道 → <img src={img('gate')} alt="" /><b>分水閘</b></div>
       <div className="branches">
         {(['zhang', 'quan'] as Side[]).map((side) => {
           const st = stateOf(s.moist[side]);

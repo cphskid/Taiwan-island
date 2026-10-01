@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { LEVELS } from '../../data/babao-levels';
-import { PUZZLE_INTRO } from '../../data/babao-chapter';
+import { PUZZLE_ART, PUZZLE_INTRO, img } from '../../data/babao-chapter';
 import { canDig, canPlace, simulate, solved, type FlowResult } from '../../core/flow';
 import { move, pieceAt, place, remove, rotate, same, type Piece } from '../../core/pieces';
 import type { Cell } from '../../core/iso';
@@ -77,7 +77,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
   }, [p.cages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { board, ready, fps } = useBoard(host, {
-    cols: level.cols, rows: level.rows, terrain: level.kind, heights: level.heights,
+    cols: level.cols, rows: level.rows, terrain: level.kind, heights: level.heights, art: PUZZLE_ART,
     onTap: (c) => {
       setSelected(null);
       const L = live.current;
@@ -219,10 +219,10 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
 
       <div className="tools">
         <button className="tool" disabled={selected === null || running} onClick={() => selected !== null && edit(() => setPieces(rotate(pieces, selected)))}>
-          <span className="tool-icon">↻</span>旋轉
+          <img className="tool-img" src={img('h-rotate')} alt="" />旋轉
         </button>
         <button className="tool" disabled={selected === null || running} onClick={() => { if (selected !== null) edit(() => { setPieces(remove(pieces, selected)); setSelected(null); }); }}>
-          <span className="tool-icon">⤓</span>拿回
+          <img className="tool-img" src={img('h-undo')} alt="" />拿回
         </button>
         {level.digs > 0 && (
           <button className={`tool ${digging ? 'on' : ''}`} disabled={running} onClick={() => setDigging(!digging)}>
@@ -230,7 +230,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
           </button>
         )}
         <button className={`tool ${contours ? 'on' : ''}`} onClick={() => setContours(!contours)}>
-          <span className="tool-icon">◎</span>地形眼鏡
+          <img className="tool-img" src={img('h-eye')} alt="" />地形眼鏡
         </button>
       </div>
 
@@ -244,7 +244,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
             startDrag({ kind: 'new' });
           }}
         >
-          <span className="cage-icon" />
+          <img className="item-img" src={img('g-cage-full')} alt="" />
           <span>竹蛇籠</span>
           <b>×{remaining}</b>
         </div>
@@ -266,7 +266,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
       )}
 
       {contours && <Legend />}
-      {ghost && <span className="cage-icon ghost" style={{ left: ghost.x, top: ghost.y }} />}
+      {ghost && <img className="ghost" src={img('g-cage-full')} alt="" style={{ left: ghost.x, top: ghost.y }} />}
       {intro && <Talk lines={PUZZLE_INTRO} onDone={() => setIntro(false)} />}
       <div className="fps">每秒 {fps} 格</div>
     </div>

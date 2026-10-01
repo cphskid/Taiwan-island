@@ -7,50 +7,53 @@ import { parseHeights } from '../core/terrain';
 import type { Kind } from '../core/flow';
 import type { Cell } from '../core/iso';
 
-// 整章的大地圖（16×12）：右邊是濁水溪，二水那一頭（右上）最高，往海邊（左下）越來越低。
-//   r 河  g 草地  d 乾掉的田  b 竹林  s 石堆  v 聚落  p 平埔族社
+// 整章的大地圖（12×12）：底圖是 Chuck 的 S-04，格子照圖上的河、田、莊定。
+// 地圖上方（後面）最高，往前面越來越低；濁水溪從上面斜斜流到右前方。
+//   r 河  g 草地  t 樹（當草地）  d 乾掉的田  b 竹林  s 小石堆（2 顆）  S 大石堆（4 顆）
+//   v 聚落  p 巴布薩族的社
 const MAP = [
-  'bbggggggggbbgsrr',
-  'bgggggggggggggrr',
-  'ggggggvggggggsrr',
-  'gggggggggbggggrr',
-  'gggdddggggggggrr',
-  'ggddddggggggsgrr',
-  'gdddddgggbggggrr',
-  'gdddddggggpgggrr',
-  'ggddddgggggggsrr',
-  'gggvdgggbgggggrr',
-  'gggggggggggsgsrr',
-  'ggbggggggggggsrr',
+  'tbbsrrrrrgtt',
+  'tpppbsrrrrrg',
+  'bpgpbbggrrrs',
+  'bpgggggSgrrr',
+  'tggggggggSrr',
+  'tgtgggggggrr',
+  'tgggggggggsr',
+  'ddgggggggvvg',
+  'dddggggggvvg',
+  'dddvvgggdddg',
+  'dddvvgggdddg',
+  'dddvvgggdddg',
 ];
 const HEIGHTS = [
-  '3333344444555555',
-  '2333334445555555',
-  '2233333445555555',
-  '2233333445544555',
-  '2223333344444445',
-  '1222222334444444',
-  '1112122233334444',
-  '1111111223333444',
-  '1111111223344344',
-  '0111111222343334',
-  '0011111222333333',
-  '0001111122223333',
+  '555544333443',
+  '555444333323',
+  '544444443223',
+  '444444433222',
+  '433334433311',
+  '333333433211',
+  '332333332221',
+  '332222222111',
+  '322222221111',
+  '222221111110',
+  '222111111000',
+  '211111100000',
 ];
-const KEY: Record<string, Kind> = { r: 'river', g: 'grass', d: 'dry', b: 'bamboo', s: 'stone', v: 'village', p: 'tribe' };
+const KEY: Record<string, Kind> = { r: 'river', g: 'grass', t: 'grass', d: 'dry', b: 'bamboo', s: 'stone', S: 'stone', v: 'village', p: 'tribe' };
 
 export const CHAPTER = {
   cols: MAP[0].length,
   rows: MAP.length,
   kind: ({ col, row }: Cell): Kind => KEY[MAP[row]?.[col] ?? 'g'] ?? 'grass',
   heights: parseHeights(HEIGHTS),
-  start: { col: 13, row: 1 }, // 滴答帶你降落的地方（二水，溪邊上游）
+  stones: ({ col, row }: Cell) => (MAP[row]?.[col] === 'S' ? 4 : MAP[row]?.[col] === 's' ? 2 : 0),
+  start: { col: 5, row: 1 }, // 滴答帶你降落的地方（溪邊上游）
+  // S-04 底圖四個角（左上、右上、右下、左下）在地圖座標的位置，由圖上的地塊四角算出來
+  backdrop: { src: `${import.meta.env.BASE_URL}img/island/S-04.webp`, corners: [-775.2, -31.7, 879.6, -45.0, 661.0, 758.9, -779.7, 756.9] },
 };
 
-export const ZHANG: Cell = { col: 6, row: 2 };
-export const QUAN: Cell = { col: 3, row: 9 };
-export const FLAG_ZHANG = 0x3b6fd1; // 漳州莊藍旗
-export const FLAG_QUAN = 0xf07f1d; // 泉州莊橘旗
+export const ZHANG: Cell = { col: 4, row: 10 };
+export const QUAN: Cell = { col: 9, row: 8 };
 
 export const key = (c: Cell) => `${c.col},${c.row}`;
 
@@ -74,8 +77,8 @@ const cellsOf = (ch: string) =>
 export const PLACES: Place[] = [
   { id: 'river', card: 'river', cells: cellsOf('r') },
   { id: 'plain', card: 'plain', cells: cellsOf('d') },
-  { id: 'zhang', card: 'zhang', cells: [ZHANG] },
-  { id: 'quan', card: 'quan', cells: [QUAN] },
+  { id: 'zhang', card: 'zhang', cells: [ZHANG, { col: 3, row: 9 }, { col: 3, row: 10 }, { col: 4, row: 9 }] },
+  { id: 'quan', card: 'quan', cells: [QUAN, { col: 9, row: 7 }, { col: 10, row: 7 }, { col: 10, row: 8 }] },
   { id: 'tribe', card: 'tribe', cells: cellsOf('p') },
 ];
 
@@ -84,9 +87,9 @@ export type Who = 'tick' | 'shi' | 'lin' | 'babuza' | 'zhang' | 'quan';
 export interface Line { who: Who; text: string; mood?: 'wave' | 'happy' | 'thinking' | 'worried' }
 export const PEOPLE: Record<Who, { name: string; img?: string; badge?: string; color: string }> = {
   tick: { name: '滴答', color: '#ffc23d' },
-  shi: { name: '施世榜', badge: '施', color: '#8a5429' },
-  lin: { name: '林先生', badge: '林', color: '#4aa834' },
-  babuza: { name: '巴布薩族社眾', badge: '社', color: '#b9894f' },
+  shi: { name: '施世榜', img: 'island/shi.webp', color: '#8a5429' },
+  lin: { name: '林先生', img: 'island/lin.webp', color: '#4aa834' },
+  babuza: { name: '巴布薩族社眾', img: 'island/babuza.webp', color: '#b9894f' },
   zhang: { name: '漳州莊莊民', img: 'people/P-08_1.webp', color: '#3b6fd1' },
   quan: { name: '泉州莊莊民', img: 'people/P-02_6.webp', color: '#f07f1d' },
 };
@@ -112,7 +115,7 @@ export const HIGHEST_ASK: Line[] = [
 
 export const CRAFT_INTRO: Line[] = [
   { who: 'lin', text: '我是林先生。要把濁水溪的大水引進圳道，不能硬擋，要用竹蛇籠把水「導」過去。' },
-  { who: 'lin', text: '去竹林砍竹子、到溪邊撿石頭。一個竹蛇籠要 1 根竹子、2 顆石頭，總共要做 6 個。' },
+  { who: 'lin', text: '去竹林砍竹子、到溪邊撿石頭。一個竹蛇籠要 1 根竹子、2 顆石頭，總共要做 6 個。大石堆有 4 顆，小石堆只有 2 顆。' },
   { who: 'lin', text: '石頭不多，要省著用喔！' },
 ];
 
@@ -156,3 +159,10 @@ export const QUESTIONS: Question[] = [
     why: '「平均」是一樣多，「公平」是照需要分。兩邊一樣多，田多的那邊反而不夠。',
   },
 ];
+
+// Chuck 的圖（public/img/island/）
+export const img = (name: string) => `${import.meta.env.BASE_URL}img/island/${name}.webp`;
+export const PUZZLE_ART = {
+  props: { bamboo: img('o4-bamboo'), stone: img('o4-stones'), village: img('o3-zhang'), tribe: img('o3-tribe'), gate: img('gate') },
+  cage: img('cage'),
+};

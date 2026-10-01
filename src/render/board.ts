@@ -4,7 +4,7 @@
 // 觸控：單指拖曳平移、雙指縮放、點一下選格子；拖竹蛇籠由介面層（BoardView）用 cellAt/setHover 處理。
 // 地形眼鏡：開了才疊上分層設色與等高線；格子線只在拖放時出現。
 
-import { Application, Container, Graphics, Matrix, Sprite, Texture } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Matrix, PerspectiveMesh, Sprite, Texture } from 'pixi.js';
 import { boardBounds, cellToScreen, drawOrder, screenToCell, inside, TILE_H, TILE_W, type Cell } from '../core/iso';
 import { type Heights } from '../core/terrain';
 import { reliefPixels } from '../core/relief';
@@ -42,11 +42,16 @@ export interface BoardOptions {
   onPress?: (c: Cell, e: PointerEvent) => boolean;
   flag?: (c: Cell) => number | null;
   flow?: Dir; // 河往哪個方向流（預設 row+1）
-  start?: { cell: Cell; scale: number }; // 一開始鏡頭對準哪裡、放多大 // 聚落插的旗子顏色（漳州莊藍、泉州莊橘）
+  start?: { cell: Cell; scale: number }; // 一開始鏡頭對準哪裡、放多大
+  // 整張畫好的地圖底圖（S-04）：給圖片四個角在地圖座標的位置（左上、右上、右下、左下）。
+  // 有底圖就不畫程式的地塊和小物，格子只用來點選、雲霧、地形眼鏡。
+  backdrop?: { src: string; corners: readonly number[] };
+  // 換成 Chuck 的圖：哪一種地上的東西用哪張圖、竹蛇籠用哪張圖
+  art?: { props?: Partial<Record<Kind, string>>; cage?: string }; // 聚落插的旗子顏色（漳州莊藍、泉州莊橘）
 }
 
 // 提示用的記號：林先生指出該放竹蛇籠的格子（含方向）、該挖的圳道、要找的地方
-export type Mark = { kind: 'cage'; cell: Cell; dir: Dir } | { kind: 'dig'; cell: Cell } | { kind: 'ring'; cell: Cell };
+export type Mark = { kind: 'cage'; cell: Cell; dir: Dir } | { kind: 'dig'; cell: Cell } | { kind: 'ring'; cell: Cell } | { kind: 'done'; cell: Cell };
 
 export interface Board {
   fps: () => number;
@@ -139,7 +144,7 @@ function channel(g: Graphics, x: number, y: number, color: number, alpha = 1) {
 const DIRS: [number, number][] = [[0.894, 0.447], [-0.894, 0.447], [-0.894, -0.447], [0.894, -0.447]];
 
 // 竹蛇籠佔位：躺在格子上的長籠子，金色箭頭是擋水面朝的方向
-function cage(g: Graphics, p: Piece, selected: boolean) {
+function cage(g: Graphics, p: Piece, selected: boolean, sprite: boolean) {
   const { x, y } = cellToScreen(p.cell);
   const [fx, fy] = DIRS[p.dir];
   const [ax, ay] = DIRS[(p.dir + 1) % 4]; // 籠身和擋水面垂直
@@ -148,6 +153,7 @@ function cage(g: Graphics, p: Piece, selected: boolean) {
     diamond(g, x, y, 0.92);
     g.stroke({ width: 5, color: GOLD });
   }
+  if (sprite) { arrow(g, x, y - 10, fx, fy, GOLD); return; }
   g.ellipse(x, y + 6, 46, 16).fill({ color: 0x000000, alpha: 0.18 });
   g.moveTo(x - ax * L, y - ay * L - 10).lineTo(x + ax * L, y + ay * L - 10).stroke({ width: 26, color: 0xc9b25a, cap: 'round' });
   for (let i = -3; i <= 3; i++) {
@@ -201,19 +207,45 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
   const marks = new Graphics();
   const hints = new Graphics();
   const fog = new Graphics();
-  world.addChild(ground, relief, canalG, water, flowG, props, preview, grid, hints, hover, cursor, pieces, marks, fog);
+  const propArt = new Container();
+  const cageArt = new Container();
+  world.addChild(ground, relief, canalG, water, flowG, props, propArt, preview, grid, hints, hover, cursor, cageArt, pieces, marks, fog);
+
+  // 預先載入要用的圖
+  const tex: Record<string, Texture> = {};
+  const urls = [...Object.values(opt.art?.props ?? {}), ...(opt.art?.cage ? [opt.art.cage] : [])].filter((u): u is string => !!u);
+  await Promise.all(urls.map(async (u) => { tex[u] = await Assets.load<Texture>(u); }));
+  const place = (url: string, x: number, y: number, width: number, flip = false) => {
+    const sp = new Sprite(tex[url]);
+    sp.anchor.set(0.5, 0.82);
+    const k = width / sp.texture.width;
+    sp.scale.set(flip ? -k : k, k);
+    sp.position.set(x, y + TILE_H * 0.36);
+    return sp;
+  };
 
   const order = drawOrder(opt.cols, opt.rows);
-  const rivers: Cell[] = order.filter((c) => opt.terrain(c) === 'river');
+  const rivers: Cell[] = opt.backdrop ? [] : order.filter((c) => opt.terrain(c) === 'river');
+  if (opt.backdrop) {
+    const tex = await Assets.load<Texture>(opt.backdrop.src);
+    const mesh = new PerspectiveMesh({ texture: tex, verticesX: 20, verticesY: 20 });
+    const k = opt.backdrop.corners;
+    mesh.setCorners(k[0], k[1], k[2], k[3], k[4], k[5], k[6], k[7]);
+    world.addChildAt(mesh, 0);
+  }
   const drawStatic = () => {
     ground.clear();
     props.clear();
+    if (opt.backdrop) return;
     for (const c of order) {
       const { x, y } = cellToScreen(c);
       block(ground, x, y, TOP[opt.terrain(c)]);
     }
+    for (const ch of propArt.removeChildren()) ch.destroy();
     for (const c of order) {
       const { x, y } = cellToScreen(c);
+      const url = opt.art?.props?.[opt.terrain(c)];
+      if (url) { propArt.addChild(place(url, x, y, TILE_W * 1.04)); continue; }
       prop(props, opt.terrain(c), x, y);
       const f = opt.flag?.(c);
       if (f != null) flagAt(props, x, y, f);
@@ -243,7 +275,13 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
 
   // 鏡頭
   const bounds = boardBounds(opt.cols, opt.rows);
-  const b = { ...bounds, height: bounds.height + SIDE };
+  let b = { ...bounds, height: bounds.height + SIDE };
+  if (opt.backdrop) {
+    const k = opt.backdrop.corners;
+    const xs = [k[0], k[2], k[4], k[6], b.left, b.left + b.width], ys = [k[1], k[3], k[5], k[7], b.top, b.top + b.height];
+    const left = Math.min(...xs), top = Math.min(...ys);
+    b = { left, top, width: Math.max(...xs) - left, height: Math.max(...ys) - top, right: Math.max(...xs), bottom: Math.max(...ys) };
+  }
   const size = () => ({ width: app.screen.width, height: app.screen.height });
   // 對準某一格：放大到 scale（不小於「放得下整張」），那格放在畫面中間
   const centerOn = (c: Cell, scale: number): View => {
@@ -386,7 +424,16 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
     setPieces(list, selected) {
       pieces.clear();
       const sorted = [...list].sort((p, q) => p.cell.col + p.cell.row - (q.cell.col + q.cell.row));
-      for (const p of sorted) cage(pieces, p, p.id === selected);
+      for (const ch of cageArt.removeChildren()) ch.destroy();
+      const art = opt.art?.cage;
+      for (const p of sorted) {
+        if (art) {
+          const { x, y } = cellToScreen(p.cell);
+          // 圖上的籠子是「／」方向躺著；箭頭朝左右下、右上（dir 1、3）時籠身是「＼」，左右翻過來
+          cageArt.addChild(place(art, x, y - 6, TILE_W * 0.86, p.dir % 2 === 1));
+        }
+        cage(pieces, p, p.id === selected, !!art);
+      }
     },
     setHover(c, ok) {
       hover.clear();
@@ -413,6 +460,10 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
         } else if (m.kind === 'dig') {
           diamond(hints, x, y, 0.62);
           hints.fill({ color: 0xffffff, alpha: 0.45 }).stroke({ width: 3, color: 0xffffff });
+        } else if (m.kind === 'done') {
+          diamond(hints, x, y, 0.7);
+          hints.fill({ color: 0x3a2412, alpha: 0.35 });
+          hints.moveTo(x - 16, y - 2).lineTo(x - 4, y + 10).lineTo(x + 20, y - 14).stroke({ width: 7, color: 0xffffff, cap: 'round', join: 'round' });
         } else {
           diamond(hints, x, y, 1);
           hints.stroke({ width: 6, color: GOLD });
@@ -425,11 +476,13 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
       for (const c of order) {
         if (!fogged(c)) continue;
         const { x, y } = cellToScreen(c);
-        diamond(fog, x, y - 6, 1.08);
-        fog.fill({ color: 0xf4f7fb, alpha: 0.96 });
+        // 一團一團的雲：比格子大一點，相鄰的雲會連在一起
+        diamond(fog, x, y - 4, 1.1);
+        fog.fill({ color: 0xf2f6fb, alpha: 0.97 });
         const k = (c.col * 7 + c.row * 13) % 5;
-        fog.ellipse(x - 20 + k * 6, y - 22, 34, 18).fill({ color: 0xffffff, alpha: 0.9 });
-        fog.ellipse(x + 18 - k * 3, y - 14, 26, 14).fill({ color: 0xe6edf5, alpha: 0.9 });
+        fog.ellipse(x - 26 + k * 5, y - 18, 44, 24).fill({ color: 0xffffff, alpha: 0.95 });
+        fog.ellipse(x + 24 - k * 3, y - 6, 38, 20).fill({ color: 0xe9eff7, alpha: 0.95 });
+        fog.ellipse(x + 4, y - 30 + k, 30, 16).fill({ color: 0xffffff, alpha: 0.9 });
       }
     },
     redraw: drawStatic,

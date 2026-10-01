@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { CARDS, CHAPTER, EXPLORE_INTRO, FLAG_QUAN, FLAG_ZHANG, HIGHEST_ASK, PLACES, QUAN, ZHANG, key } from '../../data/babao-chapter';
-import { same } from '../../core/pieces';
+import { CARDS, CHAPTER, EXPLORE_INTRO, HIGHEST_ASK, PLACES, img, key } from '../../data/babao-chapter';
 import type { Cell } from '../../core/iso';
 import { useBoard } from '../useBoard';
 import { CardPop, Say, Talk } from '../Talk';
@@ -21,7 +20,6 @@ function around(c: Cell, r = 1): string[] {
 const MAX_H = Math.max(...Array.from({ length: CHAPTER.rows }, (_, row) =>
   Math.max(...Array.from({ length: CHAPTER.cols }, (_, col) => CHAPTER.heights({ col, row })))));
 
-export const flagOf = (c: Cell) => (same(c, ZHANG) ? FLAG_ZHANG : same(c, QUAN) ? FLAG_QUAN : null);
 
 // 步驟 1 認識地形：點雲霧撥開，找到五個地點拿圖鑑卡；再用地形眼鏡找最高的地方
 export function Explore({ p, set, next }: StepProps) {
@@ -48,7 +46,7 @@ export function Explore({ p, set, next }: StepProps) {
   };
 
   const { board, ready, fps } = useBoard(host, {
-    cols: CHAPTER.cols, rows: CHAPTER.rows, terrain: CHAPTER.kind, heights: CHAPTER.heights, flag: flagOf,
+    cols: CHAPTER.cols, rows: CHAPTER.rows, terrain: CHAPTER.kind, heights: CHAPTER.heights, backdrop: CHAPTER.backdrop,
     start: { cell: CHAPTER.start, scale: 0.75 },
     onTap: (c) => {
       if (!c) return;
@@ -59,7 +57,7 @@ export function Explore({ p, set, next }: StepProps) {
           setSay(null);
           set((old) => ({ ...old, cards: [...old.cards, 'contour'] }));
           setPop((q) => [...q, 'contour']);
-        } else setSay('還有更高的地方。顏色越褐、越往右上，地勢越高。');
+        } else setSay('還有更高的地方。顏色越褐的地方越高，往地圖上方找找看。');
       }
     },
   }, []);
@@ -69,7 +67,7 @@ export function Explore({ p, set, next }: StepProps) {
   useEffect(() => { board.current?.setFog((c) => !revealed.has(key(c))); }, [p.revealed, ready]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { board.current?.setContours(contours); }, [contours, ready]);
   useEffect(() => {
-    board.current?.setMarks(PLACES.filter((pl) => p.found.includes(pl.id) && pl.cells.length === 1).map((pl) => ({ kind: 'ring' as const, cell: pl.cells[0] })));
+    board.current?.setMarks(PLACES.filter((pl) => p.found.includes(pl.id) && pl.cells.length <= 4).map((pl) => ({ kind: 'ring' as const, cell: pl.cells[0] })));
   }, [p.found, ready]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (allFound && !done && !pop.length) setAsk(true); }, [allFound, done, pop.length]);
 
@@ -84,7 +82,7 @@ export function Explore({ p, set, next }: StepProps) {
       </div>
       <div className="tools">
         <button className={`tool ${contours ? 'on' : ''}`} onClick={() => setContours(!contours)}>
-          <span className="tool-icon">◎</span>地形眼鏡
+          <img className="tool-img" src={img('h-eye')} alt="" />地形眼鏡
         </button>
       </div>
       {contours && <Legend />}

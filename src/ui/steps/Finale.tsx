@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CARDS, QUESTIONS, TRUTH } from '../../data/babao-chapter';
+import { CARDS, QUESTIONS, TRUTH, img } from '../../data/babao-chapter';
 import { fresh, starsOf } from '../../core/save';
 import { PARK_URL } from '../../net/park';
 import type { StepProps } from '../Chapter';
@@ -29,14 +29,12 @@ export function Finale({ p, set }: StepProps) {
   const stars = starsOf(p, QUESTIONS.map((x) => x.answer));
   return (
     <div className="scene finale">
-      <div className="harvest">
-        {Array.from({ length: 10 }, (_, i) => <span key={i} className="paddy gold" style={{ animationDelay: `${i * 0.12}s` }} />)}
-      </div>
+      <img className="scene-bg" src={img('S-03')} alt="" />
 
       {phase === 'harvest' && (
         <div className="talk-cover">
           <div className="panel mission">
-            <div className="gear">⚙</div>
+            <img className="gear" src={img('gear')} alt="" />
             <h2>大豐收！</h2>
             <p>漳州莊和泉州莊的稻子都變成金黃色了。<br />滴答拿回了第五顆時之齒輪！</p>
             <img src={`${BASE}img/tick/happy.webp`} alt="" />
@@ -81,6 +79,7 @@ export function Finale({ p, set }: StepProps) {
       {phase === 'stars' && (
         <div className="talk-cover">
           <div className="panel mission">
+            <img className="badge" src={img('badge-canal')} alt="" />
             <h2>第五章 八堡圳 完成！</h2>
             <div className="stars">{[0, 1, 2].map((i) => <span key={i} className={i < stars ? 'on' : ''}>★</span>)}</div>
             <ul className="star-why">
