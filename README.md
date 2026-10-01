@@ -4,7 +4,8 @@
 
 - 測試站：https://cphskid.github.io/Taiwan-island/dev/（dev 分支，接測試庫）
 - 正式站：https://cphskid.github.io/Taiwan-island/（main 分支，目前是即將開幕頁）
-- 帳號、班級、老師後台都在樂園（cphskid/cphskid.github.io），這裡只做學生端遊戲。
+- 帳號、班級、老師後台都在樂園（cphskid/cphskid.github.io），這裡做學生端遊戲和一頁老師細節頁（teacher.html，樂園全班總覽點進來）。
+- 資料庫：`supabase/island_pioneer.sql`（雲端存檔、全班摘要、老師細節頁），在 Supabase SQL Editor 貼上執行；`./tools/test/db.sh` 本機跑權限測試。
 
 ## 開發
 

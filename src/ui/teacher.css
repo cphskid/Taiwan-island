@@ -1,0 +1,35 @@
+/* 老師細節頁：跟遊戲同一套顏色，但要能捲動、在電腦上看 */
+body:has(.tp){overflow:auto;user-select:text}
+.tp{min-height:100%;padding-bottom:40px}
+.tp .top h1{font-size:18px}
+.tp-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:14px 16px}
+.tp-bar label{font-weight:700;display:flex;align-items:center;gap:8px}
+.tp-bar select{font:600 16px var(--f);padding:8px 10px;border-radius:12px;border:3px solid var(--wood-2);background:#fff}
+.btn.small{min-width:0;min-height:42px;font-size:16px}
+.tp-warn{background:#fff1c7;border:2px solid var(--gold);border-radius:12px;padding:4px 10px;font-weight:700}
+.tp-error{margin:0 16px;padding:10px 14px;border-radius:12px;background:#fde3df;color:#a02b1c;font-weight:700}
+.tp-note{color:#7a6448;font-size:15px;line-height:1.6;padding:0 16px}
+.tp-sec .tp-note{padding:0}
+.tp-denied{max-width:460px;margin:40px auto;text-align:center}
+.tp-denied p{font-size:19px}
+.tp-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;padding:0 16px 14px}
+.tp-stat{background:var(--cream);border:4px solid var(--wood-2);border-radius:18px;padding:12px 16px;display:flex;align-items:baseline;gap:6px}
+.tp-stat b{font-size:34px;color:var(--wood-2)}
+.tp-sec{margin:0 16px 16px;padding:16px 20px}
+.tp-sec h2{margin:0 0 10px;font-size:20px}
+.tp-q{padding:10px 0;border-top:2px dashed #e2cfa8}
+.tp-q:first-of-type{border-top:none}
+.tp-q p{margin:4px 0;line-height:1.6}
+.tp-meter{height:12px;border-radius:6px;background:#eee3c8;overflow:hidden;max-width:420px}
+.tp-meter i{display:block;height:100%;background:linear-gradient(90deg,#7fd85a,#4aa834)}
+.tp-q-line{font-weight:700}
+.tp-why{color:#7a6448;font-size:15px}
+.tp-table-wrap{overflow-x:auto}
+.tp-table{border-collapse:collapse;width:100%;font-size:15px;white-space:nowrap}
+.tp-table th,.tp-table td{padding:8px 10px;border-bottom:1px solid #e8d9b8;text-align:left}
+.tp-table th{background:#f3e2bd}
+.tp-table tr.idle td{color:#a8936f}
+.tp-table td.ok{color:#2e8b2e;font-weight:900}
+.tp-table td.no{color:#c0392b;font-weight:700}
+.tp-table td.tp-st{color:#e0a020;letter-spacing:1px}
+.tp-goals{margin:0 0 8px;padding-left:22px;line-height:1.8}
