@@ -156,6 +156,18 @@ revoke all on function public.island_class_detail(text) from public, anon, authe
 grant execute on function public.island_class_detail(text) to authenticated;
 
 -- -----------------------------------------------------------------------------
+-- 3b. 樂園護照：這個學生「該拿到哪些章」（樂園 P4 的 park_passport.sql 會來叫）
+--     一章過關＝那一章的章（ch5…；終章是 end）。樂園打開時自己補蓋，
+--     遊戲裡叫 park_award_stamp 也要對得上這裡才蓋得下去。只給樂園的函式叫，不開給學生。
+-- -----------------------------------------------------------------------------
+create or replace function public.island_earned_stamps(p_student uuid)
+returns setof text language sql stable security definer set search_path = public, pg_temp as $$
+  select s.slot from public.island_saves s
+   where s.student_id = p_student and s.done and s.slot <> 'world';
+$$;
+revoke all on function public.island_earned_stamps(uuid) from public, anon, authenticated;
+
+-- -----------------------------------------------------------------------------
 -- 4. 在樂園登記這個設施的網址與摘要函式（只補空的欄位，不動管理員改過的狀態）
 --    狀態（施工中／試營運／開放）請管理員在樂園後台的「設施」改。
 -- -----------------------------------------------------------------------------
