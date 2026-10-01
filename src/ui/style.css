@@ -30,3 +30,21 @@ body{background:var(--sky);color:var(--ink);font-family:var(--f);overflow:hidden
 @media (orientation:portrait) and (max-width:900px){
   .rotate-hint{display:flex;position:fixed;inset:0;z-index:9;align-items:center;justify-content:center;background:var(--sky);font-size:24px;font-weight:700}
 }
+
+/* P6-1 觸控：右側工具鈕、下方物品列、拖曳中的竹蛇籠、地形眼鏡圖例 */
+.tools{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px}
+.tool{width:84px;min-height:84px;border-radius:22px;border:4px solid var(--gold);background:linear-gradient(#a8703d,#6b3f1f);color:var(--cream);font:700 15px var(--f);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 4px 0 #4a2a12;cursor:pointer;touch-action:manipulation}
+.tool:active{transform:translateY(3px);box-shadow:0 1px 0 #4a2a12}
+.tool:disabled{opacity:.45;cursor:default}
+.tool.on{background:linear-gradient(#7fd85a,#4aa834)}
+.tool-icon{font-size:30px;line-height:1}
+.tray{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:12px;padding:10px 14px;background:rgba(255,244,220,.92);border:5px solid var(--wood-2);border-radius:24px;box-shadow:inset 0 0 0 2px var(--gold),0 6px 14px rgba(0,0,0,.25)}
+.item{display:flex;align-items:center;gap:10px;min-height:64px;padding:0 16px;border-radius:16px;background:#fff;border:3px solid var(--gold);font-weight:700;font-size:18px;touch-action:none;cursor:grab}
+.item b{color:var(--wood-2)}
+.item.empty{opacity:.4;cursor:default}
+.cage-icon{display:inline-block;width:56px;height:22px;border-radius:11px;background:repeating-linear-gradient(90deg,#c9b25a 0 8px,#8f8f88 8px 14px);border:2px solid #6f8f2f}
+.ghost{position:fixed;transform:translate(-50%,-60%) rotate(-27deg) scale(1.3);pointer-events:none;z-index:5;opacity:.9}
+.legend{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:4px;background:rgba(255,244,220,.95);border:3px solid var(--wood-2);border-radius:16px;padding:6px 12px;font-weight:700}
+.legend em{font-style:normal;margin-left:10px;color:var(--wood-2)}
+.band{display:inline-block;width:24px;height:18px;border-radius:4px}
+.b0{background:#7cc46a}.b1{background:#b4d46b}.b2{background:#e4d77d}.b3{background:#e9b866}.b4{background:#cf8b4f}.b5{background:#a8653c}
