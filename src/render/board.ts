@@ -4,7 +4,7 @@
 // 觸控：單指拖曳平移、雙指縮放、點一下選格子；拖竹蛇籠由介面層（BoardView）用 cellAt/setHover 處理。
 // 地形眼鏡：開了才疊上分層設色與等高線；格子線只在拖放時出現。
 
-import { Application, Assets, Container, Graphics, Matrix, PerspectiveMesh, Sprite, Texture } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Matrix, PerspectiveMesh, Sprite, Texture, TilingSprite } from 'pixi.js';
 import { boardBounds, cellToScreen, drawOrder, screenToCell, inside, TILE_H, TILE_W, type Cell } from '../core/iso';
 import { type Heights } from '../core/terrain';
 import { reliefPixels } from '../core/relief';
@@ -47,7 +47,8 @@ export interface BoardOptions {
   // 有底圖就不畫程式的地塊和小物，格子只用來點選、雲霧、地形眼鏡。
   backdrop?: { src: string; corners: readonly number[] };
   // 換成 Chuck 的圖：哪一種地上的東西用哪張圖、竹蛇籠用哪張圖
-  art?: { props?: Partial<Record<Kind, string>>; cage?: string; tiles?: Partial<Record<Kind, string>> }; // 聚落插的旗子顏色（漳州莊藍、泉州莊橘）
+  // water、dirt 是 T-02 的無縫貼圖：河面、圳道的水與溝底
+  art?: { props?: Partial<Record<Kind, string>>; cage?: string; tiles?: Partial<Record<Kind, string>>; water?: string; dirt?: string };
 }
 
 // 提示用的記號：林先生指出該放竹蛇籠的格子（含方向）、該挖的圳道、要找的地方
@@ -134,6 +135,20 @@ function flagAt(g: Graphics, x: number, y: number, color: number) {
   g.poly([x + 34, y - 70, x + 64, y - 60, x + 34, y - 50]).fill(color).stroke({ width: 2, color: 0x3a2412 });
 }
 
+// 兩兩相鄰的格子，回傳它們中間點的畫面座標（用來把一格一格的圳道連起來）
+function links(a: readonly Cell[], b: readonly Cell[]): [number, number][] {
+  const set = new Set(b.map((c) => `${c.col},${c.row}`));
+  const out: [number, number][] = [];
+  for (const c of a)
+    for (const [dc, dr] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) {
+      const n = { col: c.col + dc, row: c.row + dr };
+      if (!set.has(`${n.col},${n.row}`)) continue;
+      const p = cellToScreen(c), q = cellToScreen(n);
+      out.push([(p.x + q.x) / 2, (p.y + q.y) / 2]);
+    }
+  return out;
+}
+
 // 圳道：格子中間挖下去的一條溝（格子比較小的菱形）
 function channel(g: Graphics, x: number, y: number, color: number, alpha = 1) {
   diamond(g, x, y, 0.62);
@@ -210,12 +225,34 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
   const propArt = new Container();
   const groundArt = new Container();
   const cageArt = new Container();
-  world.addChild(ground, groundArt, relief, canalG, water, flowG, props, propArt, preview, grid, hints, hover, cursor, cageArt, pieces, marks, fog);
+  // T-02 貼圖鋪滿整張，用遮罩只露出河、圳道的形狀；水面貼圖會慢慢往下游捲
+  const canalBed = new Container();
+  const flowLayer = new Container();
+  world.addChild(ground, groundArt, relief, canalBed, water, flowLayer, props, propArt, preview, grid, hints, hover, cursor, cageArt, pieces, marks, fog);
 
   // 預先載入要用的圖
   const tex: Record<string, Texture> = {};
-  const urls = [...Object.values(opt.art?.props ?? {}), ...Object.values(opt.art?.tiles ?? {}), ...(opt.art?.cage ? [opt.art.cage] : [])].filter((u): u is string => !!u);
+  const urls = [...Object.values(opt.art?.props ?? {}), ...Object.values(opt.art?.tiles ?? {}), opt.art?.cage, opt.art?.water, opt.art?.dirt].filter((u): u is string => !!u);
   await Promise.all(urls.map(async (u) => { tex[u] = await Assets.load<Texture>(u); }));
+  const area = boardBounds(opt.cols, opt.rows);
+  const tiled = (url: string | undefined, k: number) => {
+    if (!url) return null;
+    const ts = new TilingSprite({ texture: tex[url], width: area.width + TILE_W, height: area.height + TILE_H });
+    ts.position.set(area.left - TILE_W / 2, area.top - TILE_H / 2);
+    ts.tileScale.set(k * 0.7, k * 0.42); // 壓扁一點，看起來是躺在地上
+    return ts;
+  };
+  const masked = (holder: Container, ts: TilingSprite | null, onTop: Graphics) => {
+    const m = new Graphics();
+    if (ts) { ts.mask = m; holder.addChild(ts, m); }
+    holder.addChild(onTop);
+    return m;
+  };
+  const riverWater = tiled(opt.art?.water, 0.45);
+  const bedTile = tiled(opt.art?.dirt, 0.3);
+  const canalWater = tiled(opt.art?.water, 0.3);
+  const bedMask = masked(canalBed, bedTile, canalG);
+  const flowMask = masked(flowLayer, canalWater, flowG);
   const place = (url: string, x: number, y: number, width: number, flip = false) => {
     const sp = new Sprite(tex[url]);
     sp.anchor.set(0.5, 0.82);
@@ -398,12 +435,21 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
 
   // 水流動畫：每格的水色沿著河往下游起伏、白色浪花往下游漂。
   // 圖形只建一次，每格只改顏色與位置，平板才跑得動。
+  const riverMask = new Graphics();
+  if (riverWater) {
+    for (const c of rivers) { const { x, y } = cellToScreen(c); diamond(riverMask, x, y - 4, 1.04); }
+    riverMask.fill(0xffffff);
+    riverWater.mask = riverMask;
+    riverWater.visible = rivers.length > 0;
+    water.addChild(riverWater, riverMask);
+  }
   const waves = rivers.map((c) => {
     const { x, y } = cellToScreen(c);
     const sheet = new Graphics();
     diamond(sheet, 0, 0);
     sheet.fill(0xffffff);
     sheet.position.set(x, y - 4);
+    sheet.visible = !riverWater;
     // 水流方向的小箭頭（︾），一直往下游漂，看得出河往哪邊流
     const [fx, fy] = DIRS[opt.flow ?? 1];
     const foam = new Graphics()
@@ -415,6 +461,9 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
   let t = 0;
   app.ticker.add((tk) => {
     t += tk.deltaMS / 1000;
+    const [fx, fy] = DIRS[opt.flow ?? 1];
+    if (riverWater) riverWater.tilePosition.set(fx * t * 40, fy * t * 40);
+    if (canalWater) canalWater.tilePosition.set(t * 18, t * 9);
     for (const w of waves) {
       const k = (Math.sin(t * 3 - w.c.row * 0.9) + 1) / 2;
       w.sheet.tint = mix(WATER_LO, WATER_HI, k);
@@ -503,17 +552,25 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
     },
     setCanals(dug) {
       canalG.clear();
+      bedMask.clear();
       const all = [...order.filter((c) => opt.terrain(c) === 'canal'), ...dug];
+      // 相鄰的圳道格在中間補一塊，連成一條溝
+      const ends = [...all, ...order.filter((c) => opt.terrain(c) === 'gate')];
+      for (const [x, y] of links(all, ends)) channel(bedTile ? bedMask : canalG, x, y, bedTile ? 0xffffff : CANAL_BED);
       for (const c of all) {
         const { x, y } = cellToScreen(c);
-        channel(canalG, x, y, CANAL_BED);
+        if (bedTile) channel(bedMask, x, y, 0xffffff);
+        else channel(canalG, x, y, CANAL_BED);
         diamond(canalG, x, y, 0.62);
-        canalG.stroke({ width: 3, color: 0x6b3f1f, alpha: 0.6 });
+        canalG.stroke({ width: 4, color: 0x6b3f1f, alpha: 0.8 });
       }
+      if (bedTile) bedTile.visible = all.length > 0;
     },
     setFlow(r, now) {
       flowG.clear();
+      flowMask.clear();
       marks.clear();
+      if (canalWater) canalWater.visible = false;
       if (!r) return;
       for (const w of r.river) {
         if (w.t > now) continue;
@@ -521,10 +578,13 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
         diamond(flowG, x, y, 0.8);
         flowG.fill({ color: 0xdff4ff, alpha: 0.35 });
       }
+      const wet = r.canal.filter((w) => w.t <= now).map((w) => w.cell);
+      for (const [x, y] of links(wet, wet)) channel(canalWater ? flowMask : flowG, x, y, CANAL_WATER);
       for (const w of r.canal) {
         if (w.t > now) continue;
         const { x, y } = cellToScreen(w.cell);
-        channel(flowG, x, y, CANAL_WATER);
+        if (canalWater) { channel(flowMask, x, y, 0xffffff); canalWater.visible = true; }
+        else channel(flowG, x, y, CANAL_WATER);
       }
       for (const w of r.flooded) {
         if (w.t > now) continue;

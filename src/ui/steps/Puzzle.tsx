@@ -60,6 +60,8 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
   const [run, setRun] = useState<Run | null>(null);
   const [fails, setFails] = useState(0);
   const [intro, setIntro] = useState(showIntro);
+  const [brief, setBrief] = useState(false); // 關卡說明收起來，只留標題（手機畫面小）
+  useEffect(() => setBrief(false), [idx]);
   const [topped, setTopped] = useState(false);
 
   const avail = Math.min(level.cages, p.cages);
@@ -124,7 +126,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
     return () => clearTimeout(id);
   }, [run]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const edit = (fn: () => void) => { setRun(null); fn(); };
+  const edit = (fn: () => void) => { setRun(null); setBrief(true); fn(); };
 
   function canDrop(c: Cell | null, d: Drag): c is Cell {
     if (!c || !canPlace(level, c)) return false;
@@ -214,7 +216,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
         {LEVELS.map((lv, i) => (
           <span key={lv.id} className={`lv ${i === idx ? 'on' : i < idx ? 'past' : ''}`}>{lv.id}</span>
         ))}
-        <div className="hint"><b>{level.title}</b>{level.hint}</div>
+        <button className={`hint ${brief ? 'brief' : ''}`} onClick={() => setBrief(!brief)}><b>{level.title}</b>{!brief && level.hint}</button>
       </div>
 
       <div className="tools">
@@ -225,7 +227,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
           <img className="tool-img" src={img('h-undo')} alt="" />拿回
         </button>
         {level.digs > 0 && (
-          <button className={`tool ${digging ? 'on' : ''}`} disabled={running} onClick={() => setDigging(!digging)}>
+          <button className={`tool ${digging ? 'on' : ''}`} disabled={running} onClick={() => { setDigging(!digging); setBrief(true); }}>
             <span className="tool-icon">⛏</span>挖圳道
           </button>
         )}

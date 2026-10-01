@@ -206,3 +206,84 @@ img.stone{width:72px;height:60px;object-fit:contain;background:none;border:none;
 img.gear{width:110px;height:110px;object-fit:contain}
 .mission img.badge{width:120px;height:120px;object-fit:contain}
 .finale .talk-cover{background:rgba(40,25,10,.15)}
+
+/* 關卡說明可以點一下收起來 */
+.hint{text-align:left;font:inherit;color:inherit;cursor:pointer}
+.hint.brief b::after{content:' ▸';color:var(--wood-2)}
+.hint:not(.brief) b::after{content:' ▾';color:var(--wood-2)}
+
+/* 手機橫放（畫面矮）：標題列、步驟列、工具鈕、下方物品列都縮小，地圖露出來 */
+@media (max-height:600px){
+  .top{padding:2px 10px;gap:8px}
+  .top h1{font-size:16px}
+  .park-btn{min-height:34px;font-size:14px}
+  .park-btn img{width:30px;height:30px}
+  .who{padding:2px 10px;font-size:13px}
+  .steps{padding:3px 8px;gap:4px;border-bottom-width:2px}
+  .step{min-height:30px;padding:0 8px;font-size:13px;gap:4px}
+  .step i{width:20px;height:20px;font-size:12px}
+  .board.puzzle{inset:0 70px 0 0}
+  .levels{top:6px;left:6px;right:76px;gap:4px}
+  .lv{width:34px;height:34px;font-size:16px;border-width:3px}
+  .hint{max-width:380px;font-size:13px;padding:3px 8px;line-height:1.4;border-width:2px}
+  .hint b{font-size:14px}
+  .tools{right:6px;gap:6px}
+  .tool{width:62px;min-height:56px;border-radius:16px;border-width:3px;font-size:12px;box-shadow:0 3px 0 #4a2a12}
+  .tool-img{width:30px;height:30px}
+  .tool-icon{font-size:22px}
+  .tray{bottom:6px;left:calc(50% - 34px);gap:6px;padding:4px 8px;border-width:3px;border-radius:18px}
+  .item{min-height:44px;padding:0 8px;gap:4px;font-size:14px}
+  .item-img{width:40px;height:30px}
+  .btn{min-height:40px;min-width:96px;font-size:15px;padding:0 12px}
+  .btn.go{min-height:44px;min-width:70px;font-size:16px}
+  .digs{font-size:14px;padding:0 4px}
+  .digs b{font-size:20px}
+  .mode{bottom:62px;font-size:13px;padding:4px 10px}
+  .legend{bottom:62px;font-size:13px;padding:3px 8px}
+  .say{left:6px;bottom:62px;max-width:min(360px,40%);padding:4px 8px;border-width:3px}
+  .say p{font-size:13px}
+  .face.small{width:40px;height:40px;border-width:3px}
+  .fps{display:none}
+  .result{padding:10px 14px;gap:6px}
+  .result p{font-size:16px}
+  .talk-cover{padding:8px}
+  .talk{padding:8px 12px;gap:10px;border-width:4px}
+  .face{width:72px;height:72px;border-width:4px}
+  .talk-body b{font-size:15px}
+  .talk-body p{font-size:16px;margin:2px 0}
+  .talk-next{font-size:13px}
+  .card-pop{padding:12px}
+  .card-pop h3{font-size:22px;margin:2px 0 6px}
+  .card-pop p{font-size:16px}
+  .panel{padding:12px;border-width:4px}
+  .mission ol{font-size:16px;line-height:1.5}
+  .mission img{width:64px}
+  .checklist,.mats{top:6px;left:6px;padding:3px 8px;font-size:13px;border-width:2px}
+  .mats{gap:8px}
+  .mats b{font-size:16px}
+  .mats img{width:26px;height:26px}
+  .next-bar{right:6px;bottom:6px;font-size:14px;padding:4px 8px;border-width:3px}
+  .share{padding:6px 6px 60px}
+  .season{font-size:15px;padding:3px 8px}
+  .season img{width:24px;height:24px}
+  .river-head{font-size:14px;margin:4px 0}
+  .river-head img{width:26px;height:26px}
+  .branches{gap:8px}
+  .branch{padding:6px 8px;gap:4px;border-width:3px}
+  .branch h3{font-size:15px}
+  .bubble{font-size:13px;padding:3px 6px}
+  .paddy{width:56px;height:36px}
+  .gate-slider{font-size:14px}
+  .gate-slider b{font-size:18px}
+  .gate-slider input::-webkit-slider-thumb{width:40px;height:40px}
+  .quiz h3{font-size:17px}
+  .opt{min-height:42px;font-size:15px}
+  .stars{font-size:44px}
+  .star-why{font-size:14px;line-height:1.5}
+  .weave h3{font-size:17px}
+  .weave-cage{height:84px;margin-bottom:8px}
+  img.gear{width:72px;height:72px}
+}
+.item,.digs{white-space:nowrap}
+.board-wrap .say{bottom:110px}
+@media (max-height:600px){ .board-wrap .say{bottom:62px} }
