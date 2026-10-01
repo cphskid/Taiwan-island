@@ -10,9 +10,10 @@ export interface WorldSave {
   cleared: string[]; // 過關的章（撥開雲霧、長出建設、拿到齒輪）
   celebrated: string[]; // 已經在大地圖上看過撥雲動畫的章
   greeted: boolean; // 看過滴答第一次介紹大地圖
+  cards: string[]; // 圖鑑：跨章累積拿過的卡（章節重玩也不會不見）
 }
 
-export const freshWorld = (): WorldSave => ({ v: 1, cleared: [], celebrated: [], greeted: false });
+export const freshWorld = (): WorldSave => ({ v: 1, cleared: [], celebrated: [], greeted: false, cards: [] });
 
 const KEY = 'island.world.v1';
 
@@ -22,7 +23,7 @@ export function loadWorld(store: Pick<Storage, 'getItem'> | undefined = globalTh
     if (!raw) return freshWorld();
     const w = JSON.parse(raw) as Partial<WorldSave>;
     if (w.v !== 1) return freshWorld();
-    return { ...freshWorld(), ...w, cleared: [...(w.cleared ?? [])], celebrated: [...(w.celebrated ?? [])] };
+    return { ...freshWorld(), ...w, cleared: [...(w.cleared ?? [])], celebrated: [...(w.celebrated ?? [])], cards: [...(w.cards ?? [])] };
   } catch {
     return freshWorld();
   }
@@ -39,6 +40,12 @@ export function saveWorld(w: WorldSave, store: Pick<Storage, 'setItem'> | undefi
 // 章節過關了就記進大地圖（只會加，不會拿掉）
 export function markCleared(w: WorldSave, id: string): WorldSave {
   return w.cleared.includes(id) ? w : { ...w, cleared: [...w.cleared, id] };
+}
+
+// 把章節裡拿到的卡收進圖鑑（只會加）
+export function addCards(w: WorldSave, ids: readonly string[]): WorldSave {
+  const more = ids.filter((id) => !w.cards.includes(id));
+  return more.length ? { ...w, cards: [...w.cards, ...more] } : w;
 }
 
 // 過關了、但還沒在大地圖上看過撥雲動畫的章

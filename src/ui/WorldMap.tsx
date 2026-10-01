@@ -3,6 +3,8 @@ import { createWorldMap, type Hit, type RiftState, type WorldMap as Map } from '
 import { celebrate, opened, toCelebrate, type WorldSave } from '../core/world';
 import { ACTOR_ART, CHAPTERS, GEAR_SLOTS, HOOKS, LEGEND, TICK_LINES, chapterOf, isl, type ActorDef, type ChapterId } from '../data/world';
 import { Say, Talk } from './Talk';
+import { Album } from './Album';
+import { CARD_ORDER } from '../data/babao-chapter';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -36,6 +38,7 @@ export function WorldMap({ world, setWorld, onEnter, back }: Props) {
   const [intro, setIntro] = useState(!world.greeted);
   const [busy, setBusy] = useState(false); // 撥雲或穿越動畫中，不能點
   const [flash, setFlash] = useState(false);
+  const [book, setBook] = useState(false);
   const [flyGear, setFlyGear] = useState<number | null>(null); // 正在飛向時鐘的齒輪孔
   const live = useRef({ world, busy });
   live.current = { world, busy };
@@ -137,6 +140,9 @@ export function WorldMap({ world, setWorld, onEnter, back }: Props) {
         <button className={`tool ${glasses ? 'on' : ''}`} onClick={() => setGlasses(!glasses)}>
           <img className="tool-img" src={isl('h-eye')} alt="" />地形眼鏡
         </button>
+        <button className="tool" onClick={() => setBook(true)}>
+          <span className="tool-icon">📖</span>圖鑑 {CARD_ORDER.filter((id) => world.cards.includes(id)).length}/{CARD_ORDER.length}
+        </button>
       </div>
       {glasses && (
         <div className="legend world-legend">
@@ -174,6 +180,7 @@ export function WorldMap({ world, setWorld, onEnter, back }: Props) {
       {actor && <ActorSay actor={actor} onClose={() => setActor(null)} />}
       {!actor && <Say line={say ? { who: 'tick', mood: 'happy', text: say } : null} />}
       {flash && <div className="warp" />}
+      {book && <Album have={world.cards} onClose={() => setBook(false)} />}
       {intro && ready && (
         <Talk
           lines={[{ who: 'tick', mood: 'wave', text: TICK_LINES.welcome }]}

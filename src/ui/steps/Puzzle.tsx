@@ -197,7 +197,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
   };
 
   const pass = () => {
-    set((o) => ({ ...o, level: idx + 1, cages: Math.max(0, o.cages - pieces.length) }));
+    set((o) => ({ ...o, level: idx + 1, cages: Math.max(0, o.cages - pieces.length), cards: o.cards.includes('head') ? o.cards : [...o.cards, 'head'] }));
   };
 
   const remaining = avail - pieces.length;

@@ -57,18 +57,46 @@ export const QUAN: Cell = { col: 9, row: 8 };
 
 export const key = (c: Cell) => `${c.col},${c.row}`;
 
-// 圖鑑卡
-export interface Card { id: string; title: string; text: string }
-export const CARDS: Record<string, Card> = {
-  river: { id: 'river', title: '濁水溪', text: '台灣最長的河。水裡帶著很多泥沙，看起來濁濁的；雨季水很大，旱季水就變少。' },
-  plain: { id: 'plain', title: '彰化平原', text: '濁水溪的泥沙一層一層堆出來的平原，土很肥。可是沒有水，就種不了稻子。' },
-  zhang: { id: 'zhang', title: '漳州莊', text: '從福建漳州渡海來的移民住的村莊。' },
-  quan: { id: 'quan', title: '泉州莊', text: '從福建泉州渡海來的移民住的村莊。' },
-  tribe: { id: 'tribe', title: '巴布薩族的社', text: '巴布薩族是平埔族的一支。漢人來開墾以前，他們就住在這片平原上。' },
-  contour: { id: 'contour', title: '等高線', text: '同一條線上的地方一樣高。線越密，坡越陡。二水那一頭最高，越往海邊越低。' },
-  cage: { id: 'cage', title: '竹蛇籠', text: '用竹子編成長籠子，裡面裝滿石頭。竹籠會透水，大水來了也不容易整個被沖走。' },
-  gate: { id: 'gate', title: '分水閘', text: '圳道分岔的地方，用閘板決定每一邊流多少水。' },
+// 圖鑑卡（P6-5）：這一章 12 張，分人物、地點、物品、知識四類。
+// 文字照國小社會五年級（康軒版）清領時期水利開發的內容寫，每張附公開可查的出處；上正式站前請社會科老師審。
+// 巴布薩族的文字與圖要另外找人審（見規劃書）。
+export type CardKind = '人物' | '地點' | '物品' | '知識';
+export interface Card { id: string; title: string; kind: CardKind; text: string; img?: string; source: string }
+const SRC = {
+  textbook: '國小社會五年級（康軒版）〈清領時期的開發〉水利建設',
+  encyclo: '文化部《臺灣大百科全書》「八堡圳」條',
+  water: '農業部農田水利署彰化管理處〈八堡圳〉簡介',
+  river: '經濟部水利署第四河川分署〈濁水溪〉流域介紹',
+  pingpu: '原住民族委員會〈平埔族群〉介紹；國立臺灣史前文化博物館',
+  map: '國小社會五年級（康軒版）〈認識地形圖〉等高線與分層設色',
 };
+export const CARDS: Record<string, Card> = {
+  shi: { id: 'shi', title: '施世榜', kind: '人物', img: 'island/shi.webp', source: `${SRC.encyclo}；${SRC.textbook}`,
+    text: '清朝時住在鳳山的人，1709 年開始出錢、找人在濁水溪邊開圳。這條圳一開始叫「施厝圳」，後來才叫八堡圳。' },
+  lin: { id: 'lin', title: '林先生', kind: '人物', img: 'island/lin.webp', source: `${SRC.encyclo}；${SRC.water}`,
+    text: '傳說施世榜開圳一直不成功，一位不肯留下全名的「林先生」教大家用竹籠裝石頭導水，圳才開成。後人建廟紀念他。' },
+  river: { id: 'river', title: '濁水溪', kind: '地點', source: SRC.river,
+    text: '台灣最長的河，從中央山脈流到台灣海峽。水裡帶著很多泥沙，看起來濁濁的；雨季水很大，旱季水就變少。' },
+  plain: { id: 'plain', title: '彰化平原', kind: '地點', source: SRC.textbook,
+    text: '濁水溪的泥沙一層一層堆出來的平原，土很肥。可是雨水集中在夏天，沒有圳道引水，旱季就種不了稻子。' },
+  head: { id: 'head', title: '二水的圳頭', kind: '地點', source: `${SRC.water}；${SRC.encyclo}`,
+    text: '八堡圳從濁水溪上游的二水引水。二水比下游的平原高，水才能沿著圳道一路往低處流進田裡。' },
+  zhang: { id: 'zhang', title: '漳州莊', kind: '地點', source: SRC.textbook,
+    text: '從福建漳州渡過台灣海峽來開墾的移民，聚在一起住的村莊。' },
+  quan: { id: 'quan', title: '泉州莊', kind: '地點', source: SRC.textbook,
+    text: '從福建泉州渡海來開墾的移民住的村莊。同一條圳的水，要和別的莊一起分著用。' },
+  tribe: { id: 'tribe', title: '巴布薩族的社', kind: '地點', img: 'island/babuza.webp', source: SRC.pingpu,
+    text: '巴布薩族是平埔族群的一支。漢人移民來開墾以前，他們就住在彰化平原上，在這裡打獵、耕作。' },
+  contour: { id: 'contour', title: '等高線', kind: '知識', source: SRC.map,
+    text: '地圖上把一樣高的地方連成一條線。線越密，坡越陡；顏色從綠、黃到褐，表示越來越高。' },
+  cage: { id: 'cage', title: '竹蛇籠', kind: '物品', img: 'island/cage.webp', source: `${SRC.encyclo}；${SRC.water}`,
+    text: '用竹子編成長籠子，裡面裝滿石頭，一個接一個排在河裡，把水「導」進圳頭。竹籠會透水，大水來了也不容易整個被沖走。' },
+  gate: { id: 'gate', title: '分水閘', kind: '物品', img: 'island/gate.webp', source: SRC.textbook,
+    text: '圳道分岔的地方，用閘板決定每一邊流多少水。大家要先講好怎麼分，才不會為了水吵架。' },
+  babao: { id: 'babao', title: '八堡圳', kind: '物品', img: 'island/badge-canal.webp', source: `${SRC.encyclo}；${SRC.water}`,
+    text: '1709 年開工、大約十年完成。水流到當時彰化十三堡半裡的八個堡，所以叫八堡圳。三百多年後的今天，它還在灌溉彰化的田。' },
+};
+export const CARD_ORDER = ['shi', 'lin', 'river', 'plain', 'head', 'zhang', 'quan', 'tribe', 'contour', 'cage', 'gate', 'babao'];
 
 // 認識地形：要找到的五個地點（地圖上哪些格子算找到）
 export interface Place { id: string; card: string; cells: Cell[] }
@@ -133,30 +161,34 @@ export const SHARE_HINT = '漳州莊 6 塊田、泉州莊 4 塊田。田多的�
 // 真的是這樣嗎？
 export const TRUTH = {
   title: '真的是這樣嗎？',
-  game: '遊戲裡，你一下子就把圳道挖好了。',
-  real: '真實的八堡圳，是施世榜從 1709 年開始，找了很多人一起挖，前後大約花了十年才完成。',
+  game: '遊戲裡，你一個人一下子就把圳道挖好了，兩個莊也很快就談好怎麼分水。',
+  real: '真實的八堡圳，是施世榜從 1709 年開始，找了很多人一起挖，前後大約花了十年才完成。開圳的地方本來就有巴布薩族人在生活，水要怎麼分，也常常要一次又一次地商量。',
+  source: `${SRC.encyclo}；${SRC.textbook}`,
 };
 
-// 反思題（佔位稿，P6-5 照課本重寫並附出處）
-export interface Question { q: string; options: string[]; answer: number; why: string }
+// 反思題（P6-5）：每題對到一張圖鑑卡，答完可以回圖鑑看
+export interface Question { q: string; options: string[]; answer: number; why: string; card: string }
 export const QUESTIONS: Question[] = [
   {
     q: '圳道為什麼要沿著等高線，慢慢往低的地方挖？',
     options: ['因為水只會往一樣高或更低的地方流', '因為這樣挖比較快', '因為等高線上的土比較軟'],
     answer: 0,
-    why: '水往低處流。往高的地方挖，水流到一半就停住了。',
+    why: '水往低處流。往高的地方挖，水流到一半就停住了。所以圳頭要開在比較高的二水。',
+    card: 'head',
   },
   {
     q: '為什麼用竹蛇籠「導」水，比正面「擋」水好？',
     options: ['竹子比石頭還硬', '斜斜地把水導走，大水比較不會把籠子整個沖壞', '擋水可以讓水流得比較快'],
     answer: 1,
-    why: '正面硬擋，大水的力量全部打在籠子上；順著水把它導到旁邊就省力多了。',
+    why: '正面硬擋，大水的力量全部打在籠子上；順著水把它導到旁邊就省力多了。竹籠會透水，也比較不會被整個沖走。',
+    card: 'cage',
   },
   {
     q: '漳州莊 6 塊田、泉州莊 4 塊田，怎麼分水比較公平？',
     options: ['兩邊分一樣多', '先挖到圳道的先用', '照田的多少分，田多的多分一點'],
     answer: 2,
     why: '「平均」是一樣多，「公平」是照需要分。兩邊一樣多，田多的那邊反而不夠。',
+    card: 'gate',
   },
 ];
 

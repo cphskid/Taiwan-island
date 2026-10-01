@@ -37,8 +37,9 @@ export function Finale({ p, set, exit }: StepProps) {
             <img className="gear" src={img('gear')} alt="" />
             <h2>大豐收！</h2>
             <p>漳州莊和泉州莊的稻子都變成金黃色了。<br />滴答拿回了第五顆時之齒輪！</p>
+            <p className="grows">拿到圖鑑卡「八堡圳」：{CARDS.babao.text}</p>
             <img src={`${BASE}img/tick/happy.webp`} alt="" />
-            <button className="btn green" onClick={() => setPhase('truth')}>繼續</button>
+            <button className="btn green" onClick={() => { set((o) => (o.cards.includes('babao') ? o : { ...o, cards: [...o.cards, 'babao'] })); setPhase('truth'); }}>繼續</button>
           </div>
         </div>
       )}
@@ -49,6 +50,7 @@ export function Finale({ p, set, exit }: StepProps) {
             <h2>{TRUTH.title}</h2>
             <p><b>遊戲裡：</b>{TRUTH.game}</p>
             <p><b>真實的歷史：</b>{TRUTH.real}</p>
+            <p className="source">資料來源：{TRUTH.source}</p>
             <button className="btn green" onClick={() => setPhase('quiz')}>我知道了</button>
           </div>
         </div>

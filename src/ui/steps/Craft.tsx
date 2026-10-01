@@ -12,6 +12,11 @@ export function Craft({ p, set, next }: StepProps) {
   const [weaving, setWeaving] = useState(false);
   const [say, setSay] = useState<string | null>(null);
   const [card, setCard] = useState(false);
+  const [linCard, setLinCard] = useState(false);
+  const metLin = () => {
+    setIntro(false);
+    if (!p.cards.includes('lin')) { set((o) => ({ ...o, cards: [...o.cards, 'lin'] })); setLinCard(true); }
+  };
   const taken = new Set(p.taken);
   const live = useRef({ p, taken });
   live.current = { p, taken };
@@ -73,7 +78,8 @@ export function Craft({ p, set, next }: StepProps) {
         <div className="next-bar"><span>6 個竹蛇籠都做好了！</span><button className="btn green" onClick={next}>下一步：導水</button></div>
       )}
       {weaving && <Weave onDone={() => { setWeaving(false); set((o) => craft(o)); setSay('做好一個竹蛇籠！'); }} onCancel={() => setWeaving(false)} />}
-      {intro && <Talk lines={CRAFT_INTRO} onDone={() => setIntro(false)} />}
+      {intro && <Talk lines={CRAFT_INTRO} onDone={metLin} />}
+      {linCard && <CardPop title={CARDS.lin.title} text={CARDS.lin.text} onClose={() => setLinCard(false)} />}
       {card && <CardPop title={CARDS.cage.title} text={CARDS.cage.text} onClose={() => setCard(false)} />}
       <div className="fps">每秒 {fps} 格</div>
     </div>

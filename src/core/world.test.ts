@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  celebrate, freshWorld, loadWorld, lodLevel, markCleared, nearest, opened, paddyLook, pathLength, pointAlong,
+  addCards, celebrate, freshWorld, loadWorld, lodLevel, markCleared, nearest, opened, paddyLook, pathLength, pointAlong,
   saveWorld, seasonAt, toCelebrate, walker,
 } from './world';
 
@@ -23,6 +23,13 @@ describe('大地圖進度', () => {
     expect(loadWorld(store)).toEqual(freshWorld());
     mem.set('island.world.v1', JSON.stringify({ v: 9 }));
     expect(loadWorld(store)).toEqual(freshWorld());
+  });
+});
+
+describe('圖鑑', () => {
+  it('跨章累積，不會重複', () => {
+    const w = addCards(addCards(freshWorld(), ['river', 'plain']), ['plain', 'shi']);
+    expect(w.cards).toEqual(['river', 'plain', 'shi']);
   });
 });
 

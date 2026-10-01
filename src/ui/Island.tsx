@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { freshWorld, loadWorld, markCleared, saveWorld, type WorldSave } from '../core/world';
+import { addCards, freshWorld, loadWorld, markCleared, saveWorld, type WorldSave } from '../core/world';
 import { load } from '../core/save';
 import type { ChapterId } from '../data/world';
 import { Chapter } from './Chapter';
@@ -16,7 +16,9 @@ function initialWorld(): WorldSave {
 
 // 章節過關了就記到大地圖上（章節「從頭再玩」也不會把雲霧蓋回去）
 function syncChapters(w: WorldSave): WorldSave {
-  return load().done ? markCleared(w, 'ch5') : w;
+  const p = load();
+  const got = addCards(w, p.cards);
+  return p.done ? markCleared(got, 'ch5') : got;
 }
 
 export function Island() {
@@ -26,6 +28,6 @@ export function Island() {
   useEffect(() => saveWorld(world), [world]);
 
   if (mode.at === 'chapter')
-    return <Chapter onExit={() => { setWorld((w) => syncChapters(w)); setMode({ at: 'map', back: true }); }} />;
+    return <Chapter album={world.cards} onExit={() => { setWorld((w) => syncChapters(w)); setMode({ at: 'map', back: true }); }} />;
   return <WorldMap world={world} setWorld={(fn) => setWorld((w) => fn(w))} back={mode.back} onEnter={(id) => setMode({ at: 'chapter', id })} />;
 }
