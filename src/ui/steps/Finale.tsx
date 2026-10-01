@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CARDS, QUESTIONS, TRUTH, img } from '../../data/babao-chapter';
 import { fresh, starsOf } from '../../core/save';
 import { PARK_URL } from '../../net/park';
 import type { StepProps } from '../Chapter';
+import { ambience, jingle, sfx } from '../../audio';
 
 const BASE = import.meta.env.BASE_URL;
 type Phase = 'harvest' | 'truth' | 'quiz' | 'stars';
@@ -13,10 +14,12 @@ export function Finale({ p, set, exit }: StepProps) {
   const [qi, setQi] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const q = QUESTIONS[qi];
+  useEffect(() => { ambience(phase === 'quiz' || phase === 'truth' ? 'SE-61' : null); if (phase === 'harvest') jingle('MU-17'); }, [phase]);
 
   const answer = (i: number) => {
     if (picked !== null) return;
     setPicked(i);
+    sfx(i === q.answer ? 'SE-05' : 'SE-04');
     set((o) => { const a = [...o.answers]; a[qi] = i; return { ...o, answers: a }; });
   };
   const nextQ = () => {
@@ -27,6 +30,12 @@ export function Finale({ p, set, exit }: StepProps) {
   };
 
   const stars = starsOf(p, QUESTIONS.map((x) => x.answer));
+  // 星星一顆一顆跳出來，一顆比一顆高
+  useEffect(() => {
+    if (phase !== 'stars') return;
+    const ids = Array.from({ length: stars }, (_, i) => window.setTimeout(() => sfx('SE-35', 1 + 0.12 * i), 300 + 350 * i));
+    return () => ids.forEach(clearTimeout);
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="scene finale">
       <img className="scene-bg" src={img('S-03')} alt="" />

@@ -9,6 +9,11 @@ import { Finale } from './steps/Finale';
 import { Album } from './Album';
 import { CARD_ORDER } from '../data/babao-chapter';
 import { awardStamp, pushCloud } from '../net/cloud';
+import { ambience, music, sfx } from '../audio';
+import { SoundToggle } from './Sound';
+
+// 關卡裡不放音樂，只放環境音：田野、溪邊；分水那一步照季節自己換，豐收放短曲
+const AMB = ['SE-61', 'SE-61', 'SE-61', 'SE-62', null, null] as const;
 
 export interface StepProps {
   p: Progress;
@@ -28,6 +33,8 @@ export function Chapter({ onExit, album }: { onExit: () => void; album: readonly
   });
   useEffect(() => { save(p); pushCloud('ch5', p); }, [p]);
   useEffect(() => { if (p.done) void awardStamp('ch5'); }, [p.done]);
+  useEffect(() => { music(null); return () => ambience(null); }, []);
+  useEffect(() => { if (p.step !== 4) ambience(AMB[p.step]); }, [p.step]);
 
   const set = (fn: (p: Progress) => Progress) => setP((old) => fn(old));
   const next = () => setP((old) => goTo(old, Math.min(5, old.step + 1) as Step));
@@ -37,18 +44,19 @@ export function Chapter({ onExit, album }: { onExit: () => void; album: readonly
   return (
     <div className="chapter">
       <nav className="steps">
-        <button className="back-map" onClick={onExit}><img src={`${import.meta.env.BASE_URL}img/island/h-map.webp`} alt="" />大地圖</button>
+        <button className="back-map" onClick={() => { sfx('SE-02'); onExit(); }}><img src={`${import.meta.env.BASE_URL}img/island/h-map.webp`} alt="" />大地圖</button>
         {STEPS.map((name, i) => (
           <button
             key={name}
             className={`step ${i === p.step ? 'on' : ''} ${i <= p.reached ? 'open' : ''}`}
             disabled={i > p.reached}
-            onClick={() => setP((old) => goTo(old, i as Step))}
+            onClick={() => { sfx('SE-01'); setP((old) => goTo(old, i as Step)); }}
           >
             <i>{i}</i>{name}
           </button>
         ))}
-        <button className="back-map album-btn" onClick={() => setBook(true)}>📖 圖鑑 {CARD_ORDER.filter((id) => have.has(id)).length}/{CARD_ORDER.length}</button>
+        <SoundToggle className="back-map" />
+        <button className="back-map album-btn" onClick={() => { sfx('SE-03'); setBook(true); }}>📖 圖鑑 {CARD_ORDER.filter((id) => have.has(id)).length}/{CARD_ORDER.length}</button>
       </nav>
       <div className="stage" key={p.step}>
         {p.step === 0 && <Opening {...props} />}

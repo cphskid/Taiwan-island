@@ -4,6 +4,7 @@ import { CAGES_NEEDED, CAGE_COST, canCraft, craft } from '../../core/save';
 import { useBoard } from '../useBoard';
 import { CardPop, Say, Talk } from '../Talk';
 import type { StepProps } from '../Chapter';
+import { sfx } from '../../audio';
 
 // 步驟 2 做竹蛇籠：點竹林拿竹子、點石堆拿石頭；編籠（來回滑三下）再把石頭拖進籠子
 export function Craft({ p, set, next }: StepProps) {
@@ -28,10 +29,12 @@ export function Craft({ p, set, next }: StepProps) {
       if (!c || live.current.taken.has(key(c))) return;
       const k = CHAPTER.kind(c);
       if (k === 'bamboo') {
+        sfx('SE-67');
         set((o) => ({ ...o, bamboo: o.bamboo + 1, taken: [...o.taken, key(c)] }));
         setSay('砍到一根竹子！');
       } else if (k === 'stone') {
         const n = CHAPTER.stones(c);
+        sfx('SE-68');
         set((o) => ({ ...o, stone: o.stone + n, taken: [...o.taken, key(c)] }));
         setSay(`撿到 ${n} 顆石頭！`);
       }
@@ -77,7 +80,7 @@ export function Craft({ p, set, next }: StepProps) {
       {finished && !card && (
         <div className="next-bar"><span>6 個竹蛇籠都做好了！</span><button className="btn green" onClick={next}>下一步：導水</button></div>
       )}
-      {weaving && <Weave onDone={() => { setWeaving(false); set((o) => craft(o)); setSay('做好一個竹蛇籠！'); }} onCancel={() => setWeaving(false)} />}
+      {weaving && <Weave onDone={() => { sfx('SE-41'); setWeaving(false); set((o) => craft(o)); setSay('做好一個竹蛇籠！'); }} onCancel={() => setWeaving(false)} />}
       {intro && <Talk lines={CRAFT_INTRO} onDone={metLin} />}
       {linCard && <CardPop title={CARDS.lin.title} text={CARDS.lin.text} onClose={() => setLinCard(false)} />}
       {card && <CardPop title={CARDS.cage.title} text={CARDS.cage.text} onClose={() => setCard(false)} />}
@@ -103,14 +106,14 @@ function Weave({ onDone, onCancel }: { onDone: () => void; onCancel: () => void 
     const dx = e.clientX - t.x;
     const dir = Math.sign(dx);
     if (dir && dir !== t.dir) {
-      if (Math.abs(t.x - t.from) > 60) setSwipes((n) => n + 1);
+      if (Math.abs(t.x - t.from) > 60) { sfx('SE-69'); setSwipes((n) => n + 1); }
       track.current = { x: e.clientX, dir, from: t.x };
     } else track.current = { ...t, x: e.clientX };
   };
 
   const dropAt = (i: number, x: number, y: number) => {
     const r = zone.current?.getBoundingClientRect();
-    if (r && x > r.left && x < r.right && y > r.top && y < r.bottom) setInside((s) => s.map((v, k) => (k === i ? true : v)));
+    if (r && x > r.left && x < r.right && y > r.top && y < r.bottom) { sfx('SE-70'); setInside((s) => s.map((v, k) => (k === i ? true : v))); }
   };
 
   return (
@@ -125,7 +128,7 @@ function Weave({ onDone, onCancel }: { onDone: () => void; onCancel: () => void 
           onPointerMove={swipeMove}
           onPointerUp={() => {
             const t = track.current;
-            if (t && !woven && Math.abs(t.x - t.from) > 60) setSwipes((n) => n + 1);
+            if (t && !woven && Math.abs(t.x - t.from) > 60) { sfx('SE-69'); setSwipes((n) => n + 1); }
             track.current = null;
           }}
         >

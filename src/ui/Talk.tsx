@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PEOPLE, type Line } from '../data/babao-chapter';
+import { sfx } from '../audio';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -9,7 +10,7 @@ export function Talk({ lines, onDone }: { lines: readonly Line[]; onDone: () => 
   const line = lines[i];
   if (!line) return null;
   const who = PEOPLE[line.who];
-  const next = () => (i + 1 < lines.length ? setI(i + 1) : onDone());
+  const next = () => { sfx('SE-09'); if (i + 1 < lines.length) setI(i + 1); else onDone(); };
   return (
     <div className="talk-cover" onClick={next}>
       <div className="talk">
@@ -61,6 +62,7 @@ export function Say({ line }: { line: Line | null }) {
 
 // 圖鑑卡彈出來
 export function CardPop({ title, text, onClose }: { title: string; text: string; onClose: () => void }) {
+  useEffect(() => { sfx('SE-36'); }, []);
   return (
     <div className="talk-cover" onClick={onClose}>
       <div className="card-pop">

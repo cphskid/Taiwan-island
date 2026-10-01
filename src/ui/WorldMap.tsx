@@ -5,6 +5,11 @@ import { ACTOR_ART, CHAPTERS, GEAR_SLOTS, HOOKS, LEGEND, TICK_LINES, chapterOf, 
 import { Say, Talk } from './Talk';
 import { Album } from './Album';
 import { CARD_ORDER } from '../data/babao-chapter';
+import { ambience, music, preload, sfx, type SeCode } from '../audio';
+import { SoundToggle } from './Sound';
+
+// 點到小人或動物的聲音
+const ACTOR_SE: Partial<Record<ActorDef['kind'], SeCode>> = { buffalo: 'SE-63', dog: 'SE-65', hen: 'SE-66' };
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -47,15 +52,19 @@ export function WorldMap({ world, setWorld, onEnter, back }: Props) {
     if (live.current.busy) return;
     setActor(null);
     if (!hit) { setPicked(null); return; }
-    if (hit.kind === 'actor') { setActor(hit.actor); setPicked(null); return; }
-    if (hit.kind === 'rift') { setPicked(hit.id); setSay(null); return; }
-    if (hit.fogged) { setSay(hit.id ? `${TICK_LINES.fogged}這一區是${chapterOf(hit.id).no}「${chapterOf(hit.id).title}」。` : TICK_LINES.fogged); setPicked(null); return; }
+    if (hit.kind === 'actor') { sfx(ACTOR_SE[hit.actor.kind] ?? 'SE-39'); setActor(hit.actor); setPicked(null); return; }
+    if (hit.kind === 'rift') { sfx(chapterOf(hit.id).playable ? 'SE-03' : 'SE-13'); setPicked(hit.id); setSay(null); return; }
+    if (hit.fogged) { sfx('SE-02'); setSay(hit.id ? `${TICK_LINES.fogged}這一區是${chapterOf(hit.id).no}「${chapterOf(hit.id).title}」。` : TICK_LINES.fogged); setPicked(null); return; }
+    sfx('SE-03');
     setPicked(hit.id);
   };
 
   useEffect(() => {
     let alive = true;
     let timer = 0;
+    music('MU-10');
+    ambience('SE-30');
+    preload(['SE-03', 'SE-31', 'SE-32', 'SE-33', 'SE-34', 'SE-38', 'SE-39']);
     const ch5 = chapterOf('ch5');
     createWorldMap(host.current!, {
       opened: opened(world),
@@ -77,7 +86,7 @@ export function WorldMap({ world, setWorld, onEnter, back }: Props) {
         setBusy(false);
       }
     });
-    return () => { alive = false; clearInterval(timer); map.current?.destroy(); map.current = null; };
+    return () => { music(null); ambience(null); alive = false; clearInterval(timer); map.current?.destroy(); map.current = null; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onTapRef = useRef(onTap);
@@ -86,9 +95,12 @@ export function WorldMap({ world, setWorld, onEnter, back }: Props) {
   // 撥雲：雲散開、建設長出來、齒輪飛回時鐘，最後滴答說下一章的鉤子
   const celebrateOne = async (m: Map, id: ChapterId) => {
     setSay(null);
+    sfx('SE-32');
     await m.dispel(id);
+    sfx('SE-33');
     const ch = chapterOf(id);
     if (ch.gear !== null) {
+      sfx('SE-34');
       setFlyGear(ch.gear);
       await new Promise((r) => setTimeout(r, 1300));
       setFlyGear(null);
@@ -111,12 +123,14 @@ export function WorldMap({ world, setWorld, onEnter, back }: Props) {
     setPicked(null);
     setBusy(true);
     setFlash(true);
+    sfx('SE-31');
     await m.flyTo(chapterOf(id).rift, 6, 900);
     onEnter(id);
   };
 
   const focus = async (id: ChapterId) => {
     if (busy) return;
+    sfx('SE-01');
     setPicked(id);
     setActor(null);
     await map.current?.flyTo(chapterOf(id).rift, 1.8, 700);
@@ -137,12 +151,13 @@ export function WorldMap({ world, setWorld, onEnter, back }: Props) {
       {flyGear !== null && <img className="gear-fly" src={isl('gear')} alt="" style={{ '--tx': `${GEAR_SLOTS[flyGear].x * 140 + 12}px`, '--ty': `${GEAR_SLOTS[flyGear].y * 140 + 12}px` } as React.CSSProperties} />}
 
       <div className="tools">
-        <button className={`tool ${glasses ? 'on' : ''}`} onClick={() => setGlasses(!glasses)}>
+        <button className={`tool ${glasses ? 'on' : ''}`} onClick={() => { sfx('SE-38'); setGlasses(!glasses); }}>
           <img className="tool-img" src={isl('h-eye')} alt="" />地形眼鏡
         </button>
-        <button className="tool" onClick={() => setBook(true)}>
+        <button className="tool" onClick={() => { sfx('SE-03'); setBook(true); }}>
           <span className="tool-icon">📖</span>圖鑑 {CARD_ORDER.filter((id) => world.cards.includes(id)).length}/{CARD_ORDER.length}
         </button>
+        <SoundToggle />
       </div>
       {glasses && (
         <div className="legend world-legend">
@@ -157,6 +172,7 @@ export function WorldMap({ world, setWorld, onEnter, back }: Props) {
           const state = world.cleared.includes(c.id) ? 'done' : c.playable ? 'open' : 'locked';
           return (
             <button key={c.id} className={`era ${state} ${picked === c.id ? 'on' : ''}`} onClick={() => focus(c.id)}>
+              <img className="era-badge" src={isl(`badge-${c.badge}`)} alt="" />
               <small>{c.era}</small>
               <span>{c.no}</span>
             </button>
@@ -166,7 +182,8 @@ export function WorldMap({ world, setWorld, onEnter, back }: Props) {
 
       {ch && !busy && (
         <div className="chapter-card panel" onClick={(e) => e.stopPropagation()}>
-          <button className="x" onClick={() => setPicked(null)} aria-label="關掉">✕</button>
+          <button className="x" onClick={() => { sfx('SE-02'); setPicked(null); }} aria-label="關掉">✕</button>
+          <img className="card-badge" src={isl(`badge-${ch.badge}`)} alt="" />
           <small>{ch.no}・{ch.era}</small>
           <h2>{ch.title}</h2>
           <p>{ch.place}</p>

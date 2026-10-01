@@ -338,6 +338,10 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .era.done{color:#fff;border-color:var(--gold);background:linear-gradient(#7fd85a,#4aa834)}
 .era.done::after{content:'✓';position:absolute;right:4px;top:0;font-size:12px}
 .era.on{outline:3px solid var(--wood-2)}
+.era-badge{position:absolute;left:-12px;top:-14px;width:34px;height:34px;filter:drop-shadow(0 1px 2px #0004)}
+.era.locked .era-badge{filter:grayscale(.7) opacity(.8)}
+.card-badge{float:right;width:64px;height:64px;margin:-6px 18px 0 6px}
+.sound-btn .tool-icon{font-size:20px}
 .era+.era::before{content:'';position:absolute;left:-5px;top:50%;width:6px;height:3px;background:#c9a46b}
 .chapter-card{position:absolute;right:110px;top:50%;transform:translateY(-50%);z-index:4;width:min(320px,calc(100% - 140px));text-align:center;padding:18px 18px 16px;animation:pop .3s ease-out}
 .chapter-card small{color:var(--wood-2);font-weight:700}

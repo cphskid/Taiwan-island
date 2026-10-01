@@ -3,6 +3,7 @@ import { CARDS, SHARE_HINT, SHARE_INTRO, img } from '../../data/babao-chapter';
 import { DRY_HOLD, FIELDS, FLOW, RAIN_HOLD, goodRange, setGate, startShare, stateOf, tick, type Share, type Side } from '../../core/share';
 import { CardPop, Face, Say, Talk } from '../Talk';
 import type { StepProps } from '../Chapter';
+import { ambience, jingle, sfx } from '../../audio';
 
 const HINT_AT = 3;
 const SHOW_AT = 5;
@@ -25,7 +26,9 @@ export function ShareStep({ p, set, next }: StepProps) {
     const id = window.setInterval(() => setS((old) => tick(old, 0.1)), 100);
     return () => clearInterval(id);
   }, [intro, s.done]);
-  useEffect(() => { if (s.rained) setRainNote(true); }, [s.rained]);
+  useEffect(() => { if (s.rained) { sfx('SE-74'); setRainNote(true); } }, [s.rained]);
+  useEffect(() => { ambience(s.season === 'dry' ? 'SE-75' : 'SE-76'); }, [s.season]);
+  useEffect(() => { if (s.done) { sfx('SE-60'); jingle('MU-13'); } }, [s.done]);
   useEffect(() => { if (rainNote) { const t = setTimeout(() => setRainNote(false), 5000); return () => clearTimeout(t); } }, [rainNote]);
   useEffect(() => {
     if (s.done && !p.cards.includes('gate')) { set((o) => ({ ...o, cards: [...o.cards, 'gate'] })); setCard(true); }
@@ -71,6 +74,7 @@ export function ShareStep({ p, set, next }: StepProps) {
                   type="range" min={0} max={100} step={5} value={s.gates[side]} disabled={intro || s.done}
                   style={s.fails >= SHOW_AT ? { background: `linear-gradient(90deg,#d9c9a3 ${lo}%,#7fd85a ${lo}%,#7fd85a ${hi}%,#d9c9a3 ${hi}%)` } : undefined}
                   onChange={(e) => setS((old) => setGate(old, side, Number(e.target.value)))}
+                  onPointerUp={() => sfx('SE-73')}
                 />
               </label>
             </div>

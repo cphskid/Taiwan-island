@@ -24,6 +24,7 @@ npm run build:dev  # 測試站版本（/Taiwan-island/dev/，測試庫）
 - `src/render/` PixiJS 畫遊戲盤，只讀狀態不做判斷
 - `src/ui/` React：頂列、對話、選單、進場檢查
 - `src/net/` 跟樂園與 Supabase 接線
+- `src/audio/` 音效與音樂：檔名用全站統一編號放 `public/audio/`（例如 `SE-32.mp3`、`MU-10.mp3`），還沒有檔也照玩（幾個合成小聲音頂著）
 - `src/data/` 章節資料（地圖、題目、知識卡），改難度和文字不用動程式
 - `tools/make_world.py` 由 M-01 大地圖算出地區分界、高度場與地形眼鏡圖（改了 `src/data/world-*.json` 要重跑）
 

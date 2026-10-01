@@ -9,6 +9,7 @@ import { useBoard } from '../useBoard';
 import { Say, Talk } from '../Talk';
 import { Legend } from './Legend';
 import type { StepProps } from '../Chapter';
+import { jingle, sfx } from '../../audio';
 
 const STEP_MS = 250; // 水每 0.25 秒往前一格
 const HINT_AT = 3; // 失敗幾次林先生亮出提示
@@ -85,8 +86,8 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
       const L = live.current;
       if (!c || !L.digging || L.running || !canDig(level, c)) return;
       setRun(null);
-      if (L.canals.some((d) => same(d, c))) setCanals(L.canals.filter((d) => !same(d, c)));
-      else if (L.canals.length < level.digs) setCanals([...L.canals, c]);
+      if (L.canals.some((d) => same(d, c))) { sfx('SE-51'); setCanals(L.canals.filter((d) => !same(d, c))); }
+      else if (L.canals.length < level.digs) { sfx('SE-50'); setCanals([...L.canals, c]); }
     },
     onPress: (c, e) => {
       if (live.current.running) return false;
@@ -116,8 +117,13 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
     const id = window.setTimeout(() => {
       if (run.t < run.result.steps) { setRun({ ...run, t: run.t + 1 }); return; }
       setRun({ ...run, done: true });
-      if (!solved(run.result, level.need)) setFails((n) => n + 1);
+      const ok = solved(run.result, level.need);
+      if (!ok) setFails((n) => n + 1);
       const broken = run.result.broken;
+      if (ok) { sfx('SE-56'); jingle('MU-13'); }
+      else if (broken.length) sfx('SE-71');
+      else if (run.result.flooded.length) sfx('SE-57');
+      else jingle('MU-14');
       if (broken.length) {
         setPieces((list) => list.filter((q) => !broken.some((w) => same(w.cell, q.cell))));
         set((o) => ({ ...o, cages: Math.max(0, o.cages - broken.length), stone: o.stone + broken.length, broken: o.broken + broken.length }));
@@ -172,13 +178,16 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
       const c = board.current?.cellAt(e.clientX, e.clientY) ?? null;
       if (cur.kind === 'new') {
         if (!canDrop(c, cur)) return;
+        sfx('SE-52');
         const nextList = place(list, 'cage', c);
         setPieces(nextList);
         setSelected(nextList[nextList.length - 1].id);
       } else if (c === null) {
+        sfx('SE-02');
         setPieces(remove(list, cur.id));
         setSelected(null);
       } else if (canDrop(c, cur)) {
+        sfx('SE-08');
         setPieces(move(list, cur.id, c));
       }
     };
@@ -220,10 +229,10 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
       </div>
 
       <div className="tools">
-        <button className="tool" disabled={selected === null || running} onClick={() => selected !== null && edit(() => setPieces(rotate(pieces, selected)))}>
+        <button className="tool" disabled={selected === null || running} onClick={() => selected !== null && edit(() => { sfx('SE-53'); setPieces(rotate(pieces, selected)); })}>
           <img className="tool-img" src={img('h-rotate')} alt="" />旋轉
         </button>
-        <button className="tool" disabled={selected === null || running} onClick={() => { if (selected !== null) edit(() => { setPieces(remove(pieces, selected)); setSelected(null); }); }}>
+        <button className="tool" disabled={selected === null || running} onClick={() => { if (selected !== null) edit(() => { sfx('SE-02'); setPieces(remove(pieces, selected)); setSelected(null); }); }}>
           <img className="tool-img" src={img('h-undo')} alt="" />拿回
         </button>
         {level.digs > 0 && (
@@ -242,6 +251,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
           onPointerDown={(e) => {
             if (remaining <= 0 || running) return;
             e.preventDefault();
+            sfx('SE-07');
             setGhost({ x: e.clientX, y: e.clientY });
             startDrag({ kind: 'new' });
           }}
@@ -251,7 +261,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
           <b>×{remaining}</b>
         </div>
         {level.digs > 0 && <div className="digs">圳道<b>{level.digs - canals.length}</b>格</div>}
-        <button className="btn green go" disabled={running} onClick={() => setRun({ result: simulate(level, pieces, canals), t: 0, done: false })}>放水</button>
+        <button className="btn green go" disabled={running} onClick={() => { sfx('SE-54'); setRun({ result: simulate(level, pieces, canals), t: 0, done: false }); }}>放水</button>
         <button className="btn orange go" disabled={running} onClick={() => edit(() => { setPieces([]); setCanals([]); setSelected(null); })}>重來</button>
         {fails >= DEMO_AT && <button className="btn go demo" disabled={running} onClick={demo}>看示範</button>}
       </div>
