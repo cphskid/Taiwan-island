@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { contourEdges, parseHeights, bandColor } from './terrain';
 import { place, move, rotate, remove, left, pieceAt } from './pieces';
 import { fitView, zoomAt, panBy, scaleLimits } from './camera';
+import { fieldAt, reliefPixels } from './relief';
 
 describe('等高線', () => {
   it('高度一樣的地方沒有線', () => {
@@ -78,5 +79,23 @@ describe('鏡頭', () => {
     const z = zoomAt(v, 3, 500, 350, b, s);
     const far = panBy(z, 99999, 0, b, s);
     expect(far.x + b.left * far.scale).toBeLessThanOrEqual(40.001); // 左緣最多到畫面左邊 40px
+  });
+});
+
+describe('彎曲的等高線（高度場）', () => {
+  const h = parseHeights(['0123', '1234', '2345']);
+  it('格子中心的高度就是那格的整數高度', () => {
+    for (let row = 0; row < 3; row++)
+      for (let col = 0; col < 4; col++) expect(fieldAt(h, 4, 3, col, row)).toBeCloseTo(h({ col, row }), 6);
+  });
+  it('兩格中間是兩邊之間的值', () => {
+    const f = fieldAt(h, 4, 3, 0.5, 0);
+    expect(f).toBeGreaterThan(0);
+    expect(f).toBeLessThan(1);
+  });
+  it('算得出一張圖，大小是格數×解析度', () => {
+    const img = reliefPixels(h, 4, 3, 8, [0x00ff00, 0xffff00, 0xff0000, 0x0000ff, 0, 0xffffff], 0x000000);
+    expect(img.width).toBe(32);
+    expect(img.data.length).toBe(32 * 24 * 4);
   });
 });

@@ -62,3 +62,129 @@ body{background:var(--sky);color:var(--ink);font-family:var(--f);overflow:hidden
 .result{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:420px;text-align:center;background:var(--cream);border:6px solid var(--wood-2);border-radius:24px;box-shadow:inset 0 0 0 3px var(--gold),0 8px 20px rgba(0,0,0,.3);padding:18px 22px;display:flex;flex-direction:column;gap:10px;align-items:center}
 .result p{margin:0;font-size:20px;font-weight:700;line-height:1.5;color:#c0392b}
 .result.ok p{color:#2e8b2e}
+
+/* P6-3 整章：步驟列、對話、圖鑑卡、各步驟畫面 */
+.chapter{flex:1;display:flex;flex-direction:column;min-height:0}
+.steps{display:flex;gap:6px;padding:6px 10px;background:#f3e2bd;border-bottom:3px solid var(--wood-2);overflow-x:auto}
+.step{display:flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border-radius:20px;border:2px solid #c9a46b;background:#fff8e6;color:#9c8466;font:700 15px var(--f);white-space:nowrap;cursor:pointer}
+.step i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#d9c9a3;color:#fff}
+.step.open{color:var(--ink);border-color:var(--gold)}
+.step.open i{background:var(--wood-2)}
+.step.on{background:linear-gradient(#7fd85a,#4aa834);color:#fff;border-color:var(--gold)}
+.step.on i{background:#2e7d22}
+.step:disabled{cursor:default}
+.stage{flex:1;position:relative;min-height:0;display:flex}
+.scene{flex:1;position:relative;overflow:hidden}
+.board.full{inset:0}
+.board.puzzle{inset:70px 104px 0 0}
+
+.talk-cover{position:absolute;inset:0;z-index:6;display:flex;align-items:flex-end;justify-content:center;padding:16px;background:rgba(40,25,10,.25)}
+.talk{display:flex;gap:14px;align-items:flex-end;width:min(860px,100%);background:var(--cream);border:6px solid var(--wood-2);border-radius:24px;box-shadow:inset 0 0 0 3px var(--gold),0 8px 20px rgba(0,0,0,.3);padding:14px 18px;cursor:pointer}
+.talk-body{flex:1;min-width:0}
+.talk-body b{font-size:20px}
+.talk-body p{margin:6px 0 4px;font-size:22px;line-height:1.6}
+.talk-next{display:block;text-align:right;color:var(--wood-2);font-weight:700;font-size:15px}
+.face{flex:none;width:120px;height:120px;border-radius:50%;border:5px solid;background:#fff;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
+.face img{width:100%;height:100%;object-fit:cover;object-position:top}
+.face span{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:52px;font-weight:900}
+.face.small{width:64px;height:64px;border-width:4px}
+.face.small span{font-size:30px}
+.say{position:absolute;left:12px;bottom:12px;z-index:4;display:flex;align-items:center;gap:10px;max-width:min(460px,40%);background:rgba(255,244,220,.96);border:4px solid var(--wood-2);border-radius:20px;padding:8px 12px;pointer-events:none}
+.say p{margin:0;font-size:17px;line-height:1.5}
+.say p b{display:block}
+.card-pop{align-self:center;width:min(420px,100%);text-align:center;background:linear-gradient(#fffaf0,#ffeec4);border:6px solid var(--gold);border-radius:24px;box-shadow:0 10px 30px rgba(0,0,0,.35);padding:22px;cursor:pointer;animation:pop .35s ease-out}
+.card-pop small{color:var(--wood-2);font-weight:700}
+.card-pop h3{margin:6px 0 10px;font-size:28px}
+.card-pop p{font-size:20px;line-height:1.6;margin:0 0 10px}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.mission{align-self:center;text-align:center;max-width:520px}
+.mission img{width:110px}
+.mission h2{margin:4px 0 8px}
+.mission ol{text-align:left;font-size:20px;line-height:1.8;margin:0 0 14px}
+.mission p{font-size:19px;line-height:1.6}
+.next-bar{position:absolute;right:12px;bottom:12px;z-index:5;display:flex;align-items:center;gap:12px;background:rgba(255,244,220,.96);border:4px solid var(--wood-2);border-radius:20px;padding:8px 12px;font-weight:700;font-size:18px}
+
+/* 開場 */
+.opening-sky{position:absolute;inset:0;background:linear-gradient(#ffe9a8,#f6d27a 55%,#d9b25e 55%)}
+.sun{position:absolute;right:12%;top:8%;width:120px;height:120px;border-radius:50%;background:#ffb52e;box-shadow:0 0 60px #ffcf5e}
+.dry-land{position:absolute;left:8%;right:8%;top:58%;display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.crack-field{height:48px;border-radius:8px;background:#c9a65a repeating-linear-gradient(115deg,transparent 0 18px,#8a6a2a 18px 20px)}
+
+/* 認識地形、做竹蛇籠 */
+.checklist,.mats{position:absolute;top:12px;left:12px;z-index:3;display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:calc(100% - 130px);background:rgba(255,244,220,.95);border:3px solid var(--wood-2);border-radius:16px;padding:6px 10px;font-weight:700}
+.checklist span{padding:2px 10px;border-radius:12px;background:#eee3c8;color:#9c8466}
+.checklist span.got{background:#4aa834;color:#fff}
+.mats{gap:16px;font-size:18px}
+.mats b{color:var(--wood-2);font-size:22px}
+.weave{align-self:center;text-align:center;width:min(560px,100%)}
+.weave h3{margin:0 0 12px;font-size:22px}
+.weave-cage{--w:0;position:relative;height:120px;margin:0 auto 16px;width:90%;border-radius:60px;border:5px dashed #6f8f2f;background:repeating-linear-gradient(90deg,rgba(201,178,90,var(--w)) 0 22px,rgba(143,143,136,calc(var(--w)*.6)) 22px 30px);touch-action:none;display:flex;align-items:center;justify-content:center;gap:16px}
+.weave-cage.woven{border-style:solid}
+.stones{display:flex;gap:24px;justify-content:center;margin-bottom:14px;min-height:64px}
+.stone{display:inline-block;width:60px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#c9c9c2,#8b8b84);border:3px solid #5e5e58;touch-action:none;cursor:grab}
+.stone.in{cursor:default}
+
+/* 導水 */
+.lv.past{background:linear-gradient(#7fd85a,#4aa834);opacity:.6}
+.lv{display:inline-flex;align-items:center;justify-content:center}
+.digs{display:flex;align-items:center;gap:4px;padding:0 12px;font-weight:700;font-size:18px}
+.digs b{font-size:26px;color:var(--wood-2)}
+.btn.demo{background:linear-gradient(#6fb8d6,#3b8bb0)}
+
+/* 分水 */
+.share{background:linear-gradient(#dff1fa,#cfe9c2);display:flex;flex-direction:column;padding:12px 12px 90px}
+.share.rain{background:linear-gradient(#b9c9d6,#cfe0c9)}
+.share-top{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.season{font-weight:900;font-size:22px;padding:6px 14px;border-radius:16px;background:#ffcf5e}
+.season.rain{background:#6fb8d6;color:#fff}
+.hold{flex:1;min-width:220px;font-weight:700}
+.hold .bar{height:16px;border-radius:8px;background:#fff;border:2px solid var(--wood-2);overflow:hidden;margin-top:4px}
+.hold .bar i{display:block;height:100%;background:linear-gradient(90deg,#7fd85a,#4aa834);transition:width .1s}
+.river-head{text-align:center;font-size:20px;font-weight:700;margin:8px 0}
+.branches{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:0}
+.branch{position:relative;background:rgba(255,255,255,.55);border:4px solid var(--wood-2);border-radius:20px;padding:10px 14px;display:flex;flex-direction:column;gap:8px}
+.branch.zhang{border-color:#3b6fd1}
+.branch.quan{border-color:#f07f1d}
+.branch h3{margin:0;font-size:20px}
+.canal-line{height:var(--w);border-radius:4px;background:#b48a5a}
+.canal-line.wet{background:repeating-linear-gradient(90deg,#6fb8d6 0 14px,#a9dcf0 14px 22px);background-size:44px 100%;animation:flow 1s linear infinite}
+@keyframes flow{from{background-position:0 0}to{background-position:44px 0}}
+.villager{display:flex;align-items:center;gap:8px}
+.bubble{position:relative;background:#fff;border:3px solid #999;border-radius:14px;padding:6px 10px;font-weight:700;font-size:17px}
+.bubble.dry{border-color:#c98a2a;color:#9a5a10}
+.bubble.flood{border-color:#3b8bb0;color:#1f5f80}
+.bubble.ok{border-color:#4aa834;color:#2e7d22}
+.paddies{display:flex;flex-wrap:wrap;gap:8px}
+.paddy{width:64px;height:44px;border-radius:8px;border:3px solid #8a6a2a;transition:background .6s}
+.paddy.dry{background:#d9bf7a repeating-linear-gradient(115deg,transparent 0 14px,#8a6a2a 14px 16px)}
+.paddy.ok{background:#7fd85a repeating-linear-gradient(90deg,transparent 0 8px,#3f9a3a 8px 10px)}
+.paddy.flood{background:#6fb8d6 repeating-linear-gradient(0deg,transparent 0 8px,#a9dcf0 8px 10px)}
+.paddy.gold{background:#ffcf3d repeating-linear-gradient(90deg,transparent 0 8px,#e0a020 8px 10px);animation:pop .5s ease-out both}
+.gate-slider{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:18px;margin-top:auto}
+.gate-slider b{font-size:24px;color:var(--wood-2)}
+.gate-slider input{-webkit-appearance:none;appearance:none;width:100%;height:22px;border-radius:11px;background:#d9c9a3;border:2px solid var(--wood-2)}
+.gate-slider input::-webkit-slider-thumb{-webkit-appearance:none;width:52px;height:52px;border-radius:12px;background:linear-gradient(#b7834e,#6b3f1f);border:3px solid var(--gold)}
+.gate-slider input::-moz-range-thumb{width:52px;height:52px;border-radius:12px;background:linear-gradient(#b7834e,#6b3f1f);border:3px solid var(--gold)}
+
+/* 豐收 */
+.finale{background:linear-gradient(#fff3c4,#ffd96b)}
+.harvest{position:absolute;left:8%;right:8%;top:30%;display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.harvest .paddy{width:auto;height:70px}
+.gear{font-size:72px;line-height:1;color:#c9962a;animation:spin 4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.truth{align-self:center;max-width:560px}
+.truth p{font-size:20px;line-height:1.7}
+.quiz{align-self:center;width:min(620px,100%);display:flex;flex-direction:column;gap:10px}
+.quiz h3{margin:0;font-size:22px;line-height:1.5}
+.opt{min-height:56px;border-radius:16px;border:3px solid var(--wood-2);background:#fff;font:700 19px var(--f);text-align:left;padding:8px 14px;cursor:pointer;color:var(--ink)}
+.opt.right{background:#c8f0b8;border-color:#4aa834}
+.opt.wrong{background:#ffd2c4;border-color:#c0392b}
+.quiz p{margin:0;font-size:18px;line-height:1.6}
+.quiz p.yes{color:#2e7d22}
+.quiz p.no{color:#a0451a}
+.stars{font-size:64px;letter-spacing:8px;color:#d9c9a3}
+.stars .on{color:#ffb52e;text-shadow:0 2px 0 #c97a10}
+.star-why{text-align:left;font-size:18px;line-height:1.8;color:#9c8466}
+.star-why .on{color:var(--ink)}
+.star-why .on::marker{content:'★ ';color:#ffb52e}
+.cards-got{font-size:16px;color:var(--wood-2)}

@@ -7,6 +7,7 @@
 // 4. 水只往一樣高或更低的格子流。被轉向比較高的岸邊時推不過去，照河的方向繼續流。
 // 5. 被轉到一般的地上（不是河、不是圳道）就是淹到不該淹的地方。
 // 6. 進了圳道，水沿著挖好的圳道往一樣高或更低的格子擴散；比上一格高的地方水就停住。
+// 7. 每道水流有水量；流到分水閘的水量加起來夠了（need）才算過關，大水要把幾道水流都導進來。
 //
 // simulate() 一次算出整條水路和每一格水「幾步之後到」，step 動畫只是讓時間往前走。
 
@@ -14,7 +15,7 @@ import { inside, type Cell } from './iso';
 import type { Heights } from './terrain';
 import { pieceAt, type Dir, type Piece } from './pieces';
 
-export type Kind = 'river' | 'grass' | 'field' | 'bamboo' | 'stone' | 'village' | 'rock' | 'canal' | 'gate';
+export type Kind = 'river' | 'grass' | 'field' | 'dry' | 'bamboo' | 'stone' | 'village' | 'tribe' | 'rock' | 'canal' | 'gate';
 
 export interface Lane { cell: Cell; volume: number } // 河水從這格進來
 
@@ -36,6 +37,7 @@ export interface FlowResult {
   flooded: Wet[]; // 淹到不該淹的地
   blocked: Wet[]; // 水被正面擋住停下來的地方
   gates: Cell[]; // 有水到的分水閘（目標）
+  delivered: number; // 流到分水閘的水量
   steps: number; // 全部流完要幾步
 }
 
@@ -58,9 +60,9 @@ export const canPlace = (g: Ground, c: Cell) => inside(c, g.cols, g.rows) && g.k
 export function simulate(g: Ground, pieces: readonly Piece[], canals: readonly Cell[]): FlowResult {
   const kind = kindWith(g, canals);
   const h = g.heights;
-  const out: FlowResult = { river: [], canal: [], broken: [], flooded: [], blocked: [], gates: [], steps: 0 };
+  const out: FlowResult = { river: [], canal: [], broken: [], flooded: [], blocked: [], gates: [], delivered: 0, steps: 0 };
   const brokenIds = new Set<number>();
-  const inflow: Wet[] = []; // 水從哪一格、第幾步進圳道
+  const inflow: (Wet & { volume: number })[] = []; // 水從哪一格、第幾步、多少水量進圳道
   const seenRiver = new Map<string, number>();
   const mark = (list: Wet[], cell: Cell, t: number) => list.push({ cell, t });
 
@@ -99,7 +101,7 @@ export function simulate(g: Ground, pieces: readonly Piece[], canals: readonly C
       const kn = kind(n);
       t += 1;
       if (kn === 'river') { c = n; continue; }
-      if (kn === 'canal' || kn === 'gate') { inflow.push({ cell: n, t }); break; }
+      if (kn === 'canal' || kn === 'gate') { inflow.push({ cell: n, t, volume: lane.volume }); break; }
       if (kn === 'rock') { mark(out.blocked, c, t - 1); break; }
       mark(out.flooded, n, t);
       break;
@@ -110,37 +112,43 @@ export function simulate(g: Ground, pieces: readonly Piece[], canals: readonly C
     out.river.push({ cell: { col, row }, t });
   }
 
-  // 圳道：從進水口往一樣高或更低、挖好的相鄰格子擴散（廣度優先，越早到 t 越小）
+  // 圳道：從每個進水口往一樣高或更低、挖好的相鄰格子擴散（廣度優先，越早到 t 越小）
   const reached = new Map<string, number>();
-  const queue: Wet[] = [...inflow].sort((a, b) => a.t - b.t);
-  for (const w of queue) if (!reached.has(key(w.cell)) || reached.get(key(w.cell))! > w.t) reached.set(key(w.cell), w.t);
-  for (let i = 0; i < queue.length; i++) {
-    const { cell, t } = queue[i];
-    if (reached.get(key(cell))! < t) continue;
-    for (const d of [0, 1, 2, 3] as Dir[]) {
-      const n = next(cell, d);
-      if (!inside(n, g.cols, g.rows)) continue;
-      const kn = kind(n);
-      if (kn !== 'canal' && kn !== 'gate') continue;
-      if (h(n) > h(cell)) continue;
-      const k = key(n);
-      if (reached.has(k) && reached.get(k)! <= t + 1) continue;
-      reached.set(k, t + 1);
-      queue.push({ cell: n, t: t + 1 });
+  const gates = new Set<string>();
+  for (const src of inflow) {
+    const mine = new Map<string, number>([[key(src.cell), src.t]]);
+    const queue: Wet[] = [{ cell: src.cell, t: src.t }];
+    let arrives = false;
+    for (let i = 0; i < queue.length; i++) {
+      const { cell, t } = queue[i];
+      if (kind(cell) === 'gate') { arrives = true; gates.add(key(cell)); }
+      for (const d of [0, 1, 2, 3] as Dir[]) {
+        const n = next(cell, d);
+        if (!inside(n, g.cols, g.rows)) continue;
+        const kn = kind(n);
+        if (kn !== 'canal' && kn !== 'gate') continue;
+        if (h(n) > h(cell) || mine.has(key(n))) continue;
+        mine.set(key(n), t + 1);
+        queue.push({ cell: n, t: t + 1 });
+      }
     }
+    if (arrives) out.delivered += src.volume;
+    for (const [k, t] of mine) if (!reached.has(k) || reached.get(k)! > t) reached.set(k, t);
   }
   for (const [k, t] of reached) {
     const [col, row] = k.split(',').map(Number);
-    const cell = { col, row };
-    out.canal.push({ cell, t });
-    if (kind(cell) === 'gate') out.gates.push(cell);
+    out.canal.push({ cell: { col, row }, t });
+  }
+  for (const k of gates) {
+    const [col, row] = k.split(',').map(Number);
+    out.gates.push({ col, row });
   }
 
   out.steps = Math.max(0, ...[out.river, out.canal, out.broken, out.flooded, out.blocked].flat().map((w) => w.t));
   return out;
 }
 
-// 這一關過了沒：水流到分水閘，而且沒有淹到別的地方
-export function solved(r: FlowResult): boolean {
-  return r.gates.length > 0 && r.flooded.length === 0;
+// 這一關過了沒：流到分水閘的水量夠，而且沒有淹到別的地方
+export function solved(r: FlowResult, need = 1): boolean {
+  return r.delivered >= need && r.gates.length > 0 && r.flooded.length === 0;
 }

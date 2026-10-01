@@ -1,4 +1,5 @@
 // 八堡圳「導水解謎」的三個小關（佔位版，正式地形等 S-04 底圖到了照圖重定）。
+// 地圖 14×10，高度照「上游、河邊高，往海邊越來越低」再加上小山丘和低窪地，等高線才會彎彎曲曲。
 //
 // 地圖：一個字一格，每一行是一個 row（往左下），每個字是一個 col（往右下）。
 //   r 河道（濁水溪）  g 草地（可以挖圳道）  c 已經挖好的圳道  t 分水閘（水要送到這裡）
@@ -14,8 +15,10 @@ import type { Dir } from '../core/pieces';
 export interface Level extends Ground {
   id: number;
   title: string;
-  hint: string; // 滴答／林先生的一句提示
-  cages: number; // 可以用幾個竹蛇籠
+  hint: string; // 林先生的一句提示
+  cages: number; // 這關最多放幾個竹蛇籠
+  digs: number; // 這關最多挖幾格圳道（人力有限）
+  need: number; // 要有多少水量流到分水閘
   solution: { cages: { cell: Cell; dir: Dir }[]; canals: Cell[] };
 }
 
@@ -23,103 +26,122 @@ const KEY: Record<string, Kind> = {
   r: 'river', g: 'grass', c: 'canal', t: 'gate', x: 'rock', f: 'field', b: 'bamboo', s: 'stone', v: 'village',
 };
 
-function level(def: {
-  id: number; title: string; hint: string; cages: number; volume: number;
-  map: string[]; heights: string[]; solution: Level['solution'];
-}): Level {
-  const map = def.map;
+function level(def: Omit<Level, keyof Ground> & { volume: number; map: string[]; heights: string[] }): Level {
+  const { map, heights, volume, ...rest } = def;
   const lanes: Cell[] = [];
   for (let col = 0; col < map[0].length; col++) if (map[0][col] === 'r') lanes.push({ col, row: 0 });
   return {
-    id: def.id, title: def.title, hint: def.hint, cages: def.cages, solution: def.solution,
+    ...rest,
     cols: map[0].length,
     rows: map.length,
     kind: ({ col, row }) => KEY[map[row]?.[col] ?? 'g'] ?? 'grass',
-    heights: parseHeights(def.heights),
+    heights: parseHeights(heights),
     flow: 1,
-    lanes: lanes.map((cell) => ({ cell, volume: def.volume })),
+    lanes: lanes.map((cell) => ({ cell, volume })),
   };
 }
 
 const c = (col: number, row: number): Cell => ({ col, row });
+const path = (s: string): Cell[] => s.split(' ').map((p) => { const [a, b] = p.split(',').map(Number); return c(a, b); });
 
 export const LEVELS: Level[] = [
   level({
     id: 1,
     title: '第一關：轉個彎',
-    hint: '把竹蛇籠放進河裡，轉到圳頭的方向，水就會轉彎流進圳道。',
-    cages: 2,
-    volume: 1,
+    hint: '竹蛇籠上的金色箭頭指哪裡，水就往哪裡轉。把竹蛇籠放進河裡、按旋轉，讓箭頭對準圳頭。',
+    cages: 2, digs: 0, need: 1, volume: 1,
     map: [
-      'bgggcccr',
-      'gggfcggr',
-      'gffgcggr',
-      'gffgtggr',
-      'gggggsgr',
-      'vggggggr',
+      'bbgggggggggffr',
+      'bggggggggggffr',
+      'gggggggggggggr',
+      'gggccccccccccr',
+      'gggcfffgggsggr',
+      'gtccfffggggggr',
+      'ggggggggvggggr',
+      'gsgggggggggggr',
+      'ggvgggggggbbgr',
+      'gggggggggggbgr',
     ],
     heights: [
-      '33344444',
-      '23333443',
-      '22232443',
-      '11122332',
-      '11111332',
-      '00011221',
+      '23334444445555',
+      '22334333444555',
+      '22233323344455',
+      '22222222334445',
+      '12222222334444',
+      '11222222334444',
+      '11112222344444',
+      '11111222344334',
+      '00111122333333',
+      '00011112222333',
     ],
-    solution: { cages: [{ cell: c(7, 0), dir: 2 }], canals: [] },
+    solution: { cages: [{ cell: c(13, 3), dir: 2 }], canals: [] },
   }),
   level({
     id: 2,
-    title: '第二關：看等高線挖圳道',
-    hint: '水只會往一樣高或更低的地方流。打開地形眼鏡，沿著等高線一路往下挖到分水閘。',
-    cages: 3,
-    volume: 2,
+    title: '第二關：沿著等高線挖',
+    hint: '兩道水都要引進來才夠。圳道只能往一樣高或更低的地方挖，直直挖過去會掉進低窪地。打開地形眼鏡找路，最多挖 18 格。',
+    cages: 3, digs: 18, need: 2, volume: 1,
     map: [
-      'ggbggcrr',
-      'gggggsrr',
-      'gggggsrr',
-      'ffgggsrr',
-      'ftggggrr',
-      'ffggvgrr',
+      'gbbggggggggfrr',
+      'bbgggggggggfrr',
+      'ggggsgggggggrr',
+      'gggggggggggsrr',
+      'ffgggggggggsrr',
+      'ffggggggvgggrr',
+      'ftggggggggggrr',
+      'ffggvgggggggrr',
+      'gggggggsgggbrr',
+      'ggggggvgggbbrr',
     ],
     heights: [
-      '34455555',
-      '34555544',
-      '23554544',
-      '22344433',
-      '11233433',
-      '11122322',
+      '33334444445555',
+      '33333444444555',
+      '23333455444455',
+      '22233455554455',
+      '22234555544444',
+      '12234554433444',
+      '11223443223344',
+      '11122333223334',
+      '01112233333333',
+      '00111222333333',
     ],
     solution: {
-      cages: [{ cell: c(6, 0), dir: 2 }, { cell: c(7, 0), dir: 2 }],
-      canals: [c(4, 0), c(4, 1), c(4, 2), c(4, 3), c(3, 3), c(3, 4), c(2, 4)],
+      cages: [{ cell: c(13, 0), dir: 2 }, { cell: c(12, 2), dir: 2 }],
+      canals: path('11,2 10,2 9,2 8,2 8,1 7,1 6,1 5,1 5,2 5,3 4,3 3,3 3,4 3,5 3,6 2,6'),
     },
   }),
   level({
     id: 3,
     title: '第三關：大水來了',
-    hint: '水更大了，正面硬擋會被沖壞。先把遠的那道水導到近的這邊，再一起轉進圳頭。',
-    cages: 3,
-    volume: 3,
+    hint: '水更大了，三道水都要引進來。河裡有大石頭會把水擋住；正面硬擋的竹蛇籠會被沖壞。一個接一個把水往圳頭那邊導，最多挖 16 格。',
+    cages: 3, digs: 16, need: 6, volume: 2,
     map: [
-      'bggggsrr',
-      'ggggssrx',
-      'gggggcrr',
-      'gggggsrr',
-      'gfgggsrr',
-      'tfgvgsrr',
+      'bbggggsggggrrr',
+      'bgggggggggsrrr',
+      'gggggggggggrrr',
+      'gggggfgggggrxr',
+      'ffgggfggvggrrr',
+      'ffgggggggggxrr',
+      'gggvgggggggrrr',
+      'tggggggsgggrrr',
+      'ffggggggggbrrr',
+      'ffgggvggggbrrr',
     ],
     heights: [
-      '45566655',
-      '34556655',
-      '33444444',
-      '23453544',
-      '12342433',
-      '01232433',
+      '33444555555444',
+      '33344455555444',
+      '23334445555444',
+      '22333444444444',
+      '22233334433444',
+      '12223333433334',
+      '11222332333333',
+      '11122222233333',
+      '01111222223333',
+      '00111122222333',
     ],
     solution: {
-      cages: [{ cell: c(7, 0), dir: 2 }, { cell: c(6, 2), dir: 2 }],
-      canals: [c(4, 2), c(3, 2), c(2, 2), c(1, 2), c(1, 3), c(0, 3), c(0, 4)],
+      cages: [{ cell: c(13, 1), dir: 2 }, { cell: c(12, 1), dir: 2 }, { cell: c(11, 3), dir: 2 }],
+      canals: path('10,3 9,3 8,3 7,3 7,4 7,5 6,5 6,6 6,7 5,7 4,7 3,7 2,7 1,7'),
     },
   }),
 ];

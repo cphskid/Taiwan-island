@@ -80,25 +80,38 @@ describe('水流引擎', () => {
 describe('八堡圳三個小關', () => {
   for (const lv of LEVELS) {
     it(`${lv.title}：照解法會過，什麼都不做不會過`, () => {
-      expect(solved(simulate(lv, [], []))).toBe(false);
+      expect(solved(simulate(lv, [], []), lv.need)).toBe(false);
       const sol = cages(lv.solution.cages);
       expect(sol.length).toBeLessThanOrEqual(lv.cages);
+      expect(lv.solution.canals.length).toBeLessThanOrEqual(lv.digs);
       for (const p of sol) expect(canPlace(lv, p.cell)).toBe(true);
       for (const cell of lv.solution.canals) expect(canDig(lv, cell)).toBe(true);
-      expect(solved(simulate(lv, sol, lv.solution.canals))).toBe(true);
+      const r = simulate(lv, sol, lv.solution.canals);
+      expect(r.delivered).toBe(lv.need);
+      expect(solved(r, lv.need)).toBe(true);
     });
   }
 
-  it('第二關：直接往左上坡挖，水會停住', () => {
-    const lv = LEVELS[1];
-    const sol = cages(lv.solution.cages);
-    const uphill = [{ col: 4, row: 0 }, { col: 4, row: 1 }, { col: 4, row: 2 }, { col: 3, row: 2 }, { col: 2, row: 2 }, { col: 2, row: 3 }, { col: 2, row: 4 }];
-    expect(solved(simulate(lv, sol, uphill))).toBe(false);
+  it('第一關：籠子放錯格子，水淹到草地', () => {
+    const r = simulate(LEVELS[0], cages([{ cell: { col: 13, row: 2 }, dir: 2 }]), []);
+    expect(r.flooded).toHaveLength(1);
   });
 
-  it('第三關：正面硬擋會被沖壞', () => {
+  it('第二關：只引一道水不夠；直直往左挖會掉進低窪地', () => {
+    const lv = LEVELS[1];
+    const one = simulate(lv, cages([lv.solution.cages[1]]), lv.solution.canals);
+    expect(one.delivered).toBe(1);
+    expect(solved(one, lv.need)).toBe(false);
+    const straight = [11, 10, 9, 8, 7, 6, 5, 4, 3, 2].map((col) => ({ col, row: 6 }));
+    expect(solved(simulate(lv, cages([{ cell: { col: 13, row: 5 }, dir: 2 }, { cell: { col: 12, row: 6 }, dir: 2 }]), straight), lv.need)).toBe(false);
+  });
+
+  it('第三關：大石頭擋住水；正面硬擋會被沖壞', () => {
     const lv = LEVELS[2];
-    const r = simulate(lv, cages([{ cell: { col: 6, row: 1 }, dir: 3 }]), []);
+    const late = simulate(lv, cages([{ cell: { col: 11, row: 3 }, dir: 2 }]), lv.solution.canals);
+    expect(late.delivered).toBe(2); // 只有最左邊那道進來
+    expect(late.blocked.length).toBeGreaterThan(0);
+    const r = simulate(lv, cages([{ cell: { col: 12, row: 1 }, dir: 3 }]), []);
     expect(r.broken).toHaveLength(1);
   });
 });

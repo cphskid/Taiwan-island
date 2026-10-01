@@ -4,11 +4,12 @@
 // 觸控：單指拖曳平移、雙指縮放、點一下選格子；拖竹蛇籠由介面層（BoardView）用 cellAt/setHover 處理。
 // 地形眼鏡：開了才疊上分層設色與等高線；格子線只在拖放時出現。
 
-import { Application, Container, Graphics } from 'pixi.js';
+import { Application, Container, Graphics, Matrix, Sprite, Texture } from 'pixi.js';
 import { boardBounds, cellToScreen, drawOrder, screenToCell, inside, TILE_H, TILE_W, type Cell } from '../core/iso';
-import { bandColor, contourEdges, type Heights } from '../core/terrain';
-import { fitView, panBy, zoomAt, type View } from '../core/camera';
-import type { Piece } from '../core/pieces';
+import { type Heights } from '../core/terrain';
+import { reliefPixels } from '../core/relief';
+import { clampView, fitView, panBy, zoomAt, type View } from '../core/camera';
+import type { Dir, Piece } from '../core/pieces';
 import type { FlowResult, Kind } from '../core/flow';
 
 const SIDE = 14; // 方塊側面的厚度（px）
@@ -17,8 +18,11 @@ const TAP_SLOP = 8; // 手指移動超過這麼多 px 就不算點一下
 // 色盤照美術提示詞文件（KV-01 近似值）
 const TOP: Record<Kind, number> = {
   grass: 0x6cc94b, field: 0x9bd35a, bamboo: 0x5bb544, stone: 0xe8dcc4, village: 0x7fd05a, river: 0x8d7a55,
-  rock: 0x8d7a55, canal: 0x6cc94b, gate: 0x6cc94b,
+  rock: 0x8d7a55, canal: 0x6cc94b, gate: 0x6cc94b, tribe: 0x7fd05a, dry: 0xd9c27a,
 };
+// 分層設色：低處綠、中間黃、高處褐，跟課本的地形圖同一套順序
+const BANDS = [0x7cc46a, 0xb4d46b, 0xe4d77d, 0xe9b866, 0xcf8b4f, 0xa8653c];
+const RELIEF_RES = 32; // 地形眼鏡每格幾個像素
 const CANAL_BED = 0x9a6a3c; // 挖好、還沒水的圳道
 const CANAL_WATER = 0x6fb8d6;
 const WATER_LO = 0x7fa7a3; // 濁水溪：帶泥沙的灰綠水色，在兩色之間起伏
@@ -36,11 +40,18 @@ export interface BoardOptions {
   onTap?: (c: Cell | null) => void;
   // 手指按下時先問介面要不要接手（例如按在竹蛇籠上就改成拖它）；回傳 true 就不平移地圖
   onPress?: (c: Cell, e: PointerEvent) => boolean;
+  flag?: (c: Cell) => number | null;
+  flow?: Dir; // 河往哪個方向流（預設 row+1）
+  start?: { cell: Cell; scale: number }; // 一開始鏡頭對準哪裡、放多大 // 聚落插的旗子顏色（漳州莊藍、泉州莊橘）
 }
+
+// 提示用的記號：林先生指出該放竹蛇籠的格子（含方向）、該挖的圳道、要找的地方
+export type Mark = { kind: 'cage'; cell: Cell; dir: Dir } | { kind: 'dig'; cell: Cell } | { kind: 'ring'; cell: Cell };
 
 export interface Board {
   fps: () => number;
   cellAt: (clientX: number, clientY: number) => Cell | null;
+  clientOf: (c: Cell) => { x: number; y: number }; // 格子中心在螢幕上的位置（測試、教學手指用）
   setPieces: (list: readonly Piece[], selected: number | null) => void;
   setHover: (c: Cell | null, ok: boolean) => void;
   setGrid: (on: boolean) => void;
@@ -48,10 +59,12 @@ export interface Board {
   setCanals: (dug: readonly Cell[]) => void; // 玩家挖的圳道（地圖上原本就有的會自己畫）
   setFlow: (r: FlowResult | null, t: number) => void; // 放水動畫：畫出第 t 步以前水到的地方
   setPreview: (r: FlowResult | null) => void; // 預計水路（白點）
+  setMarks: (list: readonly Mark[]) => void;
+  setFog: (fogged: ((c: Cell) => boolean) | null) => void; // 雲霧蓋住的格子
+  redraw: () => void; // 地上的東西變了（竹林砍了、石頭撿了）就重畫
+  focus: (c: Cell) => void; // 鏡頭移到這格
   destroy: () => void;
 }
-
-const V = { top: [0, -TILE_H / 2], right: [TILE_W / 2, 0], bottom: [0, TILE_H / 2], left: [-TILE_W / 2, 0] } as const;
 
 function diamond(g: Graphics, x: number, y: number, k = 1) {
   g.poly([x, y - (TILE_H / 2) * k, x + (TILE_W / 2) * k, y, x, y + (TILE_H / 2) * k, x - (TILE_W / 2) * k, y]);
@@ -73,6 +86,21 @@ function prop(g: Graphics, t: Kind, x: number, y: number) {
       g.moveTo(x + dx - 22, y + dy + 11).lineTo(x + dx + 22, y + dy - 11);
     }
     g.stroke({ width: 3, color: 0x4f9a35, alpha: 0.7 });
+  } else if (t === 'dry') {
+    // 乾裂的田：田畦加上裂痕
+    for (let i = -2; i <= 2; i++) {
+      const dx = i * 14, dy = i * 7;
+      g.moveTo(x + dx - 22, y + dy + 11).lineTo(x + dx + 22, y + dy - 11);
+    }
+    g.stroke({ width: 3, color: 0xa88a4a, alpha: 0.7 });
+    g.moveTo(x - 20, y - 2).lineTo(x - 6, y + 4).lineTo(x + 4, y - 4).lineTo(x + 18, y + 2);
+    g.moveTo(x - 4, y + 4).lineTo(x - 2, y + 14);
+    g.stroke({ width: 2, color: 0x6b4a22, alpha: 0.8 });
+  } else if (t === 'tribe') {
+    // 平埔族社佔位：茅草屋頂的高腳屋，之後換 O-03
+    for (const dx of [-20, 20]) g.rect(x + dx - 3, y - 14, 6, 18).fill(0x7a5230);
+    g.rect(x - 24, y - 30, 48, 18).fill(0xb9894f);
+    g.poly([x - 34, y - 28, x, y - 62, x + 34, y - 28]).fill(0xd8b25e).stroke({ width: 2, color: 0x8a6a2a });
   } else if (t === 'bamboo') {
     for (const [dx, h] of [[-18, 52], [0, 64], [16, 46], [-6, 40]] as const) {
       g.roundRect(x + dx - 4, y - h, 8, h, 4).fill(0x3f9a3a);
@@ -93,6 +121,12 @@ function prop(g: Graphics, t: Kind, x: number, y: number) {
     for (const dx of [-26, 26]) g.roundRect(x + dx - 6, y - 46, 12, 50, 4).fill(0x8a5429);
     g.roundRect(x - 26, y - 40, 52, 12, 4).fill(0xb7834e).stroke({ width: 2, color: 0x6b3f1f });
   }
+}
+
+// 聚落的旗子（漳州莊藍旗、泉州莊橘旗）
+function flagAt(g: Graphics, x: number, y: number, color: number) {
+  g.rect(x + 30, y - 70, 4, 64).fill(0x5a3a1c);
+  g.poly([x + 34, y - 70, x + 64, y - 60, x + 34, y - 50]).fill(color).stroke({ width: 2, color: 0x3a2412 });
 }
 
 // 圳道：格子中間挖下去的一條溝（格子比較小的菱形）
@@ -121,8 +155,22 @@ function cage(g: Graphics, p: Piece, selected: boolean) {
     g.circle(cx, cy, 7).fill(0x8f8f88);
   }
   g.moveTo(x - ax * L, y - ay * L - 10).lineTo(x + ax * L, y + ay * L - 10).stroke({ width: 26, color: 0x6f8f2f, alpha: 0.35, cap: 'round' });
-  const tx = x + fx * 30, ty = y + fy * 30 - 10;
-  g.poly([tx + fx * 16, ty + fy * 16, tx - fy * 12, ty + fx * 12, tx + fy * 12, ty - fx * 12]).fill(GOLD).stroke({ width: 2, color: 0x8a5429 });
+  arrow(g, x, y - 10, fx, fy, GOLD);
+}
+
+// 粗的金色箭頭：竹蛇籠會把水轉到箭頭指的方向
+function arrow(g: Graphics, x: number, y: number, fx: number, fy: number, color: number, alpha = 1) {
+  const nx = -fy, ny = fx; // 垂直方向
+  const s0 = 8, s1 = 44, w = 7, hw = 18;
+  g.poly([
+    x + fx * s0 + nx * w, y + fy * s0 + ny * w,
+    x + fx * s1 + nx * w, y + fy * s1 + ny * w,
+    x + fx * s1 + nx * hw, y + fy * s1 + ny * hw,
+    x + fx * (s1 + 26), y + fy * (s1 + 26),
+    x + fx * s1 - nx * hw, y + fy * s1 - ny * hw,
+    x + fx * s1 - nx * w, y + fy * s1 - ny * w,
+    x + fx * s0 - nx * w, y + fy * s0 - ny * w,
+  ]).fill({ color, alpha }).stroke({ width: 3, color: 0x6b3f1f, alpha });
 }
 
 export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise<Board> {
@@ -141,7 +189,7 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
 
   const ground = new Graphics();
   const water = new Container();
-  const relief = new Graphics(); // 地形眼鏡：分層設色＋等高線
+  const relief = new Sprite(); // 地形眼鏡：分層設色＋彎曲的等高線
   const props = new Graphics();
   const grid = new Graphics();
   const hover = new Graphics();
@@ -151,55 +199,68 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
   const flowG = new Graphics();
   const preview = new Graphics();
   const marks = new Graphics();
-  world.addChild(ground, canalG, water, flowG, relief, props, preview, grid, hover, cursor, pieces, marks);
+  const hints = new Graphics();
+  const fog = new Graphics();
+  world.addChild(ground, relief, canalG, water, flowG, props, preview, grid, hints, hover, cursor, pieces, marks, fog);
 
   const order = drawOrder(opt.cols, opt.rows);
-  const rivers: Cell[] = [];
+  const rivers: Cell[] = order.filter((c) => opt.terrain(c) === 'river');
+  const drawStatic = () => {
+    ground.clear();
+    props.clear();
+    for (const c of order) {
+      const { x, y } = cellToScreen(c);
+      block(ground, x, y, TOP[opt.terrain(c)]);
+    }
+    for (const c of order) {
+      const { x, y } = cellToScreen(c);
+      prop(props, opt.terrain(c), x, y);
+      const f = opt.flag?.(c);
+      if (f != null) flagAt(props, x, y, f);
+    }
+  };
+  drawStatic();
   for (const c of order) {
     const { x, y } = cellToScreen(c);
-    const t = opt.terrain(c);
-    block(ground, x, y, TOP[t]);
-    if (t === 'river') rivers.push(c);
     diamond(grid, x, y);
     grid.stroke({ width: 2, color: 0xffffff, alpha: 0.6 });
   }
-  for (const c of order) {
-    const { x, y } = cellToScreen(c);
-    prop(props, opt.terrain(c), x, y);
-  }
   grid.visible = false;
 
-  // 地形眼鏡：每格依高度上色，再在高度不同的邊上畫等高線（差幾層畫幾條）
-  for (const c of order) {
-    const { x, y } = cellToScreen(c);
-    diamond(relief, x, y);
-    relief.fill({ color: bandColor(opt.heights(c)), alpha: 0.72 });
+  // 地形眼鏡：把高度場算成一張圖（每格 RELIEF_RES 像素），再斜斜地貼成等角
+  {
+    const img = reliefPixels(opt.heights, opt.cols, opt.rows, RELIEF_RES, BANDS, CONTOUR);
+    const cv = document.createElement('canvas');
+    cv.width = img.width;
+    cv.height = img.height;
+    cv.getContext('2d')!.putImageData(new ImageData(img.data, img.width, img.height), 0, 0);
+    relief.texture = Texture.from(cv);
+    const k = 1 / RELIEF_RES;
+    relief.setFromMatrix(new Matrix((TILE_W / 2) * k, (TILE_H / 2) * k, -(TILE_W / 2) * k, (TILE_H / 2) * k, 0, -TILE_H / 2));
+    relief.alpha = 0.9;
+    relief.visible = false;
   }
-  for (const e of contourEdges(opt.cols, opt.rows, opt.heights)) {
-    const { x, y } = cellToScreen(e.cell);
-    const [a, b] = e.side === 'se' ? [V.right, V.bottom] : [V.bottom, V.left];
-    const [dx, dy] = e.side === 'se' ? DIRS[0] : DIRS[1]; // 從這格指向鄰格
-    const s = e.up ? -1 : 1; // 線往比較低的那一邊排開
-    for (let k = 0; k < e.steps; k++) {
-      const o = (k * 7 + 2) * s;
-      relief.moveTo(x + a[0] + dx * o, y + a[1] + dy * o).lineTo(x + b[0] + dx * o, y + b[1] + dy * o);
-    }
-  }
-  relief.stroke({ width: 3, color: CONTOUR, alpha: 0.85, cap: 'round' });
-  relief.visible = false;
 
   // 鏡頭
   const bounds = boardBounds(opt.cols, opt.rows);
   const b = { ...bounds, height: bounds.height + SIDE };
   const size = () => ({ width: app.screen.width, height: app.screen.height });
-  let view: View = fitView(b, size());
+  // 對準某一格：放大到 scale（不小於「放得下整張」），那格放在畫面中間
+  const centerOn = (c: Cell, scale: number): View => {
+    const fit = fitView(b, size());
+    const k = Math.max(fit.scale, Math.min(fit.scale * 3, scale));
+    const p = cellToScreen(c);
+    return clampView({ scale: k, x: size().width / 2 - p.x * k, y: size().height / 2 - p.y * k }, b, size());
+  };
+  const initial = () => (opt.start ? centerOn(opt.start.cell, opt.start.scale) : fitView(b, size()));
+  let view: View = initial();
   const apply = () => {
     world.scale.set(view.scale);
     world.position.set(view.x, view.y);
   };
   apply();
   app.renderer.on('resize', () => {
-    view = fitView(b, size());
+    view = initial();
     apply();
   });
 
@@ -294,7 +355,11 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
     diamond(sheet, 0, 0);
     sheet.fill(0xffffff);
     sheet.position.set(x, y - 4);
-    const foam = new Graphics().ellipse(0, 0, 12, 4).fill(0xffffff);
+    // 水流方向的小箭頭（︾），一直往下游漂，看得出河往哪邊流
+    const [fx, fy] = DIRS[opt.flow ?? 1];
+    const foam = new Graphics()
+      .moveTo(-fx * 6 - fy * 14, -fy * 6 + fx * 14).lineTo(fx * 8, fy * 8).lineTo(-fx * 6 + fy * 14, -fy * 6 - fx * 14)
+      .stroke({ width: 5, color: 0xffffff, cap: 'round', join: 'round' });
     water.addChild(sheet, foam);
     return { c, x, y, sheet, foam };
   });
@@ -306,13 +371,18 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
       w.sheet.tint = mix(WATER_LO, WATER_HI, k);
       const drift = ((t * 0.6 + w.c.col * 0.37 + w.c.row * 0.5) % 1) - 0.5; // 沿著 row 方向（往左下）流
       w.foam.position.set(w.x - drift * (TILE_W / 2), w.y - 4 + drift * (TILE_H / 2));
-      w.foam.alpha = 0.5 * (1 - Math.abs(drift) * 2);
+      w.foam.alpha = 0.75 * (1 - Math.abs(drift) * 2);
     }
   });
 
   return {
     fps: () => app.ticker.FPS,
     cellAt,
+    clientOf(c) {
+      const r = app.canvas.getBoundingClientRect();
+      const p = cellToScreen(c);
+      return { x: r.left + view.x + p.x * view.scale, y: r.top + view.y + p.y * view.scale };
+    },
     setPieces(list, selected) {
       pieces.clear();
       const sorted = [...list].sort((p, q) => p.cell.col + p.cell.row - (q.cell.col + q.cell.row));
@@ -330,7 +400,42 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
     },
     setContours(on) {
       relief.visible = on;
-      water.alpha = on ? 0.35 : 1;
+      water.alpha = on ? 0.5 : 1;
+    },
+    setMarks(list) {
+      hints.clear();
+      for (const m of list) {
+        const { x, y } = cellToScreen(m.cell);
+        if (m.kind === 'cage') {
+          diamond(hints, x, y, 0.92);
+          hints.fill({ color: 0xffffff, alpha: 0.35 }).stroke({ width: 5, color: 0xffffff });
+          arrow(hints, x, y - 10, DIRS[m.dir][0], DIRS[m.dir][1], 0xffffff, 0.9);
+        } else if (m.kind === 'dig') {
+          diamond(hints, x, y, 0.62);
+          hints.fill({ color: 0xffffff, alpha: 0.45 }).stroke({ width: 3, color: 0xffffff });
+        } else {
+          diamond(hints, x, y, 1);
+          hints.stroke({ width: 6, color: GOLD });
+        }
+      }
+    },
+    setFog(fogged) {
+      fog.clear();
+      if (!fogged) return;
+      for (const c of order) {
+        if (!fogged(c)) continue;
+        const { x, y } = cellToScreen(c);
+        diamond(fog, x, y - 6, 1.08);
+        fog.fill({ color: 0xf4f7fb, alpha: 0.96 });
+        const k = (c.col * 7 + c.row * 13) % 5;
+        fog.ellipse(x - 20 + k * 6, y - 22, 34, 18).fill({ color: 0xffffff, alpha: 0.9 });
+        fog.ellipse(x + 18 - k * 3, y - 14, 26, 14).fill({ color: 0xe6edf5, alpha: 0.9 });
+      }
+    },
+    redraw: drawStatic,
+    focus(c) {
+      view = centerOn(c, view.scale);
+      apply();
     },
     setCanals(dug) {
       canalG.clear();
