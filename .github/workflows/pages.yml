@@ -1,0 +1,72 @@
+# 把島嶼開拓者發佈到 GitHub Pages（https://cphskid.github.io/Taiwan-island/）。
+#
+# 跟樂園、守護異世界同一套做法，一個網站放兩份：
+#   /Taiwan-island/       正式站 ← main（現在是「即將開幕」頁）
+#   /Taiwan-island/dev/   測試站 ← dev（接測試庫）
+# GitHub Pages 只准預設分支發佈，所以推 dev 時只是「請 main 重發一次」，真正的建置永遠從 main 跑、兩份一起包。
+# 某個分支有 package.json 就用 Vite 建置，沒有就直接放原本的靜態檔。
+name: pages
+
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  kick:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: main-src
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          path: dev-src
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: build
+        run: |
+          build() {  # $1 來源資料夾、$2 npm script、$3 輸出資料夾
+            if [ -f "$1/package.json" ]; then
+              (cd "$1" && npm ci && npm test && npm run "$2") && cp -R "$1/dist" "$3"
+            else
+              rm -rf "$1/.git" "$1/.github" && cp -R "$1" "$3"
+            fi
+          }
+          build main-src build site
+          build dev-src build:dev site/dev
+          touch site/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
