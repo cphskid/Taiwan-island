@@ -568,11 +568,15 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .island-map>img.relief{opacity:1}
 
 /* 任務引導（Guide.tsx）：目標條、目標標記、聚光、畫面外箭頭 */
-.quest{pointer-events:none;display:inline-flex;align-items:center;gap:6px;background:#2e7d32;color:#fff;border:3px solid #fff;border-radius:999px;padding:4px 14px 4px 8px;font-weight:900;font-size:17px;line-height:1.35;box-shadow:0 3px 10px rgba(0,0,0,.25);max-width:100%}
+.quest{pointer-events:auto;cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:#2e7d32;color:#fff;border:3px solid #fff;border-radius:999px;padding:4px 14px 4px 8px;font-weight:900;font-size:17px;line-height:1.35;box-shadow:0 3px 10px rgba(0,0,0,.25);max-width:100%}
 .quest i{font-style:normal;font-size:20px}
-.quest span{animation:questin .5s ease-out}
+.quest span{animation:questin .5s ease-out;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.quest.open span{white-space:normal}
+.quest em{font-style:normal;font-size:13px;background:rgba(255,255,255,.25);border-radius:10px;padding:0 6px;white-space:nowrap;flex:none}
+.quest.folded{padding:4px;border-radius:50%;animation:pulse .9s ease-in-out 2 alternate}
+.quest.folded i{font-size:22px}
 @keyframes questin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-.quest.floating{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:4;max-width:min(620px,calc(100% - 24px))}
+.quest.floating{position:absolute;top:12px;left:50%;translate:-50% 0;z-index:4;max-width:min(560px,calc(100% - 140px))}
 .levels{flex-wrap:wrap}
 .levels .quest{align-self:center}
 .checklist .quest,.mats .quest{flex-basis:100%;justify-content:flex-start}
@@ -969,3 +973,4 @@ img.gear{width:110px;height:110px;object-fit:contain}
   .fire-chain.big li img{width:32px;height:28px}
   .recap{font-size:12px;padding:4px 10px}
 }
+.quest.floating.folded{left:12px;translate:none}
