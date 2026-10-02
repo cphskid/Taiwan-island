@@ -24,22 +24,93 @@ export const ERAS: Era[] = [
 ];
 export const eraOf = (id: EraId) => ERAS.find((e) => e.id === id)!;
 
+// ── 時代轉場：每次跳躍先看時間尺跳到哪裡，再聽阿岩說他看到什麼 ──
+// to 是 ERAS 的第幾個；4 是「今天」
+export const JUMPS: Record<number, { far: string; react: Line }> = {
+  1: { far: '往後跳了好幾萬年', react: { who: 'yan', mood: 'happy', text: '他們住在房子裡，不住山洞耶！地上還種了一排一排的草？' } },
+  2: { far: '又往後跳了三千多年', react: { who: 'yan', mood: 'happy', text: '好多石板！房子是石頭、地上是石頭，那根高高的柱子也是石頭！' } },
+  3: { far: '又往後跳了一千多年', react: { who: 'yan', mood: 'worried', text: '好嗆……到處都在冒煙。那個爐子好大！' } },
+  4: { far: '一路跳回今天', react: { who: 'tick', mood: 'happy', text: '回到我們的時代了！這裡是一個考古工地。' } },
+};
+
+// ── 選擇：四個時代各一個，不會壞結局，但阿岩會記得，結局畫面和台詞跟著變 ──
+export type Pick1 = 'tool' | 'pot' | 'jade' | 'smith';
+export type Picks1 = Partial<Record<Pick1, number>>;
+export interface Choice1 { who: Line['who']; mood?: Line['mood']; q: string; options: [string, string]; after: [Line[], Line[]]; recap: [string, string] }
+export const CHOICES1: Record<Pick1, Choice1> = {
+  tool: {
+    who: 'yan', mood: 'thinking', q: '刮削器拿來削鑽火棒。那這把砍砸器要給誰？',
+    options: ['送給阿岩的阿爸，他明天要去找食物', '給阿岩自己帶著，一路上保護自己'],
+    after: [
+      [{ who: 'yan', mood: 'thumbs', text: '阿爸一定會很高興！我做的石器，阿爸要用耶！' }],
+      [{ who: 'yan', mood: 'happy', text: '真的嗎？我自己的石器！我會好好帶著它。' }],
+    ],
+    recap: ['長濱：把砍砸器送給阿岩的阿爸', '長濱：讓阿岩自己帶著砍砸器'],
+  },
+  pot: {
+    who: 'potter', q: '這個大罐子要拿來做什麼？',
+    options: ['裝小米種子，留到明年再種', '煮一大鍋熱湯，讓大家今晚吃飽'],
+    after: [
+      [{ who: 'potter', text: '好，種子收進罐子、封好口，明年就有得種了。' }, { who: 'yan', mood: 'thinking', text: '原來住下來，就要替明年先想好。' }],
+      [{ who: 'potter', text: '今晚大家都能喝到熱湯了！種子我再用葉子包好，吊在屋頂上。' }, { who: 'yan', mood: 'happy', text: '熱湯好香！原來罐子可以把東西煮熟。' }],
+    ],
+    recap: ['大坌坑：用大罐子存小米種子', '大坌坑：用大罐子煮熱湯'],
+  },
+  jade: {
+    who: 'yan', mood: 'worried', q: '阿岩想偷偷留下玉耳飾，你會怎麼做？',
+    options: ['勸他還回去，這是姊姊成年禮要戴的', '幫他藏起來，不要被發現'],
+    after: [
+      [
+        { who: 'yan', mood: 'sad', text: '……嗯，你說得對。我自己去還。' },
+        { who: 'jade', text: '你老實跟我說了？謝謝你。這顆小玉環送你，帶回去給你阿媽吧。' },
+        { who: 'yan', mood: 'happy', text: '真的嗎！阿媽一定會很喜歡！' },
+      ],
+      [
+        { who: 'yan', mood: 'happy', text: '嘿嘿，藏好了……' },
+        { who: 'yan', mood: 'worried', text: '……可是姊姊明天就沒有耳飾可以戴了。' },
+        { who: 'yan', mood: 'determined', text: '不行，我還是拿回去還！' },
+        { who: 'jade', text: '你自己拿回來了？這比什麼都難得。這顆小玉環送你，帶回去給你阿媽吧。' },
+      ],
+    ],
+    recap: ['卑南：勸阿岩把玉耳飾還回去', '卑南：幫阿岩藏玉耳飾，他後來自己還了'],
+  },
+  smith: {
+    who: 'smith', q: '師傅想把太陽石丟進爐子，你會怎麼做？',
+    options: ['站到阿岩前面：太陽石不能煉！', '跟師傅商量：我們幫你煉三爐鐵來換'],
+    after: [
+      [{ who: 'smith', text: '好好好，你們兩個這麼兇，我不碰就是了。那幫我煉 3 爐鐵吧。' }, { who: 'yan', mood: 'thumbs', text: '謝謝你站在我這邊！' }],
+      [{ who: 'smith', text: '幫我煉三爐？好，一言為定！' }, { who: 'yan', mood: 'happy', text: '你好會講話……我也要學。' }],
+    ],
+    recap: ['十三行：站到阿岩前面護住太陽石', '十三行：跟師傅商量，用三爐鐵交換'],
+  },
+};
+
 // ── 開場 ──
 export const OPENING1: Line[] = [
   { who: 'tick', mood: 'worried', text: '好冷……見習生，這裡是好幾萬年前的東海岸，一個叫八仙洞的海邊山洞。' },
   { who: 'tick', mood: 'thinking', text: '第一顆齒輪掉進洞裡，把洞裡的火弄熄了。火不回來，這裡的夜晚就一直不會結束。' },
   { who: 'yan', mood: 'scared', text: '你、你們是誰？是從太陽石裡跑出來的嗎？' },
   { who: 'yan', mood: 'determined', text: '我叫阿岩。這顆會發光的太陽石是我撿到的，不給你！它是洞裡唯一的光。' },
-  { who: 'yan', mood: 'sad', text: '火熄了，大家都冷得縮成一團。我……最怕黑了。' },
-  { who: 'tick', mood: 'happy', text: '那我們先幫你把火點回來！阿岩，你知道哪裡有好石頭嗎？' },
-  { who: 'yan', mood: 'thumbs', text: '當然！石頭敲一敲，聽聲音就知道硬不硬。可是要敲出什麼形狀，我還不太會。' },
+  { who: 'yan', mood: 'sad', text: '火熄掉以後，大家都冷得縮成一團，阿媽一直咳嗽。我……最怕黑了。' },
+  { who: 'tick', mood: 'happy', text: '那我們把火點回來！阿岩，你們平常怎麼生火？' },
+  { who: 'yan', mood: 'worried', text: '用鑽火棒在木板上一直轉。可是鑽火棒斷了，要削一根新的。' },
+  { who: 'yan', mood: 'frown', text: '削木頭要用石刀……阿爸的石刀剛才摸黑的時候，掉進海裡了。' },
+  { who: 'yan', mood: 'determined', text: '那我們自己做一把！洞口外面的海邊有好多石頭。石頭敲一敲，聽聲音就知道硬不硬。' },
+];
+// 開場後的「點火要一步一步來」：好石頭 → 石刀 → 鑽火棒 → 火
+export const FIRE_CHAIN = [
+  { name: '挑好石頭', img: art('g-04-basalt') },
+  { name: '敲出石刀', img: art('g-03-scraper') },
+  { name: '削鑽火棒', img: art('g-03-drill') },
+  { name: '把火點回來', img: art('o-05-fire') },
 ];
 export const YAN_CARD = { body: art('f-04a-idle'), from: '八仙洞', wish: '看到森林裡的鹿群', fear: '怕黑' };
 export const GOAL1 = '把洞裡的火點回來，夜晚才會結束';
 
 // ── 1 打製石器 ──
 export const STONES_INTRO: Line[] = [
-  { who: 'yan', mood: 'happy', text: '海邊有好多石頭。點一點，敲敲看哪一顆聲音最清脆。要一顆硬的當材料、一顆圓的當槌子。' },
+  { who: 'yan', mood: 'happy', text: '到海邊了！月亮好亮。點一點石頭，敲敲看哪一顆聲音最清脆。' },
+  { who: 'yan', mood: 'determined', text: '要一顆硬的當材料、一顆圓的當槌子。阿爸說，好石頭會「叩」一聲。' },
 ];
 // 海灘上的石頭：soft 一敲就碎、hard 當材料、hammer 當槌子
 export const BEACH: { kind: 'soft' | 'hard' | 'hammer'; x: number; y: number }[] = [
@@ -62,22 +133,27 @@ export const KNAPS: { name: string; use: string; tool: string; level: KnapLevel 
 export const KNAP_BROKE: Line = { who: 'yan', mood: 'worried', text: '啊，敲到要留的地方了！換一顆再來。這次先敲最外面、旁邊空空的那一格。' };
 export const KNAP_HINT: Line = { who: 'yan', mood: 'thinking', text: '我阿爸都是從角落開始，沿著邊一片一片敲，不會正對著要留的地方敲。' };
 export const DRILL_INTRO: Line[] = [
-  { who: 'yan', mood: 'happy', text: '用刮削器削一根木棒，插在木板上一直轉，就能鑽出火來！' },
+  { who: 'yan', mood: 'happy', text: '用刮削器削一根新的鑽火棒，插在木板上一直轉，就能鑽出火來！' },
   { who: 'tick', mood: 'happy', text: '一直點「鑽！」，讓溫度衝到最上面。停太久會冷掉喔。' },
 ];
-export const FIRE_BACK: Line[] = [
-  { who: 'yan', mood: 'thumbs', text: '火回來了！洞裡好亮、好暖！' },
+export const fireBack = (k: Picks1): Line[] => [
+  { who: 'yan', mood: 'thumbs', text: '火回來了！洞裡好亮、好暖！阿媽不咳了，大家都靠過來烤火。' },
+  k.tool === 1
+    ? { who: 'yan', mood: 'happy', text: '阿爸摸摸我的頭，說這把砍砸器以後就是我的了。' }
+    : { who: 'yan', mood: 'happy', text: '阿爸拿著砍砸器看了好久，說我敲得比他小時候還好！' },
   { who: 'yan', mood: 'happy', text: '我們這裡沒有田，大家靠撿貝殼、抓魚、打獵過日子。有了石器，做什麼都快多了。' },
-  { who: 'tick', mood: 'surprised', text: '咦？太陽石在發光……它要帶我們往後跳了！阿岩，抓緊！' },
-  { who: 'yan', mood: 'scared', text: '哇啊啊——我不要放手！' },
+  { who: 'tick', mood: 'worried', text: '咦？太陽石在發光，而且越來越燙……它要帶我們去下一個時間卡住的地方了！' },
+  { who: 'yan', mood: 'determined', text: '太陽石去哪裡，我就去哪裡！而且……說不定在外面，能看到鹿群！' },
 ];
 
 // ── 2 陶器（大坌坑） ──
 export const POT_INTRO: Line[] = [
-  { who: 'tick', mood: 'thinking', text: '我們往後跳了好幾萬年……這裡是大約六、七千年前的北部河口。' },
-  { who: 'potter', text: '你們這兩個小傢伙從哪裡冒出來的？剛好，來幫婆婆燒陶。' },
-  { who: 'potter', text: '我們開始在這裡種東西、住下來不搬家了，要有罐子才能煮東西、存東西。' },
-  { who: 'yan', mood: 'surprised', text: '住下來不搬家？還有罐子？我們山洞裡都沒有這種東西！' },
+  { who: 'tick', mood: 'thinking', text: '太陽石帶我們到這裡，一定有什麼事卡住了。' },
+  { who: 'potter', text: '你們這兩個小傢伙從哪裡冒出來的？……唉，來得正好。' },
+  { who: 'potter', text: '我們開始在這裡種東西、住下來不搬家了。雨季就要來了，收成的小米種子要裝進罐子收好，不然會發霉。' },
+  { who: 'potter', text: '可是罐子一燒就裂。天上的雲也怪，好幾天都停在要下雨不下雨的樣子。' },
+  { who: 'yan', mood: 'frown', text: '住下來不搬家？種東西？我們山洞裡都沒有這種事……' },
+  { who: 'yan', mood: 'determined', text: '婆婆，我們幫你！我剛學會敲石頭，燒罐子……應該也學得會！' },
 ];
 export const CLAY_ASK: Line[] = [
   { who: 'potter', text: '先揉土。黏土裡要拌一點砂，拌幾匙呢？你們試試看，用小罐子燒一下就知道。' },
@@ -109,17 +185,22 @@ export const CORD_ASK: Line[] = [
 ];
 export const POT_DONE: Line[] = [
   { who: 'potter', text: '這就是我們的繩紋陶。以後有人挖到碎片，就知道我們在這裡住過。' },
-  { who: 'yan', mood: 'happy', text: '我也要做一個帶回山洞給阿媽！' },
-  { who: 'tick', mood: 'surprised', text: '太陽石又亮了！下一站！' },
+  { who: 'potter', text: '只是柴只夠燒這一個大罐子了……' },
+];
+export const POT_LEAVE: Line[] = [
+  { who: 'tick', mood: 'happy', text: '你們看，雨終於落下來了！這裡的時間又開始走了。' },
+  { who: 'tick', mood: 'worried', text: '太陽石又在發燙……下一站！' },
 ];
 
 // ── 3 磨製石器（卑南） ──
 export const GRIND_INTRO: Line[] = [
   { who: 'tick', mood: 'thinking', text: '現在是大約三千多年前，臺東的卑南。你看那根好高的石柱！' },
   { who: 'jade', text: '歡迎！我們用石板蓋房子，也用石板做棺材，把家人好好地埋在家裡下面。' },
-  { who: 'jade', text: '我們不只敲石頭，還會加水和砂，在磨石上慢慢磨。磨過的石器又光滑又鋒利。' },
-  { who: 'yan', mood: 'frown', text: '慢慢磨？敲幾下不就好了嗎？' },
-  { who: 'jade', text: '來試試。在一個地方磨一下，那裡會少 2 層，旁邊兩格各少 1 層。剛好磨到虛線，不能磨過頭。' },
+  { who: 'jade', text: '明天是我女兒的成年禮，她要戴上家裡磨的玉耳飾。可是我的手受傷了，玉料還粗粗的……' },
+  { who: 'jade', text: '這幾天太陽一直停在同一個地方，好像明天永遠不會來。' },
+  { who: 'jade', text: '我們不只敲石頭，還會加水和砂，在磨石上慢慢磨。先拿石錛和石刀練練手，再磨玉。' },
+  { who: 'yan', mood: 'frown', text: '慢慢磨？敲幾下不就好了嗎？我敲石器很快的！' },
+  { who: 'jade', text: '那你試試。在一個地方磨一下，那裡會少 2 層，旁邊兩格各少 1 層。剛好磨到虛線，不能磨過頭。' },
 ];
 export const GRINDS: { name: string; use: string; img: string; raw: string; level: GrindLevel }[] = [
   { name: '石錛', use: '綁上木柄可以削木頭、蓋房子', img: art('g-03-adze'), raw: art('g-04-slate-tex'), level: { from: [5, 6, 7, 6, 5], to: [2, 2, 3, 2, 2] } },
@@ -130,17 +211,25 @@ export const GRIND_FAIL: Line = { who: 'jade', text: '磨過頭了，這裡太�
 export const GRIND_HINT: Line = { who: 'yan', mood: 'thinking', text: '旁邊的格子也會被帶到……最邊邊的格子只能靠它自己和隔壁，先算邊邊吧！' };
 export const GRIND_DONE: Line[] = [
   { who: 'yan', mood: 'thumbs', text: '好光滑！跟我們敲出來的完全不一樣。' },
-  { who: 'jade', text: '這副玉耳飾送你們。在我們這裡，玉是很重要的寶物。' },
-  { who: 'tick', mood: 'surprised', text: '太陽石……又要跳了！' },
+  { who: 'yan', mood: 'thinking', text: '原來慢慢來，才做得出這麼好的東西。我以前都太急了。' },
+  { who: 'jade', text: '謝謝你們！我去叫女兒來試戴，耳飾先幫我看著。' },
+  { who: 'yan', mood: 'worried', text: '（小聲）……好漂亮。阿媽從來沒有戴過這麼漂亮的東西。我可以偷偷帶回去給她嗎？' },
+];
+export const GRIND_LEAVE: Line[] = [
+  { who: 'tick', mood: 'happy', text: '太陽往下走了，明天終於要來了！' },
+  { who: 'tick', mood: 'worried', text: '太陽石……又要跳了！' },
 ];
 
 // ── 4 煉鐵（十三行） ──
 export const IRON_INTRO: Line[] = [
   { who: 'tick', mood: 'thinking', text: '大約一、兩千年前的北部海邊，十三行。你聞，到處都是煙的味道。' },
   { who: 'smith', text: '我們會從海邊的鐵砂煉出鐵來，打成鐵刀、鐵斧。' },
+  { who: 'smith', text: '海上來的船，等風一轉就要開走了。我得在船走以前煉出鐵，跟他們換東西。可是這陣子的風一直不轉……' },
   { who: 'smith', text: '咦，你手上那顆亮亮的是金屬嗎？丟進爐子剛好可以煉！' },
-  { who: 'yan', mood: 'angry', text: '不行！這是太陽石！你要煉鐵，我們幫你，但是不准碰它！' },
-  { who: 'smith', text: '好好好。那幫我煉 3 爐鐵吧。一爐要 3 份木材燒成木炭，木材要上山砍樹。' },
+  { who: 'yan', mood: 'angry', text: '不行！這是太陽石！不准碰它！' },
+];
+export const IRON_TASK: Line[] = [
+  { who: 'smith', text: '一爐要 3 份木材燒成木炭，木材要上山砍樹。' },
 ];
 export const FOREST: ForestLevel = { cols: 6, farRows: 2, steepRows: 2, seasons: 4, actions: 4, woodPerIron: 3, iron: 3, rainAfter: [2, 4] };
 export const IRON_RULES = '近的陡坡砍一棵花 1 次行動，遠的緩坡要走遠路，花 2 次。在樹樁種樹苗花 1 次。第 2、4 季結束會下大雨。';
@@ -158,10 +247,17 @@ export const IRON_DONE: Line[] = [
   { who: 'yan', mood: 'determined', text: '煉鐵要好多好多樹。如果大家一直砍，山會不會有一天變光光？' },
   { who: 'smith', text: '所以要留樹、補種。森林不是用不完的。' },
 ];
-export const GOODBYE: Line[] = [
+export const goodbye = (k: Picks1, deer: boolean): Line[] => [
+  { who: 'smith', text: '風轉了！船要開了，我得趕快把鐵搬上船。謝謝你們！' },
   { who: 'tick', mood: 'sad', text: '阿岩，太陽石其實是我的齒輪。它要回到時光鐘，你的時代才會重新有白天。' },
   { who: 'yan', mood: 'sad', text: '……我知道。它一直在發燙，好像很想回家。我也想回家了。' },
   { who: 'yan', mood: 'determined', text: '還你！我不怕黑了，因為我會自己做石器、自己點火了。' },
+  deer
+    ? { who: 'yan', mood: 'thumbs', text: '而且我看到鹿群了！因為我們砍樹的時候有留樹。' }
+    : { who: 'yan', mood: 'thinking', text: '這次沒看到鹿群……回去以後，我要叫大家砍樹的時候留一些。' },
+  k.smith === 1
+    ? { who: 'yan', mood: 'happy', text: '你跟師傅商量的樣子好厲害，我也要學會好好講。' }
+    : { who: 'yan', mood: 'happy', text: '謝謝你那時候站在我前面。' },
   { who: 'yan', mood: 'happy', text: '這顆槌子石送你。我在上面刻了三條線，是我的記號。' },
 ];
 
@@ -190,12 +286,35 @@ export const MARK_FOUND: Line[] = [
   { who: 'tick', mood: 'surprised', text: '這顆石頭上有三條線……是阿岩的記號！' },
   { who: 'tick', mood: 'happy', text: '它在最下面、最老的那一層。阿岩平安回家了，還把石頭一直留在身邊。' },
 ];
+// 挖到跟你的選擇有關的東西時，滴答說一句
+export const digSay = (id: string, k: Picks1): Line | null =>
+  id === 'chopper' ? { who: 'tick', mood: 'thinking', text: k.tool === 1 ? '這把砍砸器……說不定就是阿岩一直帶在身上的那一把。' : '這把砍砸器……說不定就是你送給阿岩阿爸的那一把。' }
+  : id === 'jade' ? { who: 'tick', mood: 'happy', text: '玉耳飾在卑南的土層裡。阿岩把它還回去了，姊姊成年禮有戴上它。' }
+  : id === 'pot' ? { who: 'tick', mood: 'thinking', text: k.pot === 1 ? '繩紋陶片！那一晚的熱湯，大家應該都喝得很開心。' : '繩紋陶片！婆婆的小米種子，應該有平安過雨季吧。' }
+  : null;
+
 // 神秘旅人的紙條（伏筆 A）：夾在土層裡
 export const NOTE1 = { text: '火是借來的，森林也是。', sign: '戴斗笠的旅人' };
 
 // ── 6 回到現在 ──
+// 齒輪回到時光鐘以後，先看一眼阿岩回家：畫面和台詞照你一路上的選擇
+export const homeLines = (k: Picks1, deer: boolean): Line[] => [
+  { who: 'tick', mood: 'happy', text: '齒輪回到時光鐘了！我們從鐘裡看一下八仙洞——' },
+  { who: 'yan', mood: 'thumbs', text: '太陽出來了！夜晚結束了！' },
+  k.tool === 1
+    ? { who: 'yan', mood: 'determined', text: '我把砍砸器綁在腰上，以後換我保護阿媽！' }
+    : { who: 'yan', mood: 'happy', text: '阿爸帶著我們做的砍砸器出門了，晚上一定有貝殼可以吃！' },
+  { who: 'yan', mood: 'happy', text: '阿媽戴上卑南的小玉環了，她一直說好漂亮。' },
+  k.pot === 1
+    ? { who: 'yan', mood: 'happy', text: '我跟大家說，以後的人會用罐子煮熱湯，大家都流口水了！' }
+    : { who: 'yan', mood: 'thinking', text: '我跟大家說，以後的人會住下來種東西，還用罐子存種子。大家都不相信！' },
+  deer
+    ? { who: 'yan', mood: 'thumbs', text: '你看，山邊有鹿！我會好好留著森林，讓牠們一直都在。' }
+    : { who: 'yan', mood: 'determined', text: '以後砍樹，我會叫大家留一些，總有一天鹿群會回來。' },
+  { who: 'yan', mood: 'happy', text: '謝謝你，見習生。我不怕黑了。' },
+];
 export const BACK_NOW: Line[] = [
-  { who: 'tick', mood: 'happy', text: '第一顆齒輪回到時光鐘了！八仙洞的夜晚結束，太陽出來了。' },
+  { who: 'tick', mood: 'happy', text: '阿岩的時代有白天了，第一顆齒輪也在時光鐘裡穩穩地轉起來。' },
   { who: 'tick', mood: 'thinking', text: '從敲石頭、燒陶、磨玉到煉鐵，人們一步一步把工具做得更好。' },
 ];
 export const KEEPSAKE1 = { id: 'yan-hammer', img: 'story/G-02_3.webp', title: '刻了三條線的槌子石', text: '阿岩送你的槌子石。幾萬年後，考古學家在最下面的土層挖到它。' };

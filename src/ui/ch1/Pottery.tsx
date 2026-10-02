@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react';
 import { fire, fireSolve, heat, SIDES, SLOT_CAP, SLOTS, used, HEAT_MAX, HEAT_MIN, type Pile, type Slot } from '../../core/stone-age';
-import { CARDS1, CLAY_ASK, CORD_ASK, FIRE_FAIL, FIRE_HINT, FIRE_INTRO, FIRES, POT_DONE, POT_INTRO, SAND_RESULT, art } from '../../data/ch1';
+import { CARDS1, CLAY_ASK, CORD_ASK, FIRE_FAIL, FIRE_HINT, FIRE_INTRO, FIRES, POT_DONE, POT_INTRO, POT_LEAVE, SAND_RESULT, art } from '../../data/ch1';
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
+import { Decide, EraJump } from './Story';
 
-type Phase = 'intro' | 'clayAsk' | 'clay' | 'fireIntro' | 'fire' | 'cordAsk' | 'cord' | 'done' | 'cards' | 'warp';
+type Phase = 'jump' | 'intro' | 'clayAsk' | 'clay' | 'fireIntro' | 'fire' | 'cordAsk' | 'cord' | 'done' | 'pick' | 'cards' | 'leave' | 'warp';
 
 // 步驟 2 陶器（大坌坑文化）：黏土拌砂試燒 → 野燒三關（柴放在罐子四周，四面都要剛剛好）→ 拍繩紋
 export function Pottery({ p, set, next, oops }: Step1Props) {
-  const [phase, setPhase] = useState<Phase>('intro');
+  const [phase, setPhase] = useState<Phase>('jump');
   const [lv, setLv] = useState(0);
   const [card, setCard] = useState<string[]>([]);
   useEffect(() => {
@@ -24,6 +25,7 @@ export function Pottery({ p, set, next, oops }: Step1Props) {
   return (
     <div className="scene ch1-pot">
       <img className="scene-bg" src={art('s-06')} alt="" />
+      {phase === 'jump' && <EraJump to={1} onDone={() => setPhase('intro')} />}
       {phase === 'intro' && <Talk lines={POT_INTRO} onDone={() => setPhase('clayAsk')} />}
       {phase === 'clayAsk' && <Talk lines={CLAY_ASK} onDone={() => setPhase('clay')} />}
       {phase === 'clay' && <Clay oops={oops} onDone={() => setPhase('fireIntro')} />}
@@ -34,13 +36,15 @@ export function Pottery({ p, set, next, oops }: Step1Props) {
       }} />}
       {phase === 'cordAsk' && <Talk lines={CORD_ASK} onDone={() => setPhase('cord')} />}
       {phase === 'cord' && <Cord onDone={() => setPhase('done')} />}
-      {phase === 'done' && <Talk lines={POT_DONE} onDone={() => {
+      {phase === 'done' && <Talk lines={POT_DONE} onDone={() => setPhase('pick')} />}
+      {phase === 'pick' && <Decide id="pot" set={set} onDone={() => {
         const more = ['dabenkeng', 'pot'].filter((c) => !p.cards.includes(c));
         set((o) => addCard1(o, 'dabenkeng', 'pot'));
-        if (more.length) { setCard(more); setPhase('cards'); } else setPhase('warp');
+        if (more.length) { setCard(more); setPhase('cards'); } else setPhase('leave');
       }} />}
+      {phase === 'leave' && <Talk lines={POT_LEAVE} onDone={() => setPhase('warp')} />}
       {phase === 'cards' && card[0] && (
-        <CardPop title={CARDS1[card[0]].title} text={CARDS1[card[0]].text} onClose={() => { const rest = card.slice(1); setCard(rest); if (!rest.length) setPhase('warp'); }} />
+        <CardPop title={CARDS1[card[0]].title} text={CARDS1[card[0]].text} onClose={() => { const rest = card.slice(1); setCard(rest); if (!rest.length) setPhase('leave'); }} />
       )}
       {phase === 'warp' && <div className="warp" />}
     </div>

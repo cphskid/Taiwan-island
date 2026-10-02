@@ -1,27 +1,31 @@
 import { useState } from 'react';
 import { cut, cutCost, endSeason, forestOf, forestOver, grown, isFar, plant, slideCols, smelt, type Forest } from '../../core/stone-age';
-import { CARDS1, FOREST, GOODBYE, IRON_DONE, IRON_INTRO, IRON_RULES, IRON_SAY, art } from '../../data/ch1';
+import { CARDS1, FOREST, goodbye, IRON_DONE, IRON_INTRO, IRON_RULES, IRON_SAY, IRON_TASK, art } from '../../data/ch1';
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
+import { Decide, EraJump } from './Story';
 
-type Phase = 'intro' | 'forest' | 'done' | 'bye' | 'cards';
+type Phase = 'jump' | 'intro' | 'pick' | 'task' | 'forest' | 'done' | 'bye' | 'cards';
 const DEER_AT = 14; // 長大的樹還有這麼多，鹿群才待得住
 
 // 步驟 4 煉鐵（十三行文化）：砍樹燒木炭煉 3 爐鐵；陡坡砍光，下大雨就土石流
 export function Iron({ p, set, next, oops }: Step1Props) {
-  const [phase, setPhase] = useState<Phase>('intro');
+  const [phase, setPhase] = useState<Phase>('jump');
   const [card, setCard] = useState<string[]>([]);
   return (
     <div className="scene ch1-iron">
       <img className="scene-bg" src={art('s-08')} alt="" />
-      {phase === 'intro' && <Talk lines={IRON_INTRO} onDone={() => setPhase('forest')} />}
-      {phase === 'forest' && <ForestBoard oops={oops} onDone={() => { jingle('MU-13'); setPhase('done'); }} />}
+      {phase === 'jump' && <EraJump to={3} onDone={() => setPhase('intro')} />}
+      {phase === 'intro' && <Talk lines={IRON_INTRO} onDone={() => setPhase('pick')} />}
+      {phase === 'pick' && <Decide id="smith" set={set} onDone={() => setPhase('task')} />}
+      {phase === 'task' && <Talk lines={IRON_TASK} onDone={() => setPhase('forest')} />}
+      {phase === 'forest' && <ForestBoard oops={oops} onDone={(deer) => { jingle('MU-13'); set((o) => ({ ...o, deer })); setPhase('done'); }} />}
       {phase === 'done' && <Talk lines={IRON_DONE} onDone={() => setPhase('bye')} />}
-      {phase === 'bye' && <Talk lines={GOODBYE} onDone={() => {
+      {phase === 'bye' && <Talk lines={goodbye(p.picks, p.deer)} onDone={() => {
         const more = ['shisanhang', 'iron'].filter((c) => !p.cards.includes(c));
         set((o) => addCard1(o, 'shisanhang', 'iron'));
         if (more.length) { setCard(more); setPhase('cards'); } else next();
@@ -33,7 +37,7 @@ export function Iron({ p, set, next, oops }: Step1Props) {
   );
 }
 
-function ForestBoard({ onDone, oops }: { onDone: () => void; oops: () => void }) {
+function ForestBoard({ onDone, oops }: { onDone: (deer: boolean) => void; oops: () => void }) {
   const [f, setF] = useState<Forest>(() => forestOf(FOREST));
   const [say, setSay] = useState<Line | null>(null);
   const [fails, setFails] = useState(0);
@@ -66,7 +70,7 @@ function ForestBoard({ onDone, oops }: { onDone: () => void; oops: () => void })
     setTimeout(() => {
       setSmelting(false);
       setF(g);
-      if (g.iron >= FOREST.iron) setTimeout(onDone, 900);
+      if (g.iron >= FOREST.iron) setTimeout(() => onDone(grown(g) >= DEER_AT), 900);
     }, 1200);
   };
   const endIt = () => {

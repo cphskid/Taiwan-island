@@ -5,6 +5,7 @@ import { addCard1 } from '../../core/save1';
 import { CardPop, Talk } from '../Talk';
 import type { Step1Props } from '../Ch1';
 import { sfx } from '../../audio';
+import { FireChain } from './Story';
 
 type Phase = 'night' | 'talk' | 'friend';
 
@@ -43,6 +44,7 @@ export function Opening1({ p, set, next }: Step1Props) {
               </div>
             </div>
             <p className="goal"><img src={img('gear')} alt="" />{GOAL1}</p>
+            <FireChain at={0} big />
             <button className="btn green" onClick={next}>出發！</button>
           </div>
         </div>

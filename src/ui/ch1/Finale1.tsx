@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BACK_NOW, CARDS1, KEEPSAKE1, QUESTIONS1, TRUTH1, art } from '../../data/ch1';
+import { BACK_NOW, CARDS1, CHOICES1, homeLines, KEEPSAKE1, QUESTIONS1, TRUTH1, art, type Pick1 } from '../../data/ch1';
 import { PEOPLE, img } from '../../data/babao-chapter';
 import { Face, Talk } from '../Talk';
 import { fresh1, stars1 } from '../../core/save1';
@@ -8,17 +8,18 @@ import type { Step1Props } from '../Ch1';
 import { ambience, jingle, sfx } from '../../audio';
 
 const BASE = import.meta.env.BASE_URL;
-type Phase = 'talk' | 'gear' | 'keepsake' | 'truth' | 'quiz' | 'stars';
+const RECAP: Pick1[] = ['tool', 'pot', 'jade', 'smith'];
+type Phase = 'home' | 'talk' | 'gear' | 'keepsake' | 'truth' | 'quiz' | 'stars';
 
 // 步驟 6 回到現在：齒輪回到時光鐘、阿岩的信物、「真的是這樣嗎？」、反思題、星星
 export function Finale1({ p, set, exit }: Step1Props) {
-  const [phase, setPhase] = useState<Phase>(p.done ? 'stars' : 'talk');
+  const [phase, setPhase] = useState<Phase>(p.done ? 'stars' : 'home');
   const [qi, setQi] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const q = QUESTIONS1[qi];
   const correct = QUESTIONS1.map((x) => x.answer);
   const stars = stars1(p, correct);
-  useEffect(() => { ambience(phase === 'quiz' || phase === 'truth' ? 'SE-61' : null); if (phase === 'talk') jingle('MU-17'); }, [phase]);
+  useEffect(() => { ambience(phase === 'quiz' || phase === 'truth' ? 'SE-61' : null); if (phase === 'home') jingle('MU-17'); }, [phase]);
   useEffect(() => {
     if (phase !== 'stars') return;
     const ids = Array.from({ length: stars }, (_, i) => window.setTimeout(() => sfx('SE-35', 1 + 0.12 * i), 300 + 350 * i));
@@ -39,8 +40,17 @@ export function Finale1({ p, set, exit }: Step1Props) {
   };
 
   return (
-    <div className="scene finale ch1-cave lit dawn">
-      <img className="scene-bg" src={art('s-05')} alt="" />
+    <div className="scene finale ch1-dawn">
+      <img className="scene-bg" src={art('s-05-dawn')} alt="" />
+      {phase === 'home' && (
+        <div className="home-props">
+          <img className="home-yan" src={art('f-04a-cheer')} alt="阿岩" />
+          <img className="home-chopper" src={art('g-03-chopper')} alt="" />
+          <img className="home-bead" src={art('g-03-jade')} alt="" />
+          {p.deer && <img className="home-deer" src={`${BASE}img/ch2/deer.webp`} alt="鹿" />}
+        </div>
+      )}
+      {phase === 'home' && <Talk lines={homeLines(p.picks, p.deer)} onDone={() => setPhase('talk')} />}
       {phase === 'talk' && <Talk lines={BACK_NOW} onDone={() => setPhase('gear')} />}
       {phase === 'gear' && (
         <div className="talk-cover">
@@ -109,6 +119,13 @@ export function Finale1({ p, set, exit }: Step1Props) {
               <li className={p.mistakes <= 3 ? 'on' : ''}>失誤 3 次以內{p.mistakes ? `（失誤 ${p.mistakes} 次）` : ''}</li>
               <li className={QUESTIONS1.every((x, i) => p.answers[i] === x.answer) ? 'on' : ''}>想一想全部答對</li>
             </ul>
+            {RECAP.some((k) => p.picks[k] !== undefined) && (
+              <div className="recap">
+                <b>你的選擇</b>
+                {RECAP.filter((k) => p.picks[k] !== undefined).map((k) => <span key={k}>{CHOICES1[k].recap[p.picks[k]!]}</span>)}
+                <span>{p.deer ? '十三行：留下夠多的樹，鹿群待住了' : '十三行：樹砍得多，這次沒看到鹿群'}</span>
+              </div>
+            )}
             {p.keepsakes.includes(KEEPSAKE1.id) && <p className="cards-got">信物：{KEEPSAKE1.title}　時光朋友：阿岩</p>}
             <p className="cards-got">圖鑑卡：{p.cards.map((c) => CARDS1[c]?.title).filter(Boolean).join('、')}</p>
             <div className="row">

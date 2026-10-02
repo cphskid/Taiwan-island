@@ -1,18 +1,19 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { grind, grindDone, grindSolve, tooThin } from '../../core/stone-age';
-import { CARDS1, GRIND_DONE, GRIND_FAIL, GRIND_HINT, GRIND_INTRO, GRINDS, art } from '../../data/ch1';
+import { CARDS1, GRIND_DONE, GRIND_FAIL, GRIND_HINT, GRIND_INTRO, GRIND_LEAVE, GRINDS, art } from '../../data/ch1';
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
+import { Decide, EraJump } from './Story';
 
-type Phase = 'intro' | 'grind' | 'done' | 'cards' | 'warp';
+type Phase = 'jump' | 'intro' | 'grind' | 'done' | 'pick' | 'cards' | 'leave' | 'warp';
 
 // 步驟 3 磨製石器（卑南文化）：在磨石上磨石錛、石刀，最後磨玉耳飾
 export function Grind({ p, set, next, oops }: Step1Props) {
-  const [phase, setPhase] = useState<Phase>('intro');
+  const [phase, setPhase] = useState<Phase>('jump');
   const [lv, setLv] = useState(0);
   const [card, setCard] = useState<string[]>([]);
   useEffect(() => {
@@ -25,18 +26,21 @@ export function Grind({ p, set, next, oops }: Step1Props) {
   return (
     <div className="scene ch1-grind">
       <img className="scene-bg" src={art(phase === 'grind' ? 'w-02' : 's-07')} alt="" />
+      {phase === 'jump' && <EraJump to={2} onDone={() => setPhase('intro')} />}
       {phase === 'intro' && <Talk lines={GRIND_INTRO} onDone={() => setPhase('grind')} />}
       {phase === 'grind' && <GrindBoard key={lv} n={lv} oops={oops} onDone={() => {
         jingle('MU-13');
         if (lv + 1 < GRINDS.length) setLv(lv + 1); else setPhase('done');
       }} />}
-      {phase === 'done' && <Talk lines={GRIND_DONE} onDone={() => {
+      {phase === 'done' && <Talk lines={GRIND_DONE} onDone={() => setPhase('pick')} />}
+      {phase === 'pick' && <Decide id="jade" set={set} onDone={() => {
         const more = CARDS.filter((c) => !p.cards.includes(c));
         set((o) => addCard1(o, ...CARDS));
-        if (more.length) { setCard(more); setPhase('cards'); } else setPhase('warp');
+        if (more.length) { setCard(more); setPhase('cards'); } else setPhase('leave');
       }} />}
+      {phase === 'leave' && <Talk lines={GRIND_LEAVE} onDone={() => setPhase('warp')} />}
       {phase === 'cards' && card[0] && (
-        <CardPop title={CARDS1[card[0]].title} text={CARDS1[card[0]].text} onClose={() => { const rest = card.slice(1); setCard(rest); if (!rest.length) setPhase('warp'); }} />
+        <CardPop title={CARDS1[card[0]].title} text={CARDS1[card[0]].text} onClose={() => { const rest = card.slice(1); setCard(rest); if (!rest.length) setPhase('leave'); }} />
       )}
       {phase === 'warp' && <div className="warp" />}
     </div>

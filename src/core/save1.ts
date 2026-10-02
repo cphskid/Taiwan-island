@@ -18,10 +18,12 @@ export interface Progress1 {
   note: boolean; // 考古坑裡撿到神秘旅人的紙條
   friends: string[];
   keepsakes: string[];
+  picks: Partial<Record<'tool' | 'pot' | 'jade' | 'smith', number>>; // 四個時代的選擇（data/ch1.ts CHOICES1）
+  deer: boolean; // 煉鐵結束時森林夠多、鹿群留下來
 }
 
 export const fresh1 = (): Progress1 => ({
-  v: 1, step: 0, reached: 0, cards: [], mistakes: 0, answers: [], stars: 0, done: false, note: false, friends: [], keepsakes: [],
+  v: 1, step: 0, reached: 0, cards: [], mistakes: 0, answers: [], stars: 0, done: false, note: false, friends: [], keepsakes: [], picks: {}, deer: false,
 });
 
 const KEY = 'island.ch1.v1';

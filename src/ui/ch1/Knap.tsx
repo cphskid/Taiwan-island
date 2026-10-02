@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { canStrike, ck, DIRS, flake, knapDone, knapSolve, stoneOf, strike, type Cell, type Dir, type Stone } from '../../core/stone-age';
 import {
-  BEACH, CARDS1, DRILL_INTRO, FIRE_BACK, KNAP_BROKE, KNAP_HINT, KNAP_INTRO, KNAPS, STONE_SAY, STONES_INTRO, art,
+  BEACH, CARDS1, DRILL_INTRO, fireBack, KNAP_BROKE, KNAP_HINT, KNAP_INTRO, KNAPS, STONE_SAY, STONES_INTRO, art,
 } from '../../data/ch1';
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
@@ -9,8 +9,9 @@ import { CardPop, Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
+import { Decide, FireChain } from './Story';
 
-type Phase = 'beach' | 'knapIntro' | 'knap' | 'drillIntro' | 'drill' | 'back' | 'cards' | 'warp';
+type Phase = 'beach' | 'knapIntro' | 'knap' | 'tool' | 'drillIntro' | 'drill' | 'back' | 'cards' | 'warp';
 
 // 步驟 1 打製石器（長濱文化，八仙洞）：海邊挑石頭 → 敲出兩種石器 → 鑽木取火 → 火回來，齒輪帶大家往後跳
 export function Knap({ p, set, next, oops }: Step1Props) {
@@ -36,12 +37,13 @@ export function Knap({ p, set, next, oops }: Step1Props) {
         <KnapBoard key={lv} n={lv} oops={oops} onDone={() => {
           jingle('MU-13');
           if (lv + 1 < KNAPS.length) { setLv(lv + 1); return; }
-          setPhase('drillIntro');
+          setPhase('tool');
         }} />
       )}
+      {phase === 'tool' && <Decide id="tool" set={set} onDone={() => setPhase('drillIntro')} />}
       {phase === 'drillIntro' && <Talk lines={DRILL_INTRO} onDone={() => setPhase('drill')} />}
       {phase === 'drill' && <Drill onDone={() => { sfx('SE-43'); setPhase('back'); }} />}
-      {phase === 'back' && <Talk lines={FIRE_BACK} onDone={() => {
+      {phase === 'back' && <Talk lines={fireBack(p.picks)} onDone={() => {
         const more = ['changbin', 'chopper'].filter((c) => !p.cards.includes(c));
         set((o) => addCard1(o, 'changbin', 'chopper'));
         if (more.length) { setCard(more); setPhase('cards'); } else setPhase('warp');
@@ -50,6 +52,7 @@ export function Knap({ p, set, next, oops }: Step1Props) {
         <CardPop title={CARDS1[card[0]].title} text={CARDS1[card[0]].text} onClose={() => { const rest = card.slice(1); setCard(rest); if (!rest.length) setPhase('warp'); }} />
       )}
       {phase === 'warp' && <div className="warp" />}
+      {!lit && <FireChain at={phase === 'beach' ? 0 : phase === 'knapIntro' || phase === 'knap' ? 1 : phase === 'drill' ? 3 : 2} />}
     </div>
   );
 }

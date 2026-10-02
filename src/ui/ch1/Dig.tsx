@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { BRUSH_TAPS, CARDS1, DIG_INTRO, ERAS, FINDS, LAYER_ERA, MARK_FOUND, NOTE1, SORT_ASK, SORT_WRONG, art, type EraId } from '../../data/ch1';
+import { BRUSH_TAPS, CARDS1, DIG_INTRO, digSay, ERAS, FINDS, LAYER_ERA, MARK_FOUND, NOTE1, SORT_ASK, SORT_WRONG, art, type EraId } from '../../data/ch1';
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
+import { EraJump } from './Story';
 
-type Phase = 'intro' | 'dig' | 'mark' | 'note' | 'sortAsk' | 'sort' | 'card';
+type Phase = 'jump' | 'intro' | 'dig' | 'mark' | 'note' | 'sortAsk' | 'sort' | 'card';
 // S-09 四層土的中線（圖的高度比例，由上到下）
 const LAYER_Y = [0.3, 0.48, 0.67, 0.88];
 const NOTE_AT = { layer: 2, x: 0.5 };
@@ -15,7 +16,7 @@ const STORY = `${import.meta.env.BASE_URL}img/story/`;
 
 // 步驟 5 考古：今天的考古工地，一層一層刷開土，挖到的東西排回時間尺（越下面越老）
 export function Dig({ p, set, next }: Step1Props) {
-  const [phase, setPhase] = useState<Phase>('intro');
+  const [phase, setPhase] = useState<Phase>('jump');
   const [brush, setBrush] = useState<Record<string, number>>({});
   const [found, setFound] = useState<string[]>([]);
   const [placed, setPlaced] = useState<Record<string, EraId>>({});
@@ -33,6 +34,8 @@ export function Dig({ p, set, next }: Step1Props) {
     sfx('SE-05');
     const got = [...found, id];
     setFound(got);
+    const line = digSay(id, p.picks);
+    if (line) setSay(line);
     if (id === 'mark') setPhase('mark');
     else if (id === 'note') { set((o) => ({ ...o, note: true })); setPhase('note'); }
     else if (spots.every((f) => got.includes(f.id))) setTimeout(() => setPhase('sortAsk'), 600);
@@ -69,6 +72,7 @@ export function Dig({ p, set, next }: Step1Props) {
         })}
       </div>
       <Goal floating text={phase === 'sort' ? '點一樣東西，再點它屬於的時代' : `用刷子刷開土塊（點 ${BRUSH_TAPS} 下）：找到 ${found.filter((x) => x !== 'note').length} / ${FINDS.length}`} />
+      {phase === 'jump' && <EraJump to={4} onDone={() => setPhase('intro')} />}
       {phase === 'intro' && <Talk lines={DIG_INTRO} onDone={() => setPhase('dig')} />}
       {phase === 'mark' && <Talk lines={MARK_FOUND} onDone={back} />}
       {phase === 'note' && (

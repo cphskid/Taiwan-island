@@ -614,7 +614,6 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .loop-day.night strong{font-size:52px}
 .ch1-night .scene-bg,.ch1-cave .scene-bg{filter:brightness(.75) saturate(.9);transition:filter 1.2s}
 .ch1-cave.lit .scene-bg{filter:brightness(1.1) saturate(1.1) sepia(.15)}
-.ch1-cave.dawn .scene-bg{filter:brightness(1.15) saturate(1.15) hue-rotate(-10deg)}
 .cave-fire{position:absolute;left:39%;top:72%;width:min(15%,150px);translate:-50% -50%;z-index:1;pointer-events:none;filter:drop-shadow(0 0 30px rgba(255,170,60,.0));transition:filter 1s}
 .ch1-cave.lit .cave-fire{filter:drop-shadow(0 0 40px rgba(255,170,60,.9))}
 .beach-stone{position:absolute;translate:-50% -50%;width:min(7.5%,86px);aspect-ratio:1;padding:0;border:0;background:none;cursor:pointer;z-index:2;transition:transform .2s,opacity .5s}
@@ -916,3 +915,56 @@ img.gear{width:110px;height:110px;object-fit:contain}
   .rule{padding:4px 10px;font-size:15px}
 }
 @media (max-width:760px){ .cal-wrap{grid-template-columns:1fr} .plots{grid-template-columns:repeat(3,1fr)} }
+
+/* 第一章劇情：選擇、時代轉場、點火步驟鏈、阿岩回家 */
+.choice small{color:var(--wood-2);font-weight:700}
+.choice .opt{text-align:center}
+.choice-tip{text-align:center;color:#9c8466;font-size:15px!important}
+.era-cover{align-items:center;background:radial-gradient(circle,rgba(201,251,255,.35),rgba(20,30,60,.65))}
+.era-jump{width:min(640px,100%);text-align:center;cursor:pointer;animation:pop .35s ease-out}
+.era-jump small{color:var(--wood-2);font-weight:700;font-size:16px}
+.era-jump h2{margin:6px 0 2px;font-size:30px}
+.era-jump p{margin:0 0 6px;font-size:18px;color:#7a5a3a}
+.era-line{position:relative;display:flex;justify-content:space-between;margin:14px 6px 8px;padding-top:6px}
+.era-line::before{content:'';position:absolute;left:8%;right:8%;top:14px;height:4px;border-radius:2px;background:#e6cf9f}
+.era-line span{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;font-size:13px;font-weight:700;color:#b9a27e}
+.era-line span i{width:16px;height:16px;border-radius:50%;background:#e6cf9f;border:3px solid #fff8e6}
+.era-line span.past{color:#8a6b45}
+.era-line span.past i{background:#c9a46b}
+.era-line span.on{color:var(--ink)}
+.era-line span.on i{background:var(--gold);box-shadow:0 0 0 4px rgba(255,194,61,.35)}
+.era-dot{position:absolute;top:4px;width:24px;height:24px;margin-left:-12px;border-radius:50%;background:radial-gradient(#fff,#7ff0ff 60%,rgba(127,240,255,0));box-shadow:0 0 18px #7ff0ff;
+  left:calc((var(--to) + .5) / (var(--n) + 1) * 100%);animation:era-slide 1.1s ease-in-out}
+@keyframes era-slide{from{left:calc((var(--from) + .5) / (var(--n) + 1) * 100%)}}
+.fire-chain{position:absolute;right:12px;top:64px;z-index:3;display:flex;gap:4px;margin:0;padding:6px 8px;list-style:none;background:rgba(20,30,50,.55);border-radius:16px}
+.fire-chain li{display:flex;flex-direction:column;align-items:center;width:58px;opacity:.45;color:#fff}
+.fire-chain li img{width:34px;height:30px;object-fit:contain;filter:grayscale(1)}
+.fire-chain li small{font-size:11px;font-weight:700;white-space:nowrap}
+.fire-chain li.done{opacity:.9}
+.fire-chain li.done img{filter:none}
+.fire-chain li.done small::before{content:'✓ '}
+.fire-chain li.on{opacity:1}
+.fire-chain li.on img{filter:drop-shadow(0 0 6px var(--gold));animation:pop .5s}
+.fire-chain li.on small{color:var(--gold)}
+.fire-chain li+li::before{content:'';position:absolute}
+.fire-chain.big{position:static;justify-content:center;margin:4px auto 10px;background:#fffaf0;border:3px solid #e6cf9f;width:fit-content}
+.fire-chain.big li{width:78px;color:var(--ink);opacity:1}
+.fire-chain.big li img{width:44px;height:40px;filter:none}
+.fire-chain.big li small{font-size:13px}
+.fire-chain.big li:not(:last-child) small::after{content:' →';color:#c9a46b}
+.home-props{position:absolute;inset:0;z-index:2;pointer-events:none}
+.home-yan{position:absolute;left:62%;bottom:25%;height:40%;transform:translateX(-50%);animation:pop .5s}
+.home-chopper{position:absolute;left:69%;bottom:26%;height:10%;transform:rotate(-20deg)}
+.home-bead{position:absolute;left:52%;bottom:27%;height:7%}
+.home-deer{position:absolute;left:4%;bottom:25%;height:26%;animation:pop .8s}
+.recap{display:flex;flex-direction:column;gap:2px;margin:4px auto 8px;padding:8px 14px;width:fit-content;text-align:left;background:#fffaf0;border:3px solid #e6cf9f;border-radius:16px;font-size:15px}
+.recap b{color:var(--wood-2)}
+@media (max-height:500px){
+  .era-jump h2{font-size:22px}
+  .era-line span{font-size:11px}
+  .fire-chain{top:52px}
+  .fire-chain li{width:48px}
+  .fire-chain.big li{width:64px}
+  .fire-chain.big li img{width:32px;height:28px}
+  .recap{font-size:12px;padding:4px 10px}
+}
