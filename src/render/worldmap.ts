@@ -12,9 +12,12 @@ import {
   type ActorDef, type ChapterId,
 } from '../data/world';
 
-const MAX_ZOOM = 6; // 最多放大到「放得下整張」的幾倍
+const MAX_ZOOM = 6; // 最多放大到「一倍」的幾倍
+// 「一倍」＝放得下 2071×1492 這麼大一塊（第一版 M-01 的整張），看彰化平原的小人剛好；
+// 新底圖整座島比這大很多，拉到最遠（放得下整張）大約是 0.4 倍
+const UNIT = { left: 0, top: 0, width: 2071, height: 1492 };
 const TAP_SLOP = 8;
-const FOG_STEP = 58; // 雲一團一團的間距（原圖像素）
+const FOG_STEP = 90; // 雲一團一團的間距（原圖像素）
 const SEA = 0x58b4d8;
 const LABEL_PX = 14; // 地圖上章名的字在畫面上幾 px
 
@@ -36,7 +39,7 @@ export interface WorldMap {
   setRifts: (s: Partial<Record<ChapterId, RiftState>>) => void;
   setGlasses: (on: boolean) => void;
   dispel: (id: string) => Promise<void>; // 撥雲動畫：那一區的雲散開、建設長出來
-  flyTo: (at: Pt, zoom: number, ms?: number) => Promise<void>; // zoom：「放得下整張」的幾倍
+  flyTo: (at: Pt, zoom: number, ms?: number) => Promise<void>; // zoom：「一倍」（UNIT）的幾倍，0＝拉到看得到整張
   clientOf: (p: Pt) => { x: number; y: number };
   zoom: () => number;
   destroy: () => void;
@@ -168,7 +171,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     const show = new Set([...openedSet].map(regionOf));
     for (const p of puffs) {
       if (p.gone || thin.has(p)) continue;
-      const near = [0, 1, 2, 3, 4, 5, 6, 7].some((a) => show.has(regions.at(p.x + Math.cos((a * Math.PI) / 4) * 48, p.y + Math.sin((a * Math.PI) / 4) * 48)));
+      const near = [0, 1, 2, 3, 4, 5, 6, 7].some((a) => show.has(regions.at(p.x + Math.cos((a * Math.PI) / 4) * 75, p.y + Math.sin((a * Math.PI) / 4) * 75)));
       if (near) thin.add(p);
     }
   };
@@ -347,8 +350,10 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   const b = { left: 0, top: 0, width: MAP.width, height: MAP.height };
   const size = () => ({ width: app.screen.width, height: app.screen.height });
   const fit = () => fitView(b, size()).scale;
+  const unit = () => fitView(UNIT, size()).scale;
+  const maxK = () => (unit() * MAX_ZOOM) / fit();
   const centerOn = (at: Pt, zoom: number): View => {
-    const k = clamp(fit() * zoom, fit() * 0.9, fit() * MAX_ZOOM);
+    const k = clamp(unit() * zoom, fit(), unit() * MAX_ZOOM);
     return clampView({ scale: k, x: size().width / 2 - at.x * k, y: size().height / 2 - at.y * k }, b, size());
   };
   let view: View = opt.start ? centerOn(opt.start.at, opt.start.zoom) : fitView(b, size());
@@ -359,7 +364,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     // 裂縫在畫面上大約固定大小（拉遠不會小到看不見，也不會蓋住台灣輪廓）；字一律同樣大小。
     // 還沒開放的章拉近才出現名字，免得一整片字蓋住地圖
     const vs = view.scale;
-    const z = vs / fit();
+    const z = vs / unit();
     for (const r of riftList) {
       const lit = r.state === 'open' || r.state === 'hook';
       const screen = clamp(72 * vs, lit ? 64 : 38, lit ? 104 : 64);
@@ -369,7 +374,8 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       const up = CHAPTERS.find((c) => c.id === r.id)!.labelUp;
       r.label.anchor.set(up ? 1 : 0.5, up ? 0.5 : 0);
       r.label.position.set(up ? -20 : 0, up ? -36 : 4 / (vs * k));
-      r.label.visible = r.state === 'done' ? z < 2 : lit || z > 1.8;
+      // 拉到看得到整座島時字會疊在一起，只留發光的章
+      r.label.visible = r.state === 'done' ? z > 0.7 && z < 2 : lit || z > 1.8;
     }
   };
   apply();
@@ -443,7 +449,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       if (!tap) view = panBy(view, p.x - prev.x, p.y - prev.y, b, size());
     } else if (fingers.size === 2 && pinch) {
       const now = two();
-      view = zoomAt(view, now.d / pinch.d, now.mx, now.my, b, size(), MAX_ZOOM);
+      view = zoomAt(view, now.d / pinch.d, now.mx, now.my, b, size(), maxK());
       view = panBy(view, now.mx - pinch.mx, now.my - pinch.my, b, size());
       pinch = now;
     }
@@ -459,7 +465,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     e.preventDefault();
     if (flying) return;
     const p = local(e.clientX, e.clientY);
-    view = zoomAt(view, Math.exp(-e.deltaY * 0.0015), p.x, p.y, b, size(), MAX_ZOOM);
+    view = zoomAt(view, Math.exp(-e.deltaY * 0.0015), p.x, p.y, b, size(), maxK());
     apply();
   };
   el.addEventListener('pointerdown', down);
@@ -527,7 +533,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       if (!growing) for (const p of paddies) { p.green.alpha = look.green; p.gold.alpha = look.gold; }
       drawFlow(t);
       const season = seasonAt(phase);
-      const lod = lodLevel(view.scale / fit());
+      const lod = lodLevel(view.scale / unit());
       for (const a of actors) {
         const art = ACTOR_ART[a.def.kind];
         a.sp.visible = a.def.lod <= lod;
@@ -601,7 +607,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       const r = el.getBoundingClientRect();
       return { x: r.left + view.x + p.x * view.scale, y: r.top + view.y + p.y * view.scale };
     },
-    zoom: () => view.scale / fit(),
+    zoom: () => view.scale / unit(),
     destroy() {
       el.removeEventListener('pointerdown', down);
       el.removeEventListener('pointermove', move);

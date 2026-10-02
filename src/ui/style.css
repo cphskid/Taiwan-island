@@ -560,8 +560,8 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .chart .chart-boat{font-size:clamp(26px,4vw,48px);transition:left .35s ease-in-out,top .35s ease-in-out;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35));z-index:2}
 .chart-trail{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .chart-trail polyline{fill:none;stroke:#fff;stroke-width:3;stroke-dasharray:6 5;opacity:.9}
-.island-map{width:min(100%,calc((100dvh - 120px) * 1.388));max-height:none}
-@media (max-height:600px){ .art-frame.chart{width:min(100% - 160px,calc((100dvh - 80px) * 1.7917));margin-right:150px} .island-map{width:min(100%,calc((100dvh - 90px) * 1.388))} }
+.island-map{width:min(100%,calc((100dvh - 120px) * 0.7235));max-height:none}
+@media (max-height:600px){ .art-frame.chart{width:min(100% - 160px,calc((100dvh - 80px) * 1.7917));margin-right:150px} .island-map{width:min(100%,calc((100dvh - 90px) * 0.7235))} }
 /* 戴上地形眼鏡：3D 底圖淡掉，只看平面的分層設色和等高線，才不會兩層疊在一起歪掉 */
 .island-map>img.base{transition:opacity .3s}
 .island-map>img.base.dim{opacity:.12}

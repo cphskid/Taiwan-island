@@ -175,8 +175,8 @@ export const FACTS: Record<'where' | 'wind' | 'mountain' | 'tropic' | 'rain' | '
 
 // ── 上岸認識地形、氣候 ──
 // 座標是大地圖 M-01 的比例位置（0～1），地形顏色從 m01-relief 讀
-export const TROPIC_Y = 0.542; // 北回歸線（照章節位置的緯度估的）
-export const RAINY = { minX: 0.6, maxY: 0.3 }; // 東北部
+export const TROPIC_Y = 0.532; // 北回歸線（照真實海岸線對到底圖算的，北緯 23.4 度）
+export const RAINY = { minX: 0.765, maxY: 0.221 }; // 東北部（基隆、宜蘭）
 export const LAND_TASKS: { id: 'mountain' | 'tropic' | 'rain'; goal: string; ask: Line; wrong: string }[] = [
   { id: 'mountain', goal: '戴上地形眼鏡，點臺灣最高的地方', ask: { who: 'tick', mood: 'happy', text: '終於上岸了！這副地形眼鏡給你。戴上它，點一下臺灣最高的地方。' }, wrong: '還不是最高。顏色最深的褐色才是最高的山。' },
   { id: 'tropic', goal: '點北回歸線南邊的「熱帶」', ask: { who: 'tick', mood: 'thinking', text: '這條虛線是北回歸線，南邊是熱帶。點一下熱帶那一邊。' }, wrong: '那邊是亞熱帶。熱帶在線的南邊（下面）。' },
@@ -185,9 +185,9 @@ export const LAND_TASKS: { id: 'mountain' | 'tropic' | 'rain'; goal: string; ask
 
 // ── 選地蓋村 ──
 export const SITES: { id: string; at: { x: number; y: number }; name: string; ok: boolean; says: string }[] = [
-  { id: 'peak', at: { x: 0.54, y: 0.5 }, name: '高山上', ok: false, says: '好冷、好陡！稻子長不出來，水也挑不上來。' },
-  { id: 'cape', at: { x: 0.88, y: 0.17 }, name: '東北角海邊', ok: false, says: '冬天的東北季風一直吹，雨下個不停，衣服都晾不乾！' },
-  { id: 'plain', at: { x: 0.3, y: 0.42 }, name: '西部河邊的平原', ok: true, says: '地很平、旁邊有河，可以種田！' },
+  { id: 'peak', at: { x: 0.687, y: 0.462 }, name: '高山上', ok: false, says: '好冷、好陡！稻子長不出來，水也挑不上來。' },
+  { id: 'cape', at: { x: 0.914, y: 0.099 }, name: '東北角海邊', ok: false, says: '冬天的東北季風一直吹，雨下個不停，衣服都晾不乾！' },
+  { id: 'plain', at: { x: 0.444, y: 0.387 }, name: '西部河邊的平原', ok: true, says: '地很平、旁邊有河，可以種田！' },
 ];
 export const VILLAGE_ASK: Line = { who: 'tick', mood: 'thinking', text: '我們要蓋一個基地。三個地方，選哪裡住最好？' };
 export const PROLOGUE_END: Line[] = [
