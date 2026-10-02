@@ -11,6 +11,7 @@ import { pushCloud } from '../net/cloud';
 import { WorldMap } from './WorldMap';
 import { Prologue } from './Prologue';
 import { warm } from './warm';
+import { mapImageUrls } from '../render/worldmap';
 
 // 整個遊戲的兩層：全台大地圖（選章）⇄ 章節關卡；第一次進來先玩序章《認識臺灣》。
 // 網址加 ?step=3 直接進第五章的某一步、?ch1=2 直接進第一章的某一步、?ch2=2 直接進第二章的某一步；?prologue 直接玩序章；?world=fresh 大地圖從頭開始、?world=clear5 假裝剛過完第五章（測試用）。
@@ -31,14 +32,27 @@ function syncChapters(w: WorldSave): WorldSave {
   return got;
 }
 
-export function Island() {
-  const [world, setWorld] = useState<WorldSave>(initialWorld);
-  const [mode, setMode] = useState<{ at: 'map'; back: ChapterId | null } | { at: 'chapter'; id: ChapterId } | { at: 'prologue' }>(() =>
-    location.search.includes('step=') ? { at: 'chapter', id: 'ch5' }
+type Mode = { at: 'map'; back: ChapterId | null } | { at: 'chapter'; id: ChapterId } | { at: 'prologue' };
+function initialMode(world: WorldSave): Mode {
+  return location.search.includes('step=') ? { at: 'chapter', id: 'ch5' }
     : location.search.includes('ch1=') ? { at: 'chapter', id: 'ch1' }
     : location.search.includes('ch2=') ? { at: 'chapter', id: 'ch2' }
     : location.search.includes('prologue') || (!world.prologue && !world.greeted) ? { at: 'prologue' }
-    : { at: 'map', back: null });
+    : { at: 'map', back: null };
+}
+
+// 進場進度條要先讀好的圖：一進來第一個畫面會用到的（序章開場、或大地圖整張），讀完才登島，不會一塊塊冒出來
+const IMG = `${import.meta.env.BASE_URL}img/`;
+export function firstScreenImages(): string[] {
+  const m = initialMode(initialWorld());
+  if (m.at === 'prologue') return ['story/K-01', 'story/K-02', 'story/K-03', 'tick/happy'].map((n) => `${IMG}${n}.webp`);
+  if (m.at === 'map') return mapImageUrls();
+  return [];
+}
+
+export function Island() {
+  const [world, setWorld] = useState<WorldSave>(initialWorld);
+  const [mode, setMode] = useState<Mode>(() => initialMode(world));
   useEffect(() => { saveWorld(world); pushCloud('world', world); }, [world]);
   // 換畫面時，在背景先抓這一幕（和接下來）會用到的圖：序章、大地圖用 island/，各章用自己的資料夾（ch1/、ch2/…），劇情人物在 story/
   const at = mode.at === 'chapter' ? mode.id : mode.at;
