@@ -55,9 +55,9 @@ export const KNAP_INTRO: Line[] = [
   { who: 'yan', mood: 'determined', text: '虛線是要留下來的形狀。點石頭邊邊的一格，再選從哪一邊敲。' },
   { who: 'tick', mood: 'thinking', text: '小心，石片很大片，會連後面那一格一起掉下來。先看黃色的預告再敲！' },
 ];
-export const KNAPS: { name: string; use: string; level: KnapLevel }[] = [
-  { name: '砍砸器', use: '可以砍樹枝、敲開貝殼', level: { rows: ['.oooo.', 'oo##oo', 'o####o', 'o####o', '.oooo.'] } },
-  { name: '刮削器', use: '可以刮魚鱗、削木頭', level: { rows: ['.ooooo.', 'oo###oo', 'o#####o', 'oo###oo', '.oo#oo.', '..ooo..'] } },
+export const KNAPS: { name: string; use: string; tool: string; level: KnapLevel }[] = [
+  { name: '砍砸器', use: '可以砍樹枝、敲開貝殼', tool: art('g-03-chopper'), level: { rows: ['.oooo.', 'oo##oo', 'o####o', 'o####o', '.oooo.'] } },
+  { name: '刮削器', use: '可以刮魚鱗、削木頭', tool: art('g-03-scraper'), level: { rows: ['.ooooo.', 'oo###oo', 'o#####o', 'oo###oo', '.oo#oo.', '..ooo..'] } },
 ];
 export const KNAP_BROKE: Line = { who: 'yan', mood: 'worried', text: '啊，敲到要留的地方了！換一顆再來。這次先敲最外面、旁邊空空的那一格。' };
 export const KNAP_HINT: Line = { who: 'yan', mood: 'thinking', text: '我阿爸都是從角落開始，沿著邊一片一片敲，不會正對著要留的地方敲。' };
@@ -121,10 +121,10 @@ export const GRIND_INTRO: Line[] = [
   { who: 'yan', mood: 'frown', text: '慢慢磨？敲幾下不就好了嗎？' },
   { who: 'jade', text: '來試試。在一個地方磨一下，那裡會少 2 層，旁邊兩格各少 1 層。剛好磨到虛線，不能磨過頭。' },
 ];
-export const GRINDS: { name: string; use: string; img: string; level: GrindLevel }[] = [
-  { name: '石錛', use: '綁上木柄可以削木頭、蓋房子', img: art('g-03-adze'), level: { from: [5, 6, 7, 6, 5], to: [2, 2, 3, 2, 2] } },
-  { name: '石刀', use: '收割小米', img: art('g-03-adze'), level: { from: [9, 7, 5, 5, 5], to: [5, 4, 3, 2, 1] } },
-  { name: '玉耳飾', use: '玉很硬，要磨很久，是很珍貴的裝飾', img: art('g-03-jade'), level: { from: [4, 4, 6, 5, 3, 4], to: [2, 1, 1, 1, 1, 2] } },
+export const GRINDS: { name: string; use: string; img: string; raw: string; level: GrindLevel }[] = [
+  { name: '石錛', use: '綁上木柄可以削木頭、蓋房子', img: art('g-03-adze'), raw: art('g-04-slate-tex'), level: { from: [5, 6, 7, 6, 5], to: [2, 2, 3, 2, 2] } },
+  { name: '石刀', use: '收割小米', img: art('g-03-adze'), raw: art('g-04-slate-tex'), level: { from: [9, 7, 5, 5, 5], to: [5, 4, 3, 2, 1] } },
+  { name: '玉耳飾', use: '玉很硬，要磨很久，是很珍貴的裝飾', img: art('g-03-jade'), raw: art('g-04-jade-raw-tex'), level: { from: [4, 4, 6, 5, 3, 4], to: [2, 1, 1, 1, 1, 2] } },
 ];
 export const GRIND_FAIL: Line = { who: 'jade', text: '磨過頭了，這裡太薄斷掉了。換一塊重來，先看看哪一格離虛線最遠。' };
 export const GRIND_HINT: Line = { who: 'yan', mood: 'thinking', text: '旁邊的格子也會被帶到……最邊邊的格子只能靠它自己和隔壁，先算邊邊吧！' };
