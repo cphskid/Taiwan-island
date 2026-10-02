@@ -10,6 +10,7 @@ import { load2 } from '../core/save2';
 import { pushCloud } from '../net/cloud';
 import { WorldMap } from './WorldMap';
 import { Prologue } from './Prologue';
+import { warm } from './warm';
 
 // 整個遊戲的兩層：全台大地圖（選章）⇄ 章節關卡；第一次進來先玩序章《認識臺灣》。
 // 網址加 ?step=3 直接進第五章的某一步、?ch1=2 直接進第一章的某一步、?ch2=2 直接進第二章的某一步；?prologue 直接玩序章；?world=fresh 大地圖從頭開始、?world=clear5 假裝剛過完第五章（測試用）。
@@ -39,6 +40,11 @@ export function Island() {
     : location.search.includes('prologue') || (!world.prologue && !world.greeted) ? { at: 'prologue' }
     : { at: 'map', back: null });
   useEffect(() => { saveWorld(world); pushCloud('world', world); }, [world]);
+  // 換畫面時，在背景先抓這一幕（和接下來）會用到的圖：序章、大地圖用 island/，各章用自己的資料夾（ch1/、ch2/…），劇情人物在 story/
+  const at = mode.at === 'chapter' ? mode.id : mode.at;
+  useEffect(() => {
+    warm(...(at === 'prologue' ? ['story/', 'island/'] : at === 'map' ? ['island/', 'story/'] : at === 'ch5' ? ['island/', 'people/'] : [`${at}/`, 'story/']));
+  }, [at]);
 
   if (mode.at === 'prologue')
     return <Prologue onDone={() => {
