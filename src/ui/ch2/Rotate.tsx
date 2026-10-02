@@ -3,6 +3,7 @@ import { farmYear, rotSolve } from '../../core/mountain';
 import { ROT, ROT_INTRO, ROT_SAY, art2 } from '../../data/ch2';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
+import { Goal } from '../Guide';
 import { NewCards, type Step2Props } from '../Ch2';
 import { jingle, sfx } from '../../audio';
 
@@ -67,7 +68,7 @@ function Fields({ onDone, oops }: { onDone: () => void; oops: () => void }) {
   };
   return (
     <div className="rot-wrap">
-      <div className="task-chip">第 {year + 1} / {ROT.years} 年：挑 {ROT.plotsPerYear} 塊田種小米，收成要有 {ROT.need} 份</div>
+      <Goal floating text={`第 ${year + 1} / ${ROT.years} 年：挑 ${ROT.plotsPerYear} 塊田種小米，收成要有 ${ROT.need} 份`} />
       <div className="rot-board panel">
         <div className="plots">
           {fert.map((f, i) => {

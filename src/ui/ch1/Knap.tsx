@@ -6,6 +6,7 @@ import {
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
+import { Goal } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
 
@@ -75,7 +76,7 @@ function Beach({ onDone }: { onDone: () => void }) {
   };
   return (
     <>
-      <div className="task-chip">挑石頭：硬的材料 {got.hard ? '✓' : '○'}　圓的槌子 {got.hammer ? '✓' : '○'}</div>
+      <Goal floating text={`挑石頭：硬的材料 ${got.hard ? '✓' : '○'}　圓的槌子 ${got.hammer ? '✓' : '○'}`} />
       {BEACH.map((b, i) => (
         <button key={i} className={`beach-stone ${gone.includes(i) ? (b.kind === 'soft' ? 'crumble' : 'picked') : ''}`}
           style={{ left: `${b.x * 100}%`, top: `${b.y * 100}%` }} onClick={() => tap(i)} aria-label="石頭">
@@ -152,7 +153,7 @@ function KnapBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
   const S = 64; // 一格的大小（SVG 單位）
   return (
     <div className="knap-wrap">
-      <div className="task-chip">敲出「{def.name}」（{n + 1} / {KNAPS.length}）：{def.use}</div>
+      <Goal floating text={`敲出「${def.name}」（${n + 1} / ${KNAPS.length}）：${def.use}`} />
       <div className={`knap-board panel ${shake ? 'shake' : ''} ${done ? 'done' : ''}`}>
         <svg viewBox={`${-S} ${-S} ${(cols + 2) * S} ${(rows + 2) * S}`} className="knap-svg">
           {def.level.rows.flatMap((line, row) => [...line].map((ch, col) => {

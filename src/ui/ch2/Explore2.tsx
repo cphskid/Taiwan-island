@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { EXPLORE2_INTRO, SPOTS, art2 } from '../../data/ch2';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
+import { Goal } from '../Guide';
 import { NewCards, type Step2Props } from '../Ch2';
 import { jingle, sfx } from '../../audio';
 
@@ -35,7 +36,7 @@ export function Explore2({ p, set, next }: Step2Props) {
           </button>
         ))}
       </div>
-      <div className="task-chip">點畫面找地方：{found.length} / {SPOTS.length}　<small>{SPOTS.filter((s) => !found.includes(s.id)).map((s) => s.name).join('、')}</small></div>
+      <Goal floating text={found.length < SPOTS.length ? `找出：${SPOTS.filter((s) => !found.includes(s.id)).map((s) => s.name).join('、')}` : '全部找到了！'} />
       {phase === 'look' && (
         <button className={`btn ${glasses ? 'green' : 'orange'} corner-btn`} onClick={() => { sfx('SE-03'); setGlasses(!glasses); }}>👓 {glasses ? '拿下' : '戴上'}地形眼鏡</button>
       )}

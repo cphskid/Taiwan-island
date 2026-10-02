@@ -3,6 +3,7 @@ import { deerRun, SEASONS } from '../../core/mountain';
 import { DEER, HUNT_INTRO, HUNT_SAY, art2 } from '../../data/ch2';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
+import { Goal } from '../Guide';
 import { NewCards, type Step2Props } from '../Ch2';
 import { jingle, sfx } from '../../audio';
 
@@ -61,7 +62,7 @@ function HuntPlan({ onDone, oops }: { onDone: () => void; oops: () => void }) {
   const deerAt = (y: number) => y === 0 ? DEER.start : run.years[y - 1].deerAfter;
   return (
     <div className="hunt-wrap">
-      <div className="task-chip">每年打到 {DEER.need} 隻，{DEER.years} 年後鹿群至少還有 {DEER.start} 隻</div>
+      <Goal floating text={`每年打到 ${DEER.need} 隻，${DEER.years} 年後鹿群至少還有 ${DEER.start} 隻`} />
       <div className="hunt-board panel">
         {plan.map((row, y) => (
           <div key={y} className={`hunt-year ${shown > y ? 'shown' : ''}`}>

@@ -4,6 +4,7 @@ import { CARDS1, FOREST, GOODBYE, IRON_DONE, IRON_INTRO, IRON_RULES, IRON_SAY, a
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
+import { Goal } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
 
@@ -91,7 +92,7 @@ function ForestBoard({ onDone, oops }: { onDone: () => void; oops: () => void })
 
   return (
     <div className="iron-wrap">
-      <div className="task-chip">煉 {FOREST.iron} 爐鐵，村子不能被土石流沖到。{IRON_RULES}</div>
+      <Goal floating text={`煉 ${FOREST.iron} 爐鐵，村子不能被土石流沖到。${IRON_RULES}`} />
       <div className={`forest panel ${rain ? 'raining' : ''}`}>
         <div className="forest-grid" style={{ gridTemplateColumns: `repeat(${FOREST.cols}, 1fr)` }}>
           {f.trees.map((t, i) => {

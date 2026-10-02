@@ -3,6 +3,7 @@ import { BRUSH_TAPS, CARDS1, DIG_INTRO, ERAS, FINDS, LAYER_ERA, MARK_FOUND, NOTE
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
+import { Goal } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
 
@@ -67,7 +68,7 @@ export function Dig({ p, set, next }: Step1Props) {
           );
         })}
       </div>
-      <div className="task-chip">{phase === 'sort' ? '點一樣東西，再點它屬於的時代' : `用刷子刷開土塊（點 ${BRUSH_TAPS} 下）：找到 ${found.filter((x) => x !== 'note').length} / ${FINDS.length}`}</div>
+      <Goal floating text={phase === 'sort' ? '點一樣東西，再點它屬於的時代' : `用刷子刷開土塊（點 ${BRUSH_TAPS} 下）：找到 ${found.filter((x) => x !== 'note').length} / ${FINDS.length}`} />
       {phase === 'intro' && <Talk lines={DIG_INTRO} onDone={() => setPhase('dig')} />}
       {phase === 'mark' && <Talk lines={MARK_FOUND} onDone={back} />}
       {phase === 'note' && (

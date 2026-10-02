@@ -3,6 +3,7 @@ import { simulate, type RuleId, type SimResult } from '../../core/mountain';
 import { DEER, ROT, RULES, RULES_DONE, RULES_INTRO, RULES_SAY, art2 } from '../../data/ch2';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
+import { Goal } from '../Guide';
 import { NewCards, type Step2Props } from '../Ch2';
 import { jingle, sfx } from '../../audio';
 
@@ -45,7 +46,7 @@ export function Rules({ p, set, next, oops }: Step2Props) {
       {phase === 'intro' && <Talk lines={RULES_INTRO} onDone={() => setPhase('pick')} />}
       {phase === 'pick' && (
         <div className="rules-wrap">
-          <div className="task-chip">選 3 條規矩，看看照著過 5 年會怎樣</div>
+          <Goal floating text={`選 3 條規矩，看看照著過 5 年會怎樣`} />
           <div className="rules panel">
             <div className="rule-list">
               {RULES.map((r) => (

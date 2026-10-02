@@ -4,6 +4,7 @@ import { CARDS1, CLAY_ASK, CORD_ASK, FIRE_FAIL, FIRE_HINT, FIRE_INTRO, FIRES, PO
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
+import { Goal } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
 
@@ -110,7 +111,7 @@ function FireBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
   };
   return (
     <div className="fire-wrap">
-      <div className="task-chip">野燒第 {n + 1} / {FIRES.length} 窯：{tip}</div>
+      <Goal floating text={`野燒第 ${n + 1} / ${FIRES.length} 窯：${tip}`} />
       <div className={`fire-board panel ${burn ? `burn-${burn}` : ''}`}>
         {level.wind && <div className={`wind wind-${level.wind}`}>💨 {WIND_NAME[level.wind]}</div>}
         <div className="fire-grid">

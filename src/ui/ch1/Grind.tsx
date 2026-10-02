@@ -4,6 +4,7 @@ import { CARDS1, GRIND_DONE, GRIND_FAIL, GRIND_HINT, GRIND_INTRO, GRINDS, art } 
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
+import { Goal } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
 
@@ -94,7 +95,7 @@ function GrindBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: 
   const loss = (i: number) => (aim === null ? 0 : i === aim ? 2 : Math.abs(i - aim) === 1 ? 1 : 0);
   return (
     <div className="grind-wrap">
-      <div className="task-chip">磨「{def.name}」（{n + 1} / {GRINDS.length}）：{def.use}</div>
+      <Goal floating text={`磨「${def.name}」（${n + 1} / ${GRINDS.length}）：${def.use}`} />
       <div className={`grind-board panel ${done ? 'done' : ''}`}>
         <img className="grind-goal" src={def.img} alt="" />
         <div className="grind-cols" style={{ ['--top' as string]: top }}>

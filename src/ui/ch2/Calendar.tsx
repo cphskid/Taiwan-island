@@ -3,6 +3,7 @@ import { calendarCheck, SEASONS } from '../../core/mountain';
 import { CAL_INTRO, CAL_WRONG, CHORE_IMG, CHORES, CLUES, art2 } from '../../data/ch2';
 import { PEOPLE, type Line } from '../../data/babao-chapter';
 import { Face, Say, Talk } from '../Talk';
+import { Goal } from '../Guide';
 import { NewCards, type Step2Props } from '../Ch2';
 import { jingle, sfx } from '../../audio';
 
@@ -45,6 +46,7 @@ export function Calendar({ p, set, next, oops }: Step2Props) {
     <div className="scene ch2-cal">
       <img className="scene-bg" src={art2('s-10')} alt="" />
       {phase === 'intro' && <Talk lines={CAL_INTRO} onDone={() => setPhase('sort')} />}
+      {phase === 'sort' && <Goal floating text={left.length ? `把 ${CHORES.length} 件事放進對的季節：還有 ${left.length} 件` : '都放好了，按「這樣對嗎？」'} />}
       {phase !== 'intro' && (
         <div className="cal-wrap">
           <div className="clues panel">
