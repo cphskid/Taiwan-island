@@ -116,7 +116,8 @@ export const PLACES: Place[] = [
 // 夥伴的圖：F-01B、F-02B 表情表（public/img/story/），moods 是每個表情用哪一格。
 export type Who = 'tick' | 'shi' | 'lin' | 'babuza' | 'zhang' | 'quan' | 'lian' | 'mu' | 'traveler'
   | 'yan' | 'potter' | 'jade' | 'smith' | 'arch' // 第一章（data/ch1.ts）
-  | 'ani' | 'elder' | 'hunter' | 'trader'; // 第二章（data/ch2.ts）
+  | 'ani' | 'elder' | 'hunter' | 'trader' // 第二章（data/ch2.ts）
+  | 'an' | 'engineer' | 'agong' | 'chair' | 'future'; // 終章（data/chEnd.ts）
 export type Mood = 'wave' | 'happy' | 'thinking' | 'worried' | 'scared' | 'sad' | 'determined' | 'frown' | 'angry' | 'thumbs' | 'listen' | 'laugh' | 'surprised' | 'shout' | 'me';
 export const TICK_MOODS: readonly Mood[] = ['wave', 'happy', 'thinking', 'worried'];
 export interface Line { who: Who; text: string; mood?: Mood }
@@ -149,6 +150,14 @@ export const PEOPLE: Record<Who, { name: string; img?: string; moods?: Partial<R
   elder: { name: '部落長老', img: 'ch2/p-16-elder.webp', color: '#7a5230' },
   hunter: { name: '獵人叔叔', img: 'ch2/p-16-hunter.webp', color: '#55703a' },
   trader: { name: '外地來的商人', img: 'ch2/p-16-trader.webp', color: '#34508a' },
+  // 終章：小安（虛構的今天國小五年級女孩，F-10B 表情）、社區的人（P-21）、揭開斗笠的「長大的你」
+  an: { name: '小安', img: 'end/f-10b-happy.webp', color: '#2f7fc1', moods: {
+    happy: 'end/f-10b-happy.webp', worried: 'end/f-10b-worried.webp', scared: 'end/f-10b-scared.webp', sad: 'end/f-10b-sad.webp',
+    determined: 'end/f-10b-determined.webp', frown: 'end/f-10b-frown.webp', angry: 'end/f-10b-angry.webp', thumbs: 'end/f-10b-thumbs.webp' } },
+  engineer: { name: '高鐵工程師', img: 'end/p-21-engineer.webp', color: '#e07a1f' },
+  agong: { name: '社區的阿公', img: 'end/p-21-grandpa.webp', color: '#5a7fa8' },
+  chair: { name: '會議主持人', img: 'end/p-21-host.webp', color: '#7a6a4a' },
+  future: { name: '長大的你', badge: '你', color: '#2f6f6a' },
 };
 
 // 時間卡住：齒輪掉在哪個時代，那裡就一直重複同一天
