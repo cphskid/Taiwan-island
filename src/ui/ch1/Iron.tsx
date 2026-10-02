@@ -95,41 +95,50 @@ function ForestBoard({ onDone, oops }: { onDone: (deer: boolean) => void; oops: 
   };
 
   return (
-    <div className="iron-wrap">
+    <div className="iron-wrap hill-wrap">
       <Goal floating text={`煉 ${FOREST.iron} 爐鐵，村子不能被土石流沖到。${IRON_RULES}`} />
-      <div className={`forest panel ${rain ? 'raining' : ''}`}>
-        <div className="forest-grid" style={{ gridTemplateColumns: `repeat(${FOREST.cols}, 1fr)` }}>
-          {f.trees.map((t, i) => {
-            const col = i % FOREST.cols, row = Math.floor(i / FOREST.cols);
-            const far = isFar(FOREST, i);
-            return (
-              <button key={i} className={`tree-cell ${far ? 'far' : 'steep'} ${t} ${rain?.includes(col) && !far ? 'slide' : ''} ${!far && risky.includes(col) ? 'risk' : ''}`}
-                style={{ gridColumn: col + 1, gridRow: row + 1 }} onClick={() => tap(i)}>
-                <img src={art(`o-05-${t}`)} alt={t} />
-                {t === 'tree' && <small>{cutCost(FOREST, i)}</small>}
-              </button>
-            );
-          })}
+      <div className={`hill ${rain ? 'raining' : ''}`}>
+        <img className="hill-bg" src={art('w-04')} alt="村子上面的山坡" />
+        {deer && <img className="hill-deer" src={`${import.meta.env.BASE_URL}img/ch2/deer-eat.webp`} alt="鹿" />}
+        {risky.map((c) => <div key={`r${c}`} className="slope-risk" style={{ left: `${colX(3, c) * 100}%` }}><b>⚠</b></div>)}
+        {rain?.map((c) => <div key={`m${c}`} className="mudslide" style={{ left: `${colX(3, c) * 100}%` }} />)}
+        {f.trees.map((t, i) => {
+          const col = i % FOREST.cols, row = Math.floor(i / FOREST.cols);
+          const far = isFar(FOREST, i);
+          const cost = t === 'tree' ? cutCost(FOREST, i) : t === 'stump' ? 1 : 0;
+          return (
+            <button key={i} className={`hill-tree ${far ? 'far' : 'steep'} ${t} ${rain?.includes(col) && !far ? 'slide' : ''}`}
+              style={{ left: `${colX(row, col) * 100}%`, top: `${ROW_Y[row] * 100}%`, ['--s' as string]: ROW_S[row] }}
+              onClick={() => tap(i)} aria-label={t === 'tree' ? '砍樹' : t === 'stump' ? '種樹苗' : '樹苗'}>
+              <img src={art(`o-05-${t}`)} alt="" />
+              {cost > 0 && <span className={`steps-badge ${t}`}>{t === 'stump' && '🌱'}{'👣'.repeat(cost)}</span>}
+            </button>
+          );
+        })}
+        {smelting && <img className="hill-furnace" src={art('o-05-furnace-hot')} alt="" />}
+        <div className="iron-hud">
+          <div className="seasons">
+            {Array.from({ length: FOREST.seasons }, (_, k) => (
+              <span key={k} className={k + 1 === f.season ? 'on' : k + 1 < f.season ? 'past' : ''}>第 {k + 1} 季{FOREST.rainAfter.includes(k + 1) ? ' 🌧️' : ''}</span>
+            ))}
+          </div>
+          <p className="steps-left" title="這一季還能走幾步">
+            {Array.from({ length: FOREST.actions }, (_, k) => <i key={k} className={k < f.left ? 'on' : ''}>👣</i>)}
+          </p>
+          <p className="wood-n"><img src={art('o-05-woodpile')} alt="木材" />× <b>{f.wood}</b></p>
+          <p className="iron-n">{Array.from({ length: FOREST.iron }, (_, k) => <img key={k} className={k < f.iron ? 'on' : ''} src={art('g-03-knife')} alt="" />)}</p>
+          <button className="btn orange" disabled={f.wood < FOREST.woodPerIron || smelting || f.iron >= FOREST.iron} onClick={doSmelt}>🔥 煉一爐（3 份木材）</button>
+          <button className="btn green" disabled={!!rain || smelting || f.iron >= FOREST.iron} onClick={endIt}>結束這一季</button>
         </div>
-        <div className="village-strip">⬇ 村子就在陡坡正下面</div>
-        {deer && <span className="deer">🦌🦌</span>}
         {rain && <div className="rainfall" />}
-      </div>
-      <div className="iron-side panel">
-        <div className="seasons">
-          {Array.from({ length: FOREST.seasons }, (_, k) => (
-            <span key={k} className={k + 1 === f.season ? 'on' : k + 1 < f.season ? 'past' : ''}>第 {k + 1} 季{FOREST.rainAfter.includes(k + 1) ? ' 🌧️' : ''}</span>
-          ))}
-        </div>
-        <p className="forest-key"><i className="far" />遠的緩坡　<i className="steep" />村子上方的陡坡</p>
-        <p>這一季還能做 <b>{f.left}</b> 件事</p>
-        <p className="wood-n"><img src={art('o-05-woodpile')} alt="" /> 木材 <b>{f.wood}</b></p>
-        <img className="furnace" src={art(smelting ? 'o-05-furnace-hot' : f.iron ? 'o-05-furnace-iron' : 'o-05-furnace')} alt="煉鐵爐" />
-        <p className="iron-n">{Array.from({ length: FOREST.iron }, (_, k) => <img key={k} className={k < f.iron ? 'on' : ''} src={art('g-03-knife')} alt="" />)}</p>
-        <button className="btn orange" disabled={f.wood < FOREST.woodPerIron || smelting || f.iron >= FOREST.iron} onClick={doSmelt}>煉一爐（3 份木材）</button>
-        <button className="btn green" disabled={!!rain || smelting || f.iron >= FOREST.iron} onClick={endIt}>結束這一季</button>
       </div>
       <Say line={say} />
     </div>
   );
 }
+
+// 樹在 W-04 山坡圖上的位置（比例）：上面兩排是遠的緩坡（小一點），下面兩排是村子正上方的陡坡
+const ROW_Y = [0.27, 0.37, 0.51, 0.67];
+const ROW_S = [0.68, 0.78, 0.95, 1.05];
+const ROW_X: [number, number][] = [[0.47, 0.95], [0.36, 0.93], [0.26, 0.9], [0.2, 0.92]];
+const colX = (row: number, col: number) => ROW_X[row][0] + (ROW_X[row][1] - ROW_X[row][0]) * (col / (FOREST.cols - 1));
