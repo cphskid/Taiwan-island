@@ -177,10 +177,10 @@ export const FACTS: Record<'where' | 'wind' | 'mountain' | 'tropic' | 'rain' | '
 // 座標是大地圖 M-01 的比例位置（0～1），地形顏色從 m01-relief 讀
 export const TROPIC_Y = 0.542; // 北回歸線（照章節位置的緯度估的）
 export const RAINY = { minX: 0.6, maxY: 0.3 }; // 東北部
-export const LAND_TASKS: { id: 'mountain' | 'tropic' | 'rain'; ask: Line; wrong: string }[] = [
-  { id: 'mountain', ask: { who: 'tick', mood: 'happy', text: '終於上岸了！這副地形眼鏡給你。戴上它，點一下臺灣最高的地方。' }, wrong: '還不是最高。顏色最深的褐色才是最高的山。' },
-  { id: 'tropic', ask: { who: 'tick', mood: 'thinking', text: '這條虛線是北回歸線，南邊是熱帶。點一下熱帶那一邊。' }, wrong: '那邊是亞熱帶。熱帶在線的南邊（下面）。' },
-  { id: 'rain', ask: { who: 'tick', mood: 'thinking', text: '轉到冬天：東北季風吹來了。冬天哪裡最常下雨？點點看。' }, wrong: '風從東北吹來，先碰到的山才下最多雨。' },
+export const LAND_TASKS: { id: 'mountain' | 'tropic' | 'rain'; goal: string; ask: Line; wrong: string }[] = [
+  { id: 'mountain', goal: '戴上地形眼鏡，點臺灣最高的地方', ask: { who: 'tick', mood: 'happy', text: '終於上岸了！這副地形眼鏡給你。戴上它，點一下臺灣最高的地方。' }, wrong: '還不是最高。顏色最深的褐色才是最高的山。' },
+  { id: 'tropic', goal: '點北回歸線南邊的「熱帶」', ask: { who: 'tick', mood: 'thinking', text: '這條虛線是北回歸線，南邊是熱帶。點一下熱帶那一邊。' }, wrong: '那邊是亞熱帶。熱帶在線的南邊（下面）。' },
+  { id: 'rain', goal: '冬天吹東北季風，點最常下雨的地方', ask: { who: 'tick', mood: 'thinking', text: '轉到冬天：東北季風吹來了。冬天哪裡最常下雨？點點看。' }, wrong: '風從東北吹來，先碰到的山才下最多雨。' },
 ];
 
 // ── 選地蓋村 ──

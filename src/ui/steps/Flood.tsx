@@ -39,6 +39,7 @@ export function Flood({ p, set, next }: StepProps) {
       p={p} set={set} level={FLOOD} levels={[FLOOD]} helper="mu"
       intro={FLOOD_INTRO}
       passLabel="大水過去了"
+      goal="把水導到分水閘，但圳道只裝得下 4 份，別全部搶進來"
       onPass={(used) => {
         set((o) => ({ ...o, flood: true, cages: Math.max(0, o.cages - used) }));
         setPhase('pass');

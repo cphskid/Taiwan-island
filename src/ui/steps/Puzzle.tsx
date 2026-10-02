@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { LEVELS, type Level as LevelDef } from '../../data/babao-levels';
-import { LEVEL_HELPER, PUZZLE_ART, PUZZLE_INTRO, img, type Line, type Who } from '../../data/babao-chapter';
+import { LEVEL_HELPER, PEOPLE, PUZZLE_ART, PUZZLE_INTRO, img, type Line, type Who } from '../../data/babao-chapter';
 import { canDig, canPlace, simulate, solved, type FlowResult } from '../../core/flow';
 import { move, pieceAt, place, remove, rotate, same, type Piece } from '../../core/pieces';
 import type { Cell } from '../../core/iso';
@@ -8,6 +8,7 @@ import type { Mark } from '../../render/board';
 import { useBoard } from '../useBoard';
 import { Say, Talk } from '../Talk';
 import { Legend } from './Legend';
+import { BoardBeacon, Goal, towards } from '../Guide';
 import type { StepProps } from '../Chapter';
 import { jingle, sfx } from '../../audio';
 
@@ -63,10 +64,23 @@ export interface FlowLevelProps extends Pick<StepProps, 'p' | 'set'> {
   onPass: (cagesUsed: number) => void;
   passLabel: string;
   extra?: React.ReactNode; // 疊在畫面上的東西（洪水關的紙條）
+  goal?: string; // 上方常駐的目標（沒給就用「把水導到分水閘」）
+}
+
+// 關卡上的重要地點：分水閘（目標）、水從哪裡來、地圖上已經有的圳頭
+function landmarks(level: LevelDef) {
+  let gate: Cell | null = null, head: Cell | null = null;
+  for (let row = 0; row < level.rows; row++)
+    for (let col = 0; col < level.cols; col++) {
+      const k = level.kind({ col, row });
+      if (k === 'gate') gate = { col, row };
+      if (k === 'canal' && !head && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dc, dr]) => level.kind({ col: col + dc, row: row + dr }) === 'river')) head = { col, row };
+    }
+  return { gate, head, source: level.lanes[0]?.cell ?? null };
 }
 
 // 一個導水關卡：拖竹蛇籠、轉方向、挖圳道、放水
-export function FlowLevel({ p, set, level, levels, helper, intro: introLines, onPass, passLabel, extra }: FlowLevelProps) {
+export function FlowLevel({ p, set, level, levels, helper, intro: introLines, onPass, passLabel, extra, goal }: FlowLevelProps) {
   const idx = levels.indexOf(level);
   const host = useRef<HTMLDivElement>(null);
   const [pieces, setPieces] = useState<Piece[]>([]);
@@ -85,6 +99,7 @@ export function FlowLevel({ p, set, level, levels, helper, intro: introLines, on
   Object.assign(live.current, { pieces, canals, digging, running: run !== null && !run.done });
 
   const preview = useMemo(() => simulate(level, pieces, canals), [level, pieces, canals]);
+  const spots = useMemo(() => landmarks(level), [level]);
 
   // 竹蛇籠不夠這關用（之前被沖壞了）：林先生補做
   useEffect(() => {
@@ -225,6 +240,19 @@ export function FlowLevel({ p, set, level, levels, helper, intro: introLines, on
   const remaining = avail - pieces.length;
   const running = run !== null && !run.done;
   const result = run?.done ? verdict(run.result, level.need) : null;
+  // 沒過關時夥伴指方向：從水停下來的地方（或水的源頭）看，分水閘在畫面的哪一邊
+  const tip = (() => {
+    if (!result || result.ok || !spots.gate || !run || !board.current) return null;
+    const wet = run.result.canal;
+    const from = wet.length ? wet[wet.length - 1].cell : spots.head ?? spots.source;
+    if (!from) return null;
+    const a = board.current.clientOf(from), b = board.current.clientOf(spots.gate);
+    if (Math.hypot(b.x - a.x, b.y - a.y) < 4) return null;
+    const dir = towards(b.x - a.x, b.y - a.y);
+    const who = PEOPLE[helper].name;
+    if (wet.length) return `${who}：水停在半路了，分水閘還在它的${dir}。`;
+    return spots.head ? `${who}：要先讓水轉進圳頭，分水閘在圳頭的${dir}。` : `${who}：分水閘在溪水的${dir}，要把水一路帶過去。`;
+  })();
   const say: Line | null = topped ? { who: 'lin', text: '竹蛇籠不夠用，我幫你補做好了。' }
     : fails >= DEMO_AT ? { who: 'lin', text: '我做一次給你看：按「看示範」。' }
     : fails >= HINT_AT ? { who: helper, text: '我畫了白色的記號，照著放放看？' }
@@ -240,7 +268,12 @@ export function FlowLevel({ p, set, level, levels, helper, intro: introLines, on
           <span key={lv.id} className={`lv ${i === idx ? 'on' : i < idx ? 'past' : ''}`}>{lv.id}</span>
         ))}
         <span className="hint plain"><b>{level.title}</b></span>
+        <Goal text={goal ?? `把溪水導到分水閘（要 ${level.need} 份水）`} />
       </div>
+
+      {spots.gate && <BoardBeacon board={board} cell={spots.gate} label="分水閘：水送到這裡" spot={!intro && ready > 0} />}
+      {spots.source && <BoardBeacon board={board} cell={spots.source} label="溪水從這裡來" small />}
+      {spots.head && <BoardBeacon board={board} cell={spots.head} label="圳頭" small />}
 
       <div className="tools">
         <button className="tool" disabled={selected === null || running} onClick={() => selected !== null && edit(() => { sfx('SE-53'); setPieces(rotate(pieces, selected)); })}>
@@ -286,6 +319,7 @@ export function FlowLevel({ p, set, level, levels, helper, intro: introLines, on
       {result && (
         <div className={`result ${result.ok ? 'ok' : ''}`}>
           <p>{result.text}</p>
+          {tip && <p className="tip">{tip}</p>}
           {result.ok && <button className="btn green" onClick={pass}>{passLabel}</button>}
           <button className="btn orange" onClick={() => setRun(null)}>{result.ok ? '再看一次' : '再試一次'}</button>
         </div>

@@ -4,6 +4,7 @@ import type { Cell } from '../../core/iso';
 import { useBoard } from '../useBoard';
 import { CardPop, Say, Talk } from '../Talk';
 import { Legend } from './Legend';
+import { Goal } from '../Guide';
 import type { StepProps } from '../Chapter';
 
 // 撥開以 c 為中心的 3×3 雲霧
@@ -76,6 +77,7 @@ export function Explore({ p, set, next }: StepProps) {
     <div className="board-wrap">
       <div className="board full" ref={host} />
       <div className="checklist">
+        <Goal text={!allFound ? '點白色雲霧撥開，找到下面 5 個地點' : !done ? '戴上地形眼鏡，點地圖上最高的地方' : '地形都認識了！'} />
         <b>找到 {p.found.length} / {PLACES.length}</b>
         {PLACES.map((pl) => <span key={pl.id} className={p.found.includes(pl.id) ? 'got' : ''}>{CARDS[pl.card].title}</span>)}
         {allFound && <span className={done ? 'got' : ''}>最高的地方</span>}
