@@ -45,7 +45,7 @@ export function Flood({ p, set, next }: StepProps) {
       }}
       extra={
         <>
-          <div className="rain" />
+          <div className="rainfall" />
           {!p.note && phase === 'play' && (
             <button className="note-pin" onClick={() => { sfx('SE-03'); setNoteOpen(true); }} aria-label="竹蛇籠上夾著一張紙條">
               <span>📜</span>竹蛇籠上夾著紙條

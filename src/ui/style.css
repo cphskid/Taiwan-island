@@ -449,8 +449,8 @@ img.gear{width:110px;height:110px;object-fit:contain}
   .river-keep b{font-size:14px}
 }
 
-.rain{position:absolute;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(105deg,rgba(255,255,255,0) 0 14px,rgba(220,235,250,.35) 14px 15px);background-size:200px 200px;animation:rain .5s linear infinite;mix-blend-mode:screen}
-.rain::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(60,80,110,.25),rgba(60,80,110,.05))}
+.rainfall{position:absolute;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(105deg,rgba(255,255,255,0) 0 14px,rgba(220,235,250,.35) 14px 15px);background-size:200px 200px;animation:rain .5s linear infinite;mix-blend-mode:screen}
+.rainfall::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(60,80,110,.25),rgba(60,80,110,.05))}
 @keyframes rain{to{background-position:-60px 200px}}
 
 /* 序章《認識臺灣》 */
