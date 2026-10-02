@@ -82,7 +82,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
       if (back || todo.length) {
         setBusy(true);
         if (todo.length) await m.flyTo(chapterOf(todo[0] as ChapterId).rift, 2.6, 900);
-        else await m.flyTo(from.rift, 1, 1100);
+        else await m.flyTo(from.rift, 0, 1100);
         for (const id of todo) await celebrateOne(m, id as ChapterId);
         setBusy(false);
       }

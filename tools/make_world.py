@@ -1,11 +1,11 @@
 # 全台大地圖（M-01）的程式資料：陸地遮罩、地區分界、高度場與地形眼鏡圖。
 #
-# 用法：python3 tools/make_world.py /mnt/project-files/art/island/M-01_map.png
+# 用法：python3 tools/make_world.py /mnt/project-files/art/island/M-01v2/M-01v2_map.png
 # 產出 public/img/island/ 底下：
 #   m01.webp          大地圖底圖（去背）
 #   m01-relief.webp   地形眼鏡：分層設色＋等高線（只畫陸地頂面）
 #   m01-regions.png   每個像素屬於哪一區（R 通道＝地區編號，0＝海或側面），1/8 解析度
-# 地區種子與山脈的位置，用的是 M-01 原圖（2071×1492）的像素座標，跟 src/data/world.ts 同一套。
+# 地區種子與山脈的位置，用的是 M-01 第二版（北朝上，2680×3704）的像素座標，跟 src/data/world.ts 同一套。
 import sys, json, numpy as np
 from PIL import Image
 from scipy import ndimage as nd
@@ -51,13 +51,13 @@ for rd in RIDGES:
         e = e0 + (e1 - e0) * t
         h = np.maximum(h, e * np.exp(-(d / rd['width']) ** 2))
 rng = np.random.default_rng(5)
-noise = nd.gaussian_filter(rng.standard_normal(h.shape), 12)
+noise = nd.gaussian_filter(rng.standard_normal(h.shape), 20)
 noise /= np.abs(noise).max()
 h = h * (1 + 0.25 * noise) + 30 * (noise + 1)
 t2 = top[::R, ::R]
 coast = nd.distance_transform_edt(t2)
-h *= np.clip(coast / 25, 0, 1)
-h = nd.gaussian_filter(h, 3)
+h *= np.clip(coast / 40, 0, 1)
+h = nd.gaussian_filter(h, 5)
 h[~t2] = 0
 
 LEVELS = [100, 500, 1000, 2000, 3000]  # 等高線，跟 world.ts 的 LEGEND 一樣
