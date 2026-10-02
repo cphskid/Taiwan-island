@@ -454,3 +454,80 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .rain{position:absolute;inset:0;z-index:2;pointer-events:none;background:repeating-linear-gradient(105deg,rgba(255,255,255,0) 0 14px,rgba(220,235,250,.35) 14px 15px);background-size:200px 200px;animation:rain .5s linear infinite;mix-blend-mode:screen}
 .rain::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(60,80,110,.25),rgba(60,80,110,.05))}
 @keyframes rain{to{background-position:-60px 200px}}
+
+/* 序章《認識臺灣》 */
+.prologue{flex:1;display:flex;flex-direction:column;min-height:0}
+.prologue .steps .step{cursor:default}
+.tower{background:radial-gradient(circle at 50% 40%,#5b4a8a,#2a2148 70%);display:flex;align-items:center;justify-content:center}
+.tower-clock{position:relative;width:min(46vh,46vw);aspect-ratio:1}
+.tower-clock>img:first-child{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,210,120,.5))}
+.tower.oops .tower-clock,.tower.warp .tower-clock{animation:shake .25s linear 4}
+@keyframes shake{25%{transform:translate(-6px,3px) rotate(-2deg)}75%{transform:translate(6px,-3px) rotate(2deg)}}
+.tower-gear{position:absolute;left:40%;top:40%;width:20%;animation:gearfly 1.4s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes gearfly{from{transform:translate(0,0) rotate(0) scale(1);opacity:1}to{transform:translate(var(--dx),var(--dy)) rotate(var(--r)) scale(.5);opacity:0}}
+.red-button{position:absolute;right:16%;bottom:14%;width:110px;height:110px;border-radius:50%;border:8px solid #6b3f1f;background:#3a2412;cursor:pointer;padding:10px;box-shadow:0 8px 0 #2a1608}
+.red-button span{display:block;width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8a7a,#e0261a 55%,#9c120a);animation:pulse .7s ease-in-out infinite alternate}
+.red-button:active span{transform:translateY(4px)}
+.sea-scene{background:#4aa3d1;display:flex;align-items:center;justify-content:center}
+.sea-chart{width:100%;height:100%;max-height:100%}
+.sea-chart .land{stroke:rgba(80,60,30,.25);stroke-width:.3}
+.sea-chart.pick .land{cursor:pointer}
+.sea-chart.pick .land:hover{filter:brightness(1.12)}
+.sea-chart .land.glow{animation:landglow .8s ease-in-out infinite alternate}
+@keyframes landglow{to{fill:#c9f5a0}}
+.sea-chart .land-name{font:900 3.6px var(--f);fill:#3a2412;paint-order:stroke;stroke:#fff8e6;stroke-width:.9px;pointer-events:none}
+.sea-chart .kuroshio text{font:900 6px var(--f);fill:#bfe6ff;animation:flowup 1.2s linear infinite}
+@keyframes flowup{from{transform:translateY(2px);opacity:.3}50%{opacity:1}to{transform:translateY(-2px);opacity:.3}}
+.sea-chart .harbor circle{fill:#fff8e6;stroke:#d9342b;stroke-width:.8}
+.sea-chart .harbor text{font-size:5px}
+.sea-chart .reef{font-size:6px}
+.sea-chart .wind text{font-size:9px;fill:rgba(255,255,255,.55);animation:windblow 1.6s linear infinite;transform-box:fill-box;transform-origin:center}
+.sea-chart .wind.winter text{fill:rgba(225,240,255,.7)}
+.sea-chart .wind.summer text{fill:rgba(255,236,170,.75)}
+@keyframes windblow{from{opacity:0}50%{opacity:1}to{opacity:0}}
+.sea-chart .trail{fill:none;stroke:#fff;stroke-width:.7;stroke-dasharray:1.5 1.2;opacity:.85}
+.sea-chart .boat{font-size:8px;transition:transform .35s ease-in-out}
+.food{position:absolute;left:12px;top:64px;z-index:3;background:rgba(255,244,220,.95);border:3px solid var(--wood-2);border-radius:14px;padding:4px 12px;font-weight:900;font-size:18px}
+.food b{color:var(--wood-2);font-size:22px}
+.compass{position:absolute;right:12px;top:50%;transform:translateY(-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;width:200px}
+.compass>b{font-size:18px}
+.compass-dial{display:flex;flex-direction:column;gap:6px;width:100%}
+.season-btn{display:grid;grid-template-columns:34px 1fr;grid-template-rows:auto auto;align-items:center;text-align:left;padding:4px 10px;border-radius:14px;border:3px solid #c9a46b;background:#fff8e6;font:900 17px var(--f);color:var(--ink);cursor:pointer}
+.season-btn span{grid-row:span 2;font-size:24px}
+.season-btn small{font-weight:700;font-size:12px;color:#9c8466}
+.season-btn.on{border-color:var(--gold);background:linear-gradient(#fff2c2,#ffd86b)}
+.season-btn.suggest{box-shadow:0 0 0 4px #7fd85a;animation:pulse .7s ease-in-out infinite alternate}
+.season-btn:disabled{opacity:.6;cursor:default}
+.compass .row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.compass .btn{padding:6px 14px;font-size:16px}
+.land-scene{background:linear-gradient(#bfe6f5,#8fd0ec);display:flex;align-items:center;justify-content:center}
+.island-wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:8px 120px 8px 8px}
+.island-map{position:relative;max-width:100%;max-height:100%;width:100%;cursor:pointer}
+.island-map>img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+.island-map>img.relief{opacity:.85}
+.tropic{position:absolute;left:2%;right:30%;border-top:3px dashed #d9342b;pointer-events:none}
+.tropic span{position:absolute;right:-4px;top:-14px;transform:translateX(100%);background:#d9342b;color:#fff;font-weight:900;font-size:14px;padding:1px 8px;border-radius:10px;white-space:nowrap}
+.zone{position:absolute;left:6%;font-weight:900;font-size:16px;color:#7a2a12;background:rgba(255,248,230,.85);border-radius:10px;padding:0 8px;pointer-events:none}
+.zone.hot{margin-top:8px}
+.zone.sub{margin-bottom:8px}
+.monsoon{position:absolute;right:4%;top:0;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.monsoon span{font-size:56px;color:#fff;text-shadow:0 0 6px #1d5f99,0 2px 4px rgba(0,60,120,.6);transform:rotate(135deg);animation:windblow 1.4s linear infinite}
+.monsoon span:nth-child(2){animation-delay:.4s}
+.monsoon span:nth-child(3){animation-delay:.8s}
+.rain-cloud{position:absolute;font-size:44px;transform:translate(-50%,-50%);animation:pop .4s ease-out;pointer-events:none}
+.season-tag{position:absolute;left:12px;top:12px;z-index:3;background:#3d8fd1;color:#fff;border:3px solid #1d5f99;border-radius:14px;padding:4px 12px;font-weight:900}
+.site{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;background:none;border:none;font:900 15px var(--f);color:var(--ink);cursor:pointer;text-shadow:0 0 4px #fff,0 0 4px #fff}
+.site span{font-size:38px;animation:bob 1s ease-in-out infinite alternate}
+.site.no{opacity:.45}
+.site.built span{font-size:54px;animation:pop .5s ease-out}
+@keyframes bob{to{transform:translateY(-6px)}}
+@media (max-height:600px){
+  .compass{width:150px;padding:6px;gap:4px;right:6px}
+  .season-btn{font-size:13px;padding:2px 6px;grid-template-columns:24px 1fr}
+  .season-btn span{font-size:17px}
+  .season-btn small{font-size:10px}
+  .compass .btn{padding:4px 8px;font-size:13px}
+  .food{left:6px;top:40px;font-size:13px;padding:2px 8px}
+  .red-button{width:80px;height:80px}
+  .island-wrap{padding-right:80px}
+}

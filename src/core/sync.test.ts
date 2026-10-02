@@ -26,8 +26,8 @@ describe('本機與雲端存檔', () => {
     expect(p.stars).toBe(3);
   });
   it('大地圖兩邊合起來', () => {
-    const w = mergeWorld({ ...freshWorld(), cleared: ['ch5'], cards: ['a'] }, { ...freshWorld(), celebrated: ['ch5'], greeted: true, cards: ['b'] });
-    expect(w).toEqual({ v: 1, cleared: ['ch5'], celebrated: ['ch5'], greeted: true, cards: ['a', 'b'] });
+    const w = mergeWorld({ ...freshWorld(), cleared: ['ch5'], cards: ['a'], tools: ['glasses'] }, { ...freshWorld(), celebrated: ['ch5'], greeted: true, cards: ['b'], prologue: true, tools: ['compass'] });
+    expect(w).toEqual({ v: 1, cleared: ['ch5'], celebrated: ['ch5'], greeted: true, cards: ['a', 'b'], prologue: true, tools: ['glasses', 'compass'] });
   });
   it('本機存檔一人一格', () => {
     expect(keyFor('island.ch5.v1')).toBe('island.ch5.v1');

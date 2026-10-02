@@ -13,9 +13,11 @@ export interface WorldSave {
   celebrated: string[]; // 已經在大地圖上看過撥雲動畫的章
   greeted: boolean; // 看過滴答第一次介紹大地圖
   cards: string[]; // 圖鑑：跨章累積拿過的卡（章節重玩也不會不見）
+  prologue: boolean; // 玩完序章《認識臺灣》了
+  tools: string[]; // 跨章累積的道具（序章拿到地形眼鏡 glasses、天氣羅盤 compass）
 }
 
-export const freshWorld = (): WorldSave => ({ v: 1, cleared: [], celebrated: [], greeted: false, cards: [] });
+export const freshWorld = (): WorldSave => ({ v: 1, cleared: [], celebrated: [], greeted: false, cards: [], prologue: false, tools: [] });
 
 const KEY = 'island.world.v1';
 
@@ -25,7 +27,7 @@ export function loadWorld(store: Pick<Storage, 'getItem'> | undefined = globalTh
     if (!raw) return freshWorld();
     const w = JSON.parse(raw) as Partial<WorldSave>;
     if (w.v !== 1) return freshWorld();
-    return { ...freshWorld(), ...w, cleared: [...(w.cleared ?? [])], celebrated: [...(w.celebrated ?? [])], cards: [...(w.cards ?? [])] };
+    return { ...freshWorld(), ...w, cleared: [...(w.cleared ?? [])], celebrated: [...(w.celebrated ?? [])], cards: [...(w.cards ?? [])], tools: [...(w.tools ?? [])] };
   } catch {
     return freshWorld();
   }

@@ -18,6 +18,7 @@ interface Props {
   setWorld: (fn: (w: WorldSave) => WorldSave) => void;
   onEnter: (id: ChapterId) => void;
   back: boolean; // 剛從關卡回來：鏡頭先停在彰化，再拉遠
+  onPrologue: () => void; // 再玩一次序章
 }
 
 function riftStates(w: WorldSave): Partial<Record<ChapterId, RiftState>> {
@@ -31,7 +32,7 @@ function riftStates(w: WorldSave): Partial<Record<ChapterId, RiftState>> {
 }
 
 // 選章畫面：被時光雲霧蓋住的台灣。點裂縫穿越進那一章，過關回來那一區的雲霧散開、活起來
-export function WorldMap({ world, setWorld, onEnter, back }: Props) {
+export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const map = useRef<Map | null>(null);
   const [ready, setReady] = useState(false);
@@ -168,6 +169,11 @@ export function WorldMap({ world, setWorld, onEnter, back }: Props) {
       )}
 
       <div className="timeline">
+        <button className={`era ${world.prologue ? 'done' : 'open'}`} onClick={() => { sfx('SE-01'); onPrologue(); }}>
+          <img className="era-badge" src={isl('badge-blank')} alt="" />
+          <small>認識臺灣</small>
+          <span>序章</span>
+        </button>
         {CHAPTERS.map((c) => {
           const state = world.cleared.includes(c.id) ? 'done' : c.playable ? 'open' : 'locked';
           return (

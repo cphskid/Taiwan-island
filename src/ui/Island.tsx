@@ -5,9 +5,10 @@ import type { ChapterId } from '../data/world';
 import { Chapter } from './Chapter';
 import { pushCloud } from '../net/cloud';
 import { WorldMap } from './WorldMap';
+import { Prologue } from './Prologue';
 
-// 整個遊戲的兩層：全台大地圖（選章）⇄ 章節關卡。
-// 網址加 ?step=3 直接進第五章的某一步；?world=fresh 大地圖從頭開始、?world=clear5 假裝剛過完第五章（測試用）。
+// 整個遊戲的兩層：全台大地圖（選章）⇄ 章節關卡；第一次進來先玩序章《認識臺灣》。
+// 網址加 ?step=3 直接進第五章的某一步；?prologue 直接玩序章；?world=fresh 大地圖從頭開始、?world=clear5 假裝剛過完第五章（測試用）。
 function initialWorld(): WorldSave {
   const q = new URLSearchParams(location.search).get('world');
   if (q === 'fresh') return freshWorld();
@@ -24,11 +25,18 @@ function syncChapters(w: WorldSave): WorldSave {
 
 export function Island() {
   const [world, setWorld] = useState<WorldSave>(initialWorld);
-  const [mode, setMode] = useState<{ at: 'map'; back: boolean } | { at: 'chapter'; id: ChapterId }>(() =>
-    location.search.includes('step=') ? { at: 'chapter', id: 'ch5' } : { at: 'map', back: false });
+  const [mode, setMode] = useState<{ at: 'map'; back: boolean } | { at: 'chapter'; id: ChapterId } | { at: 'prologue' }>(() =>
+    location.search.includes('step=') ? { at: 'chapter', id: 'ch5' }
+    : location.search.includes('prologue') || (!world.prologue && !world.greeted) ? { at: 'prologue' }
+    : { at: 'map', back: false });
   useEffect(() => { saveWorld(world); pushCloud('world', world); }, [world]);
 
+  if (mode.at === 'prologue')
+    return <Prologue onDone={() => {
+      setWorld((w) => ({ ...w, prologue: true, tools: [...w.tools, ...['glasses', 'compass'].filter((t) => !w.tools.includes(t))] }));
+      setMode({ at: 'map', back: false });
+    }} />;
   if (mode.at === 'chapter')
     return <Chapter album={world.cards} onExit={() => { setWorld((w) => syncChapters(w)); setMode({ at: 'map', back: true }); }} />;
-  return <WorldMap world={world} setWorld={(fn) => setWorld((w) => fn(w))} back={mode.back} onEnter={(id) => setMode({ at: 'chapter', id })} />;
+  return <WorldMap world={world} setWorld={(fn) => setWorld((w) => fn(w))} back={mode.back} onEnter={(id) => setMode({ at: 'chapter', id })} onPrologue={() => setMode({ at: 'prologue' })} />;
 }
