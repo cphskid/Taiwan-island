@@ -3,17 +3,19 @@
 // 船沒有槳，只能靠風和海流。小朋友轉「天氣羅盤」選季節：
 //   冬天吹東北季風，風從東北吹來，船往西南漂；夏天吹西南季風，船往東北漂。
 // 換季的時候風很弱（calm），船不太動；可是在黑潮裡，還是會被海流往北帶。
-// 船漂進黑潮（臺灣東邊往北流的海流），每一步還會再被往北帶一格。
+// 船漂進黑潮（從呂宋、臺灣之間往東北，再沿臺灣東邊往北流的海流），每一步還會再被海流帶一格（current 往北、current-ne 往東北）。
 // 每次出航漂 LEG 格（一個月），糧食只夠出航幾次；漂到港口就到了，
 // 撞上陸地會擱淺、撞上暗礁會撞壞、漂出海圖就迷路了。
 
 export type Season = 'winter' | 'summer' | 'calm';
 export const SEASONS: Season[] = ['winter', 'summer', 'calm'];
-export type Sea = 'sea' | 'current' | 'land' | 'reef' | 'harbor';
+export type Sea = 'sea' | 'current' | 'current-ne' | 'land' | 'reef' | 'harbor';
 export interface Pos { col: number; row: number }
 
 export const WIND: Record<Season, Pos> = { winter: { col: -1, row: 1 }, summer: { col: 1, row: -1 }, calm: { col: 0, row: 0 } };
 export const CURRENT: Pos = { col: 0, row: -1 }; // 黑潮往北
+export const CURRENT_NE: Pos = { col: 1, row: -1 }; // 黑潮在呂宋、臺灣之間往東北
+export const isCurrent = (k: Sea) => k === 'current' || k === 'current-ne';
 export const LEG = 2;
 
 export interface SeaMap {
@@ -52,8 +54,9 @@ export function sail(m: SeaMap, from: Pos, season: Season): Leg {
       const o = enter(m, p);
       if (o !== 'sailing') return { path, end: p, outcome: o };
     }
-    if (m.at(p) === 'current') {
-      p = add(p, CURRENT);
+    const here = m.at(p);
+    if (isCurrent(here)) {
+      p = add(p, here === 'current' ? CURRENT : CURRENT_NE);
       path.push(p);
       const o = enter(m, p);
       if (o !== 'sailing') return { path, end: p, outcome: o };

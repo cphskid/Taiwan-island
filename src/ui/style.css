@@ -548,3 +548,20 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .chart-spot span{background:rgba(255,248,230,.9);border:3px solid var(--wood-2);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:var(--wood-2)}
 .chart-spot:hover span{background:#fff2c2}
 .chart-spot.glow{box-shadow:0 0 0 4px #ffe066,0 0 30px #ffe066;animation:pulse .7s ease-in-out infinite alternate}
+/* 漂流海圖（K-03 當底） */
+.art-frame.chart{width:min(100% - 230px,calc((100dvh - 104px) * 1.7917));margin-right:220px}
+.chart .flow,.chart .chart-name,.chart .gust,.chart .chart-harbor,.chart .chart-boat{position:absolute;translate:-50% -50%;pointer-events:none}
+.chart .flow{font-size:clamp(10px,1.6vw,18px);color:rgba(190,230,255,.75);animation:windblow 1.6s linear infinite}
+.chart .chart-name{font:900 clamp(12px,1.6vw,18px) var(--f);color:#3a2412;background:rgba(255,248,230,.85);border-radius:10px;padding:0 8px;white-space:nowrap}
+.chart .gust{font-size:clamp(22px,3.4vw,44px);color:rgba(255,255,255,.8);text-shadow:0 0 6px rgba(0,60,120,.5);animation:windblow 1.4s linear infinite}
+.chart .gust.summer{color:rgba(255,236,160,.9)}
+.chart .chart-harbor{width:clamp(26px,3.4vw,40px);aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#fff8e6;border:3px solid #d9342b;border-radius:50%;font-size:clamp(14px,2vw,22px)}
+.chart .chart-boat{font-size:clamp(26px,4vw,48px);transition:left .35s ease-in-out,top .35s ease-in-out;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35));z-index:2}
+.chart-trail{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.chart-trail polyline{fill:none;stroke:#fff;stroke-width:3;stroke-dasharray:6 5;opacity:.9}
+.island-map{width:min(100%,calc((100dvh - 120px) * 1.388));max-height:none}
+@media (max-height:600px){ .art-frame.chart{width:min(100% - 160px,calc((100dvh - 80px) * 1.7917));margin-right:150px} .island-map{width:min(100%,calc((100dvh - 90px) * 1.388))} }
+/* 戴上地形眼鏡：3D 底圖淡掉，只看平面的分層設色和等高線，才不會兩層疊在一起歪掉 */
+.island-map>img.base{transition:opacity .3s}
+.island-map>img.base.dim{opacity:.12}
+.island-map>img.relief{opacity:1}

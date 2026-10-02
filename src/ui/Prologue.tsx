@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { SEASONS, sail, shortest, type Leg, type Outcome, type Pos, type Season } from '../core/drift';
 import {
   DRIFTS, FACTS, FIND_INTRO, FIND_WRONG, LANDS, LAND_TASKS, OUTCOME_TEXT, PROLOGUE_END, RAINY, SEASON_INFO, SITES, TOWER, TOWER_OOPS,
-  TROPIC_Y, VILLAGE_ASK, landAt, type DriftLevel, type Fact,
+  TROPIC_Y, VILLAGE_ASK, type DriftLevel, type Fact,
 } from '../data/prologue';
 import { MAP, isl } from '../data/world';
 import type { Line } from '../data/babao-chapter';
@@ -14,7 +14,6 @@ type Phase = 'tower' | 'oops' | 'warp' | 'find' | 'drift' | 'land' | 'village' |
 const STEP_MS = 380;
 const HINT_AT = 3; // 失敗幾次羅盤上亮出建議
 const DEMO_AT = 5;
-const CELL = 10;
 
 // 序章《認識臺灣》：時光鐘塔 → 找到臺灣 → 海上漂流三關 → 上岸認識地形氣候 → 選地蓋村 → 大地圖
 export function Prologue({ onDone }: { onDone: () => void }) {
@@ -98,50 +97,37 @@ const CHART_SPOTS: { k: keyof typeof LANDS; x: number; y: number; rx: number; ry
   { k: 'U', x: 0.52, y: 0.93, rx: 0.08, ry: 0.1 },
 ];
 
-// ── 海圖（找到臺灣、漂流共用）──
-function SeaChart({ lv, boat, wind, onLand, glow, trail }: {
-  lv: DriftLevel; boat: Pos | null; wind: Season | null; onLand?: (p: Pos) => void; glow?: boolean; trail?: Pos[];
-}) {
-  const W = lv.cols * CELL, H = lv.rows * CELL;
-  const labels = useMemo(() => {
-    const sum: Record<string, { x: number; y: number; n: number }> = {};
-    lv.map.forEach((r, row) => [...r].forEach((ch, col) => {
-      if (!(ch in LANDS)) return;
-      const s = (sum[ch] ??= { x: 0, y: 0, n: 0 });
-      s.x += col; s.y += row; s.n += 1;
-    }));
-    return Object.entries(sum).map(([k, s]) => ({ k: k as keyof typeof LANDS, x: (s.x / s.n + 0.5) * CELL, y: (s.y / s.n + 0.5) * CELL }));
-  }, [lv]);
-  const cells: Pos[] = [];
-  for (let row = 0; row < lv.rows; row++) for (let col = 0; col < lv.cols; col++) cells.push({ col, row });
-  const v = wind ? { winter: [-1, 1], summer: [1, -1], calm: [0, 0] }[wind] : null;
+
+// ── 漂流海圖：K-03 當底，格子照比例疊上去（船、港口、航跡、風、黑潮方向）──
+// 地名標在固定位置（K-03 圖上的比例座標）
+const CHART_NAMES: { k: keyof typeof LANDS; x: number; y: number }[] = [
+  { k: 'C', x: 0.14, y: 0.2 }, { k: 'T', x: 0.505, y: 0.46 }, { k: 'J', x: 0.84, y: 0.14 }, { k: 'U', x: 0.52, y: 0.95 },
+];
+const WIND_SPOTS = [[0.12, 0.62], [0.3, 0.4], [0.32, 0.82], [0.68, 0.55], [0.75, 0.85], [0.62, 0.15], [0.88, 0.45]];
+
+function SeaChart({ lv, boat, wind, trail }: { lv: DriftLevel; boat: Pos; wind: Season | null; trail: Pos[] }) {
+  const at = (p: Pos) => ({ left: `${((p.col + 0.5) / lv.cols) * 100}%`, top: `${((p.row + 0.5) / lv.rows) * 100}%` });
+  const flows: { p: Pos; ne: boolean }[] = [];
+  let harbor: Pos | null = null;
+  lv.map.forEach((r, row) => [...r].forEach((ch, col) => {
+    if (ch === 'H') harbor = { col, row };
+    if ((ch === 'k' || ch === 'n') && (col + row) % 2 === 0) flows.push({ p: { col, row }, ne: ch === 'n' });
+  }));
+  const v = wind ? { winter: 135, summer: -45, calm: null }[wind] : null;
   return (
-    <svg className={`sea-chart ${onLand ? 'pick' : ''}`} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#7ccbe8" /><stop offset="1" stopColor="#4aa3d1" /></linearGradient>
-      </defs>
-      <rect width={W} height={H} fill="url(#sea)" />
-      {cells.map((p) => {
-        const ch = lv.map[p.row][p.col];
-        const k = landAt(lv, p);
-        const x = p.col * CELL, y = p.row * CELL;
-        if (k) return <rect key={`${p.col},${p.row}`} className={`land ${k} ${glow && k === 'T' ? 'glow' : ''}`} x={x - 0.4} y={y - 0.4} width={CELL + 0.8} height={CELL + 0.8} rx={2.5} fill={LANDS[k].color} onClick={() => onLand?.(p)} />;
-        if (ch === 'k') return <g key={`${p.col},${p.row}`} className="kuroshio"><rect x={x} y={y} width={CELL} height={CELL} fill="#1f5fa8" opacity={0.55} /><text x={x + 5} y={y + 7.5} textAnchor="middle">↑</text></g>;
-        if (ch === 'x') return <text key={`${p.col},${p.row}`} x={x + 5} y={y + 7.5} textAnchor="middle" className="reef">🪨</text>;
-        if (ch === 'H') return <g key={`${p.col},${p.row}`} className="harbor"><circle cx={x + 5} cy={y + 5} r={4.2} /><text x={x + 5} y={y + 7.4} textAnchor="middle">⚓</text></g>;
-        return null;
-      })}
-      {labels.map((l) => <text key={l.k} className="land-name" x={l.x} y={l.y} textAnchor="middle">{onLand && l.k !== 'P' ? '？' : LANDS[l.k].name}</text>)}
-      {v && (v[0] || v[1]) ? (
-        <g className={`wind ${wind}`}>
-          {[[20, 20], [60, 30], [30, 70], [80, 80], [50, 100], [90, 50]].map(([x, y], i) => (
-            <text key={i} x={x} y={y} textAnchor="middle" transform={`rotate(${Math.atan2(v[1], v[0]) * 180 / Math.PI} ${x} ${y})`}>➜</text>
-          ))}
-        </g>
-      ) : null}
-      {trail && trail.length > 1 && <polyline className="trail" points={trail.map((p) => `${p.col * CELL + 5},${p.row * CELL + 5}`).join(' ')} />}
-      {boat && <text className="boat" x={0} y={0} style={{ transform: `translate(${boat.col * CELL + 5}px, ${boat.row * CELL + 7.5}px)` }} textAnchor="middle">⛵</text>}
-    </svg>
+    <div className="art-frame chart">
+      <img className="art" src={`${STORY}K-03.webp`} alt="" />
+      {flows.map(({ p, ne }, i) => <span key={i} className="flow" style={{ ...at(p), rotate: ne ? '-45deg' : '-90deg' }}>➜</span>)}
+      {CHART_NAMES.map((n) => <span key={n.k} className="chart-name" style={{ left: `${n.x * 100}%`, top: `${n.y * 100}%` }}>{LANDS[n.k].name}</span>)}
+      {v !== null && v !== undefined && WIND_SPOTS.map(([x, y], i) => (
+        <span key={`${wind}${i}`} className={`gust ${wind}`} style={{ left: `${x * 100}%`, top: `${y * 100}%`, rotate: `${v}deg`, animationDelay: `${i * 0.2}s` }}>➜</span>
+      ))}
+      <svg className="chart-trail" viewBox={`0 0 ${lv.cols} ${lv.rows}`} preserveAspectRatio="none">
+        {trail.length > 1 && <polyline points={trail.map((p) => `${p.col + 0.5},${p.row + 0.5}`).join(' ')} vectorEffect="non-scaling-stroke" />}
+      </svg>
+      {harbor && <span className="chart-harbor" style={at(harbor)}>⚓</span>}
+      <span className="chart-boat" style={at(boat)}>⛵</span>
+    </div>
   );
 }
 
@@ -320,7 +306,7 @@ function IslandMap({ glasses, tropic, rain, onTap, children }: {
         const r = e.currentTarget.getBoundingClientRect();
         onTap?.((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
       }}>
-        <img src={MAP.src} alt="" />
+        <img className={glasses ? "base dim" : "base"} src={MAP.src} alt="" />
         {glasses && <img className="relief" src={MAP.relief} alt="" />}
         {tropic && <div className="tropic" style={{ top: `${TROPIC_Y * 100}%` }}><span>北回歸線</span></div>}
         {tropic && <div className="zone hot" style={{ top: `${TROPIC_Y * 100}%` }}>熱帶</div>}

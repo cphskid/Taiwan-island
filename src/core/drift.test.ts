@@ -31,6 +31,7 @@ describe('海上漂流', () => {
   it('換季沒風：不在黑潮裡船不動，在黑潮裡往北', () => {
     const lv = DRIFTS[2];
     expect(sail(lv, lv.start, 'calm').end).toEqual(lv.start);
-    expect(sail(lv, { col: 9, row: 9 }, 'calm').end).toEqual({ col: 9, row: 7 });
+    expect(sail(lv, { col: 9, row: 11 }, 'calm').end).toEqual({ col: 11, row: 9 });
+    expect(sail(lv, { col: 14, row: 7 }, 'calm').end).toEqual({ col: 14, row: 5 });
   });
 });

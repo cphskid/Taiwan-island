@@ -2,8 +2,9 @@
 // 時光鐘塔、海上漂流三關、上岸認識地形和氣候、選地蓋村。
 //
 // 海圖：一個字一格，上面是北。
-//   . 海  k 黑潮（往北流）  H 港口（要漂到這裡）  S 船出發的地方  x 暗礁
+//   . 海  k 黑潮（往北流）  n 黑潮（往東北流）  H 港口（要漂到這裡）  S 船出發的地方  x 暗礁
 //   T 臺灣  C 中國大陸  U 呂宋島  J 琉球群島  P 澎湖
+// 格子對齊 K-03 序章海圖（24×13 格，陸地照圖上的綠色算、黑潮照圖上的深藍色帶描）。
 // 每一關的解法由 core/drift.test.ts 用 shortest() 檢查。
 // 文字是佔位稿，上正式站前請社會科老師審。
 
@@ -27,7 +28,7 @@ export interface DriftLevel extends SeaMap {
   hint: string; // 失敗之後滴答說的提示
 }
 
-const KEY: Record<string, Sea> = { '.': 'sea', S: 'sea', k: 'current', x: 'reef', H: 'harbor' };
+const KEY: Record<string, Sea> = { '.': 'sea', S: 'sea', k: 'current', n: 'current-ne', x: 'reef', H: 'harbor' };
 
 function level(def: Omit<DriftLevel, keyof SeaMap> & { legs: number }): DriftLevel {
   const { map } = def;
@@ -53,18 +54,19 @@ export const DRIFTS: DriftLevel[] = [
     title: '夏天的風',
     legs: 3,
     map: [
-      'CCC.......JJ',
-      'CCC......k.J',
-      'CC......Tk..',
-      'CC.....TTk..',
-      'C......TTTk.',
-      'C..P..TTTTk.',
-      'C....HTTTk..',
-      'CC....TTTk..',
-      'CC.....TTk..',
-      'C.S.....Tk..',
-      '........k...',
-      '.....UUUk...',
+      '...CCCCCCC......kk...J..',
+      '...CCCCCC......kk....J..',
+      'CCCCCCCC.......kk...J...',
+      'CCCCCCCC....TT.k...J....',
+      'CCCCCCC....TTTkk.JJ.....',
+      'CCCC......TTTTkk........',
+      'C........HTTTTkk........',
+      '..........TTTkk.........',
+      '...........T.kk.........',
+      '............nn..........',
+      '.....S....nnn...........',
+      '.........nnnUU..........',
+      '.......nnn.UUU..........',
     ],
     intro: [{ who: 'tick', mood: 'happy', text: '我有天氣羅盤！轉到哪個季節，就吹那個季節的風。先漂到臺灣的港口吧。' }],
     hint: '夏天的風從西南邊吹過來，會把船往東北推。',
@@ -74,18 +76,19 @@ export const DRIFTS: DriftLevel[] = [
     title: '冬天的風',
     legs: 3,
     map: [
-      'CCC......SJJ',
-      'CCC.......JJ',
-      'CC.......k..',
-      'CC.....TTk..',
-      'C....HTTTk..',
-      'C..P..TTTk..',
-      'C.....TTkk..',
-      'CC....TTk...',
-      'CC.....Tk...',
-      'C.......k...',
-      '........k...',
-      '....UUU.k...',
+      '...CCCCCCC....S.kk...J..',
+      '...CCCCCC......kk....J..',
+      'CCCCCCCC.......kk...J...',
+      'CCCCCCCC...HTT.k...J....',
+      'CCCCCCC....TTTkk.JJ.....',
+      'CCCC......TTTTkk........',
+      'C.........TTTTkk........',
+      '..........TTTkk.........',
+      '...........T.kk.........',
+      '............nn..........',
+      '..........nnn...........',
+      '.........nnnUU..........',
+      '.......nnn.UUU..........',
     ],
     intro: [{ who: 'tick', mood: 'worried', text: '一陣大浪，把我們沖到琉球群島旁邊了！' }],
     hint: '冬天吹東北季風，風從東北吹來，船會往西南漂。',
@@ -93,26 +96,27 @@ export const DRIFTS: DriftLevel[] = [
   level({
     id: 3,
     title: '黑潮',
-    legs: 6,
+    legs: 5,
     map: [
-      'CCC......JJJ',
-      'CCC....T.kJ.',
-      'CC....TTTk..',
-      'CC....TTTH..',
-      'C.....TTTkk.',
-      'C..P..TTTkk.',
-      'C.....TTkkk.',
-      'CC....TTkk..',
-      'CC.....Tkk..',
-      'C.......kk.S',
-      '........kk..',
-      '....UUU.kk..',
+      '...CCCCCCC......kk...J..',
+      '...CCCCCC......kk....J..',
+      'CCCCCCCC.......kk...J...',
+      'CCCCCCCC....TT.k...J....',
+      'CCCCCCC....TTTHk.JJ.....',
+      'CCCC......TTTTkk........',
+      'C.........TTTTkk........',
+      '..........TTTkk.........',
+      '...........T.kk.........',
+      '............nn..........',
+      '..........nnn...........',
+      '.........nnnUU..........',
+      '.......nnnSUUU..........',
     ],
     intro: [
-      { who: 'tick', mood: 'worried', text: '又被吹到臺灣東南邊的外海了！' },
-      { who: 'tick', mood: 'thinking', text: '深藍色那條是黑潮，海水一直往北流。換季的時候風很弱，船只會跟著海流走。' },
+      { who: 'tick', mood: 'worried', text: '又被吹到呂宋島旁邊了！' },
+      { who: 'tick', mood: 'thinking', text: '深藍色那條是黑潮，海水從這裡往北流。換季的時候風很弱，船只會跟著海流走。' },
     ],
-    hint: '先想辦法進到黑潮裡，再等風變弱，讓黑潮帶你往北。',
+    hint: '先想辦法進到深藍色的黑潮裡，再等風變弱，讓黑潮帶你往北。',
   }),
 ];
 
