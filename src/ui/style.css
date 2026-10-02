@@ -1006,3 +1006,10 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .iron-hud .iron-n img{width:30px}
 .iron-hud .btn{min-width:0;width:100%;font-size:14px;min-height:36px;padding:4px 6px}
 .hill .rainfall{position:absolute;inset:0;z-index:5}
+.ch2-end{position:absolute;inset:0;pointer-events:none}
+.ch2-end img{position:absolute;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35));animation:pop .5s ease-out}
+.ch2-end .e-deer{left:14%;top:38%;width:9%}
+.ch2-end .e-fawn{left:23%;top:45%;width:6%}
+.ch2-end .e-seed{left:68%;top:34%;width:6%}
+.ch2-end .e-trader{left:84%;top:48%;width:9%;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35)) saturate(.8)}
+.ch2-end .e-ani{left:44%;top:50%;width:11%}

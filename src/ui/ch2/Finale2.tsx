@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CARDS2, FAREWELL2, KEEPSAKE2, QUESTIONS2, SPRING, TRUTH2, art2 } from '../../data/ch2';
+import { CARDS2, CHOICES2, FAREWELL2, homeLines2, type Pick2, KEEPSAKE2, QUESTIONS2, SPRING, TRUTH2, art2 } from '../../data/ch2';
 import { PEOPLE, img } from '../../data/babao-chapter';
 import { Face, Talk } from '../Talk';
 import { fresh2, stars2 } from '../../core/save2';
@@ -8,11 +8,12 @@ import { NewCards, type Step2Props } from '../Ch2';
 import { ambience, jingle, sfx } from '../../audio';
 
 const BASE = import.meta.env.BASE_URL;
-type Phase = 'talk' | 'gear' | 'keepsake' | 'truth' | 'card' | 'quiz' | 'stars';
+const RECAP2: Pick2[] = ['seed', 'fawn', 'trader'];
+type Phase = 'home' | 'talk' | 'gear' | 'keepsake' | 'truth' | 'card' | 'quiz' | 'stars';
 
 // 步驟 6 春天來了：齒輪回到時光鐘、阿妮的信物、「真的是這樣嗎？」、反思題、星星
 export function Finale2({ p, set, exit }: Step2Props) {
-  const [phase, setPhase] = useState<Phase>(p.done ? 'stars' : 'talk');
+  const [phase, setPhase] = useState<Phase>(p.done ? 'stars' : 'home');
   const [qi, setQi] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const q = QUESTIONS2[qi];
@@ -41,6 +42,15 @@ export function Finale2({ p, set, exit }: Step2Props) {
   return (
     <div className="scene finale ch2-spring">
       <img className="scene-bg" src={art2('s-10')} alt="" />
+      {/* 結局畫面依選擇變：小鹿和鹿媽媽／回森林的小鹿、穀倉上的種子穗或鄰居分的種子、商人有沒有再來 */}
+      <div className="ch2-end">
+        <img className="e-deer" src={art2(p.picks.fawn === 1 ? 'deer-run' : 'deer')} alt="" />
+        {p.picks.fawn !== 1 && <img className="e-fawn" src={art2('deer-eat')} alt="" />}
+        <img className="e-seed" src={art2(p.picks.seed === 1 ? 'g-04-seeds' : 'g-04-millet')} alt="" />
+        {p.picks.trader === 1 && <img className="e-trader" src={art2('p-16-trader')} alt="" />}
+        <img className="e-ani" src={art2(phase === 'home' || phase === 'talk' ? 'f-05a-sow' : 'f-05a-cheer')} alt="" />
+      </div>
+      {phase === 'home' && <Talk lines={homeLines2(p.picks)} onDone={() => setPhase('talk')} />}
       {phase === 'talk' && <Talk lines={[...SPRING, ...FAREWELL2]} onDone={() => setPhase('gear')} />}
       {phase === 'gear' && (
         <div className="talk-cover">
@@ -110,6 +120,12 @@ export function Finale2({ p, set, exit }: Step2Props) {
               <li className={p.mistakes <= 3 ? 'on' : ''}>失誤 3 次以內{p.mistakes ? `（失誤 ${p.mistakes} 次）` : ''}</li>
               <li className={QUESTIONS2.every((x, i) => p.answers[i] === x.answer) ? 'on' : ''}>想一想全部答對</li>
             </ul>
+            {RECAP2.some((k) => p.picks[k] !== undefined) && (
+              <div className="recap">
+                <b>你的選擇</b>
+                {RECAP2.filter((k) => p.picks[k] !== undefined).map((k) => <span key={k}>{CHOICES2[k].recap[p.picks[k]!]}</span>)}
+              </div>
+            )}
             {p.keepsakes.includes(KEEPSAKE2.id) && <p className="cards-got">信物：{KEEPSAKE2.title}　時光朋友：阿妮</p>}
             <p className="cards-got">圖鑑卡：{p.cards.map((c) => CARDS2[c]?.title).filter(Boolean).join('、')}</p>
             <div className="row">

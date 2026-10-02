@@ -119,8 +119,8 @@ export const RULES_DONE: Line[] = [
   { who: 'ani', mood: 'thumbs', text: '我們的規矩訂好了！' },
   { who: 'trader', text: '請問……這裡是有很多鹿的部落嗎？我從海邊來，有人想用布和鐵器，跟你們換很多很多鹿皮。' },
   { who: 'ani', mood: 'frown', text: '很多很多？可是我們剛剛才說好，不能打太多……' },
-  { who: 'tick', mood: 'thinking', text: '海上來的船、想要鹿皮的人……這是下一個時代的故事了。' },
 ];
+export const RULES_HOOK: Line = { who: 'tick', mood: 'thinking', text: '海上來的船、想要鹿皮的人……這是下一個時代的故事了。' };
 
 // ── 6 春天來了 ──
 export const SPRING: Line[] = [
@@ -200,3 +200,78 @@ export const QUESTIONS2: Question2[] = [
 
 // 第二章的星星：失誤 3 次以內、反思題全對（跟第一章一樣）
 export const CH2_KEEPSAKE_FRIENDS = ['ani'];
+
+// ── 劇情層：選擇、季節轉場、依選擇變化的結局 ──
+export type Pick2 = 'seed' | 'fawn' | 'trader';
+export type Picks2 = Partial<Record<Pick2, number>>;
+export interface Choice2 { who: Line['who']; mood?: Line['mood']; q: string; options: string[]; after: Line[][]; recap: string[] }
+export const CHOICES2: Record<Pick2, Choice2> = {
+  seed: {
+    who: 'ani', mood: 'worried', q: '穀倉裡只剩最後一籃小米。弟弟妹妹肚子好餓……你覺得怎麼辦？',
+    options: ['留下最好的一把當明年的種子，其他的分給大家', '先全部煮給弟弟妹妹吃，種子以後再想辦法'],
+    after: [
+      [
+        { who: 'elder', text: '好孩子。種子是部落的明天，再餓也要留一把。' },
+        { who: 'ani', mood: 'determined', text: '我把最飽滿的穗子綁起來，掛在穀倉最高的地方！' },
+      ],
+      [
+        { who: 'ani', mood: 'happy', text: '弟弟妹妹吃得好開心……' },
+        { who: 'ani', mood: 'worried', text: '可是……春天來了要種什麼？' },
+        { who: 'elder', text: '別怕，隔壁幾家都留了種子。大家一起分，就不會沒有種子。' },
+      ],
+    ],
+    recap: ['冬天：留下最好的小米當種子', '冬天：先煮給弟弟妹妹吃，種子靠大家分享'],
+  },
+  fawn: {
+    who: 'ani', mood: 'scared', q: '草叢裡有一隻跟媽媽走散的小鹿，腳受傷了。你會怎麼做？',
+    options: ['幫牠包好腳，放回森林等鹿媽媽', '帶回部落照顧，等牠好了再說'],
+    after: [
+      [
+        { who: 'hunter', text: '小鹿的媽媽就在附近。我們躲遠一點，牠會回來找的。' },
+        { who: 'ani', mood: 'happy', text: '看！鹿媽媽來了！牠們一起跑回森林了！' },
+      ],
+      [
+        { who: 'ani', mood: 'happy', text: '我每天割嫩草給牠吃，牠會跟在我後面跑！' },
+        { who: 'hunter', text: '等牠的腳好了，還是要讓牠回森林。森林才是牠的家。' },
+        { who: 'ani', mood: 'sad', text: '……嗯。我會捨不得，可是我知道。' },
+      ],
+    ],
+    recap: ['獵場：幫小鹿包好腳，放回森林找媽媽', '獵場：把小鹿帶回部落照顧，好了再放回森林'],
+  },
+  trader: {
+    who: 'trader', q: '「很多很多鹿皮，可以換一把好鐵刀和好幾匹布喔！」你會怎麼回答商人？',
+    options: ['照我們的規矩，只拿多出來的鹿皮跟你換', '先多換一點，鐵刀很好用'],
+    after: [
+      [
+        { who: 'trader', text: '規矩？……好吧，那就換這幾張。你們的鹿皮很漂亮。' },
+        { who: 'ani', mood: 'thumbs', text: '我們說好的規矩，自己要先守！' },
+      ],
+      [
+        { who: 'ani', mood: 'frown', text: '多換一點，就要多打很多鹿……' },
+        { who: 'elder', text: '鐵刀很好用，可是鹿只有一群。這次換了，下次還要更多。' },
+        { who: 'trader', text: '哈哈，我下次還會再來的。海邊的大船，要的可多著呢。' },
+      ],
+    ],
+    recap: ['規範：照規矩只換多出來的鹿皮', '規範：多換了一些鹿皮，商人說還會再來'],
+  },
+};
+
+// 季節／年份轉場：一條四季的線，光點滑到這一季
+export const PASSAGES: Record<string, { title: string; far: string; season: number; react: Line }> = {
+  rotate: { title: '春天・山坡的田', far: '雪停了一點點……', season: 0, react: { who: 'ani', mood: 'determined', text: '長老說，先把田的事想清楚，春天才不會白白等。' } },
+  hunt: { title: '秋天・森林獵場', far: '田的事安排好了，時間往前走', season: 2, react: { who: 'hunter', text: '秋天的鹿最壯，也是上山的季節。' } },
+  rules: { title: '又一個冬天・部落的廣場', far: '一年過去了', season: 3, react: { who: 'elder', text: '一年的事都經歷過了，換你們想想，部落要怎麼一直過下去。' } },
+};
+
+// 結局：雪化了，大家在部落廣場。依選擇換台詞
+export const homeLines2 = (k: Picks2): Line[] => [
+  k.seed === 0
+    ? { who: 'ani', mood: 'happy', text: '你看，穀倉最高那把小米穗！我們今天就把它種下去。' }
+    : { who: 'ani', mood: 'happy', text: '隔壁的阿嬤分了一把種子給我們。今年收成了，我也要分給別人。' },
+  k.fawn === 0
+    ? { who: 'ani', mood: 'happy', text: '森林邊那兩隻鹿……是那隻小鹿和牠媽媽！牠的腳好了！' }
+    : { who: 'ani', mood: 'sad', text: '小鹿今天回森林了。牠回頭看了我好久……再見了。' },
+  k.trader === 0
+    ? { who: 'elder', text: '鹿群還在，規矩也還在。以後的孩子，也會看到森林裡的鹿。' }
+    : { who: 'elder', text: '商人說還會再來。孩子，記住我們的規矩，下一次要靠你們守住。' },
+];

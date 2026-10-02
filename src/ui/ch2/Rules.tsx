@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import { simulate, type RuleId, type SimResult } from '../../core/mountain';
-import { DEER, ROT, RULES, RULES_DONE, RULES_INTRO, RULES_SAY, art2 } from '../../data/ch2';
+import { DEER, ROT, RULES, RULES_DONE, RULES_HOOK, RULES_INTRO, RULES_SAY, art2 } from '../../data/ch2';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
 import { NewCards, type Step2Props } from '../Ch2';
 import { jingle, sfx } from '../../audio';
+import { Decide2, Passage } from './Story2';
 
-type Phase = 'intro' | 'pick' | 'done' | 'cards';
+type Phase = 'pass' | 'intro' | 'pick' | 'done' | 'trader' | 'hook' | 'cards';
 
 // 步驟 5 部落規範：從六條裡選三條，照著過五年，看小米夠不夠、鹿還在不在
 export function Rules({ p, set, next, oops }: Step2Props) {
-  const [phase, setPhase] = useState<Phase>('intro');
+  const [phase, setPhase] = useState<Phase>('pass');
   const [on, setOn] = useState<RuleId[]>([]);
   const [sim, setSim] = useState<SimResult | null>(null);
   const [shown, setShown] = useState(0);
@@ -43,6 +44,7 @@ export function Rules({ p, set, next, oops }: Step2Props) {
   return (
     <div className="scene ch2-rules">
       <img className="scene-bg" src={art2('s-10')} alt="" />
+      {phase === 'pass' && <Passage id="rules" onDone={() => setPhase('intro')} />}
       {phase === 'intro' && <Talk lines={RULES_INTRO} onDone={() => setPhase('pick')} />}
       {phase === 'pick' && (
         <div className="rules-wrap">
@@ -72,7 +74,9 @@ export function Rules({ p, set, next, oops }: Step2Props) {
           <Say line={say} />
         </div>
       )}
-      {phase === 'done' && <Talk lines={RULES_DONE} onDone={() => setPhase('cards')} />}
+      {phase === 'done' && <Talk lines={RULES_DONE} onDone={() => setPhase('trader')} />}
+      {phase === 'trader' && <Decide2 id="trader" set={set} onDone={() => setPhase('hook')} />}
+      {phase === 'hook' && <Talk lines={[RULES_HOOK]} onDone={() => setPhase('cards')} />}
       {phase === 'cards' && <NewCards ids={['share', 'norms', 'peoples']} p={p} set={set} onDone={next} />}
     </div>
   );

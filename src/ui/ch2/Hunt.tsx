@@ -6,19 +6,22 @@ import { Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
 import { NewCards, type Step2Props } from '../Ch2';
 import { jingle, sfx } from '../../audio';
+import { Decide2, Passage } from './Story2';
 
-type Phase = 'intro' | 'plan' | 'cards';
+type Phase = 'pass' | 'intro' | 'plan' | 'fawn' | 'cards';
 const DEMO = [[0, 0, 3, 2], [0, 0, 3, 2]];
 const empty = () => Array.from({ length: DEER.years }, () => [0, 0, 0, 0]);
 
 // 步驟 3 狩獵：兩年、每年四季，決定每一季打幾隻鹿；每年要有 5 隻，兩年後鹿群不能變少
 export function Hunt({ p, set, next, oops }: Step2Props) {
-  const [phase, setPhase] = useState<Phase>('intro');
+  const [phase, setPhase] = useState<Phase>('pass');
   return (
     <div className="scene ch2-hunt">
       <img className="scene-bg" src={art2('s-12')} alt="" />
+      {phase === 'pass' && <Passage id="hunt" onDone={() => setPhase('intro')} />}
       {phase === 'intro' && <Talk lines={HUNT_INTRO} onDone={() => setPhase('plan')} />}
-      {phase === 'plan' && <HuntPlan oops={oops} onDone={() => setPhase('cards')} />}
+      {phase === 'plan' && <HuntPlan oops={oops} onDone={() => setPhase('fawn')} />}
+      {phase === 'fawn' && <Decide2 id="fawn" set={set} onDone={() => setPhase('cards')} />}
       {phase === 'cards' && <NewCards ids={['deer']} p={p} set={set} onDone={next} />}
     </div>
   );

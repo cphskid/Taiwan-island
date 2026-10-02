@@ -18,10 +18,11 @@ export interface Progress2 {
   note: boolean; // 找到神秘旅人的紙條（第二章沒有，留著讓格式一樣）
   friends: string[];
   keepsakes: string[];
+  picks: Partial<Record<'seed' | 'fawn' | 'trader', number>>; // 三個選擇（data/ch2.ts CHOICES2）
 }
 
 export const fresh2 = (): Progress2 => ({
-  v: 1, step: 0, reached: 0, cards: [], mistakes: 0, answers: [], stars: 0, done: false, note: false, friends: [], keepsakes: [],
+  v: 1, step: 0, reached: 0, cards: [], mistakes: 0, answers: [], stars: 0, done: false, note: false, friends: [], keepsakes: [], picks: {},
 });
 
 const KEY = 'island.ch2.v1';

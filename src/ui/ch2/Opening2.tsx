@@ -4,8 +4,9 @@ import { PEOPLE, img } from '../../data/babao-chapter';
 import { Talk } from '../Talk';
 import { NewCards, type Step2Props } from '../Ch2';
 import { sfx } from '../../audio';
+import { Decide2, Passage } from './Story2';
 
-type Phase = 'winter' | 'talk' | 'card' | 'friend';
+type Phase = 'winter' | 'talk' | 'seed' | 'card' | 'friend';
 
 // 步驟 0 開場：山上的冬天一直不結束 → 認識阿妮和長老 → 時光朋友卡
 export function Opening2({ p, set, next }: Step2Props) {
@@ -22,7 +23,8 @@ export function Opening2({ p, set, next }: Step2Props) {
           <span className="talk-next">點一下 ▶</span>
         </button>
       )}
-      {phase === 'talk' && <Talk lines={OPENING2} onDone={() => setPhase('card')} />}
+      {phase === 'talk' && <Talk lines={OPENING2} onDone={() => setPhase('seed')} />}
+      {phase === 'seed' && <Decide2 id="seed" set={set} onDone={() => setPhase('card')} />}
       {phase === 'card' && <NewCards ids={['elder']} p={p} set={set} onDone={() => setPhase('friend')} />}
       {phase === 'friend' && (
         <div className="talk-cover">

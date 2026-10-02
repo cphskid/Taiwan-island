@@ -6,17 +6,19 @@ import { Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
 import { NewCards, type Step2Props } from '../Ch2';
 import { jingle, sfx } from '../../audio';
+import { Decide2, Passage } from './Story2';
 
-type Phase = 'intro' | 'farm' | 'cards';
+type Phase = 'pass' | 'intro' | 'farm' | 'cards';
 // 肥力看起來的樣子：3 綠油油、2 剛發芽、1 草地、0 光禿禿
 const LOOK = ['burnt', 'fallow', 'sprout', 'green'];
 
 // 步驟 2 輪耕：六塊山田、四年，每年挑三塊種，每年都要收到 7 份小米
 export function Rotate({ p, set, next, oops }: Step2Props) {
-  const [phase, setPhase] = useState<Phase>('intro');
+  const [phase, setPhase] = useState<Phase>('pass');
   return (
     <div className="scene ch2-farm">
       <img className="scene-bg" src={art2('s-11')} alt="" />
+      {phase === 'pass' && <Passage id="rotate" onDone={() => setPhase('intro')} />}
       {phase === 'intro' && <Talk lines={ROT_INTRO} onDone={() => setPhase('farm')} />}
       {phase === 'farm' && <Fields oops={oops} onDone={() => setPhase('cards')} />}
       {phase === 'cards' && <NewCards ids={['fallow']} p={p} set={set} onDone={next} />}
