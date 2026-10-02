@@ -4,6 +4,8 @@
 // 每塊田要剛好的水：太少會乾、太多會淹。旱季溪水少、雨季溪水多，季節一變就要重調。
 // 兩邊開的加起來超過 100%，就只是照比例把全部的水分掉；沒開到的水留在溪裡。
 // 「兩邊一樣多」在旱季剛好不行：田多的那邊會乾、田少的那邊會淹，要照田的多少分才公平。
+// 溪裡也要留水（巴布薩族的人在溪邊捕魚、取水）：兩邊開太大、溪裡剩不到 RIVER_MIN 就不行。
+// 旱季只有很窄的範圍三邊都顧得到（例如 55%／35%），雨季水多就寬鬆了。
 
 export type Season = 'dry' | 'rain';
 export type Side = 'zhang' | 'quan';
@@ -13,6 +15,7 @@ export const FLOW: Record<Season, number> = { dry: 10, rain: 16 }; // 溪水流�
 export const FIELDS: Record<Side, number> = { zhang: 6, quan: 4 };
 export const LOW = 0.85; // 每塊田水少於這個就乾
 export const HIGH = 1.2; // 多於這個就淹
+export const RIVER_MIN = 1; // 溪裡至少要留的水
 export const DRY_HOLD = 8; // 旱季全部綠了撐幾秒，雨季就來
 export const RAIN_HOLD = 20; // 雨季要撐幾秒才過關
 
@@ -28,6 +31,12 @@ export function perField(season: Season, g: Gates): Record<Side, number> {
     quan: (w * (g.quan / 100) * k) / FIELDS.quan,
   };
 }
+
+// 沒有開進圳道、留在溪裡的水
+export function riverLeft(season: Season, g: Gates): number {
+  return FLOW[season] * (1 - Math.min(1, (g.zhang + g.quan) / 100));
+}
+export const riverOk = (season: Season, g: Gates) => riverLeft(season, g) >= RIVER_MIN - 1e-9;
 
 export function stateOf(m: number): FieldState {
   return m < LOW ? 'dry' : m > HIGH ? 'flood' : 'ok';
@@ -59,7 +68,7 @@ export function setGate(s: Share, side: Side, value: number): Share {
   return { ...s, gates: { ...s.gates, [side]: v }, counted: false };
 }
 
-export const allOk = (s: Share) => stateOf(s.moist.zhang) === 'ok' && stateOf(s.moist.quan) === 'ok';
+export const allOk = (s: Share) => stateOf(s.moist.zhang) === 'ok' && stateOf(s.moist.quan) === 'ok' && riverOk(s.season, s.gates);
 
 // 時間往前 dt 秒
 export function tick(s: Share, dt: number): Share {

@@ -27,15 +27,16 @@ export function Talk({ lines, onDone }: { lines: readonly Line[]; onDone: () => 
 
 export function Face({ who, mood, small }: { who: Line['who']; mood?: Line['mood']; small?: boolean }) {
   const p = PEOPLE[who];
-  const src = who === 'tick' ? `img/tick/${mood ?? 'happy'}.webp` : p.img ? `img/${p.img}` : null;
+  const art = (mood && p.moods?.[mood]) || p.img;
+  const src = who === 'tick' ? `img/tick/${mood ?? 'happy'}.webp` : art ? `img/${art}` : null;
   return (
-    <div className={`face ${small ? 'small' : ''}`} style={{ borderColor: p.color }}>
+    <div className={`face ${small ? 'small' : ''} ${who}`} style={{ borderColor: p.color }}>
       {src ? <img src={`${BASE}${src}`} alt="" /> : <span style={{ background: p.color }}>{p.badge}</span>}
     </div>
   );
 }
 
-// 林先生／滴答在角落說一句話：點一下縮成小頭像（不擋操作），再點一下展開；
+// 夥伴／滴答在角落說一句話：點一下縮成小頭像（不擋操作），再點一下展開；
 // 新的一句話會自己展開，8 秒後自己縮起來
 export function Say({ line }: { line: Line | null }) {
   const text = line?.text;

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { LEVELS } from '../../data/babao-levels';
-import { PUZZLE_ART, PUZZLE_INTRO, img } from '../../data/babao-chapter';
+import { LEVELS, type Level as LevelDef } from '../../data/babao-levels';
+import { LEVEL_HELPER, PUZZLE_ART, PUZZLE_INTRO, img, type Line, type Who } from '../../data/babao-chapter';
 import { canDig, canPlace, simulate, solved, type FlowResult } from '../../core/flow';
 import { move, pieceAt, place, remove, rotate, same, type Piece } from '../../core/pieces';
 import type { Cell } from '../../core/iso';
@@ -12,7 +12,7 @@ import type { StepProps } from '../Chapter';
 import { jingle, sfx } from '../../audio';
 
 const STEP_MS = 250; // 水每 0.25 秒往前一格
-const HINT_AT = 3; // 失敗幾次林先生亮出提示
+const HINT_AT = 3; // 失敗幾次亮出白色提示（失敗一次夥伴就先說一句）
 const DEMO_AT = 5; // 失敗幾次可以看示範
 
 type Drag = { kind: 'new' } | { kind: 'move'; id: number; x0: number; y0: number; moved: boolean };
@@ -21,6 +21,7 @@ type Run = { result: FlowResult; t: number; done: boolean };
 // 放完水之後跟小朋友說發生什麼事
 function verdict(r: FlowResult, need: number): { ok: boolean; text: string } {
   if (solved(r, need)) return { ok: true, text: '水流到分水閘了，水量也夠！' };
+  if (r.overflow) return { ok: false, text: '水太多，圳道裝不下，滿出來淹到田了！' };
   if (r.broken.length) return { ok: false, text: '竹蛇籠被沖壞了：水太大，不能正面硬擋，要把水往旁邊導。' };
   if (r.flooded.length) return { ok: false, text: '水淹到旁邊的地了：竹蛇籠的箭頭要對準圳頭（或對準旁邊那條河道）。' };
   if (r.gates.length) return { ok: false, text: `水到分水閘了，可是不夠：要 ${need} 份，只來了 ${r.delivered} 份。把其他幾道水也導進來。` };
@@ -45,12 +46,28 @@ export function Puzzle({ p, set, next }: StepProps) {
       </div>
     </div>
   ) : (
-    <Level key={level.id} p={p} set={set} idx={idx} intro={idx === 0} />
+    <FlowLevel
+      key={level.id} p={p} set={set} level={level} levels={LEVELS} helper={LEVEL_HELPER[idx]}
+      intro={idx === 0 ? PUZZLE_INTRO : null}
+      onPass={(used) => set((o) => ({ ...o, level: idx + 1, cages: Math.max(0, o.cages - used), cards: o.cards.includes('head') ? o.cards : [...o.cards, 'head'] }))}
+      passLabel={idx < LEVELS.length - 1 ? '下一關' : '完成導水'}
+    />
   );
 }
 
-function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> & { idx: number; intro: boolean }) {
-  const level = LEVELS[idx];
+export interface FlowLevelProps extends Pick<StepProps, 'p' | 'set'> {
+  level: LevelDef;
+  levels: readonly LevelDef[]; // 上面的關卡小圓點
+  helper: Who; // 失敗後誰來提示
+  intro: readonly Line[] | null;
+  onPass: (cagesUsed: number) => void;
+  passLabel: string;
+  extra?: React.ReactNode; // 疊在畫面上的東西（洪水關的紙條）
+}
+
+// 一個導水關卡：拖竹蛇籠、轉方向、挖圳道、放水
+export function FlowLevel({ p, set, level, levels, helper, intro: introLines, onPass, passLabel, extra }: FlowLevelProps) {
+  const idx = levels.indexOf(level);
   const host = useRef<HTMLDivElement>(null);
   const [pieces, setPieces] = useState<Piece[]>([]);
   const [canals, setCanals] = useState<Cell[]>([]);
@@ -60,9 +77,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null);
   const [run, setRun] = useState<Run | null>(null);
   const [fails, setFails] = useState(0);
-  const [intro, setIntro] = useState(showIntro);
-  const [brief, setBrief] = useState(false); // 關卡說明收起來，只留標題（手機畫面小）
-  useEffect(() => setBrief(false), [idx]);
+  const [intro, setIntro] = useState(introLines !== null);
   const [topped, setTopped] = useState(false);
 
   const avail = Math.min(level.cages, p.cages);
@@ -97,7 +112,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
       startDrag({ kind: 'move', id: piece.id, x0: e.clientX, y0: e.clientY, moved: false });
       return true;
     },
-  }, [idx]);
+  }, [level.id]);
 
   const marks: Mark[] = fails >= HINT_AT
     ? [...level.solution.cages.map((s) => ({ kind: 'cage' as const, cell: s.cell, dir: s.dir })), ...level.solution.canals.map((cell) => ({ kind: 'dig' as const, cell }))]
@@ -132,7 +147,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
     return () => clearTimeout(id);
   }, [run]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const edit = (fn: () => void) => { setRun(null); setBrief(true); fn(); };
+  const edit = (fn: () => void) => { setRun(null); fn(); };
 
   function canDrop(c: Cell | null, d: Drag): c is Cell {
     if (!c || !canPlace(level, c)) return false;
@@ -205,16 +220,15 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
     setRun({ result: simulate(level, sol, level.solution.canals), t: 0, done: false });
   };
 
-  const pass = () => {
-    set((o) => ({ ...o, level: idx + 1, cages: Math.max(0, o.cages - pieces.length), cards: o.cards.includes('head') ? o.cards : [...o.cards, 'head'] }));
-  };
+  const pass = () => onPass(pieces.length);
 
   const remaining = avail - pieces.length;
   const running = run !== null && !run.done;
   const result = run?.done ? verdict(run.result, level.need) : null;
-  const lin = topped ? '竹蛇籠不夠用，我幫你補做好了。'
-    : fails >= DEMO_AT ? '我做一次給你看：按「看示範」。'
-    : fails >= HINT_AT ? '白色的是我的提示：竹蛇籠放在白框裡、箭頭照白色箭頭，白色的格子就是要挖的圳道。'
+  const say: Line | null = topped ? { who: 'lin', text: '竹蛇籠不夠用，我幫你補做好了。' }
+    : fails >= DEMO_AT ? { who: 'lin', text: '我做一次給你看：按「看示範」。' }
+    : fails >= HINT_AT ? { who: helper, text: '我畫了白色的記號，照著放放看？' }
+    : fails >= 1 ? { who: helper, text: level.hint }
     : null;
 
   return (
@@ -222,10 +236,10 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
       <div className="board puzzle" ref={host} />
 
       <div className="levels">
-        {LEVELS.map((lv, i) => (
+        {levels.length > 1 && levels.map((lv, i) => (
           <span key={lv.id} className={`lv ${i === idx ? 'on' : i < idx ? 'past' : ''}`}>{lv.id}</span>
         ))}
-        <button className={`hint ${brief ? 'brief' : ''}`} onClick={() => setBrief(!brief)}><b>{level.title}</b>{!brief && level.hint}</button>
+        <span className="hint plain"><b>{level.title}</b></span>
       </div>
 
       <div className="tools">
@@ -236,7 +250,7 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
           <img className="tool-img" src={img('h-undo')} alt="" />拿回
         </button>
         {level.digs > 0 && (
-          <button className={`tool ${digging ? 'on' : ''}`} disabled={running} onClick={() => { setDigging(!digging); setBrief(true); }}>
+          <button className={`tool ${digging ? 'on' : ''}`} disabled={running} onClick={() => setDigging(!digging)}>
             <span className="tool-icon">⛏</span>挖圳道
           </button>
         )}
@@ -266,20 +280,21 @@ function Level({ p, set, idx, intro: showIntro }: Pick<StepProps, 'p' | 'set'> &
         {fails >= DEMO_AT && <button className="btn go demo" disabled={running} onClick={demo}>看示範</button>}
       </div>
 
-      {digging && <div className="mode">挖圳道中：點草地挖一格，再點一次填回去</div>}
-      {!result && <Say line={lin ? { who: 'lin', text: lin } : null} />}
+      {digging && <div className="mode">⛏ 點草地挖一格，再點一次填回去</div>}
+      {!result && <Say line={say} />}
 
       {result && (
         <div className={`result ${result.ok ? 'ok' : ''}`}>
           <p>{result.text}</p>
-          {result.ok && <button className="btn green" onClick={pass}>{idx < LEVELS.length - 1 ? '下一關' : '完成導水'}</button>}
+          {result.ok && <button className="btn green" onClick={pass}>{passLabel}</button>}
           <button className="btn orange" onClick={() => setRun(null)}>{result.ok ? '再看一次' : '再試一次'}</button>
         </div>
       )}
 
       {contours && <Legend />}
       {ghost && <img className="ghost" src={img('g-cage-full')} alt="" style={{ left: ghost.x, top: ghost.y }} />}
-      {intro && <Talk lines={PUZZLE_INTRO} onDone={() => setIntro(false)} />}
+      {extra}
+      {intro && introLines && <Talk lines={introLines} onDone={() => setIntro(false)} />}
       <div className="fps">每秒 {fps} 格</div>
     </div>
   );

@@ -64,7 +64,7 @@ export function TeacherPage() {
   const exportCsv = () => {
     if (!rows) return;
     const head = ['暱稱', '玩到', '過關', '星星', '竹蛇籠被沖壞', ...QUESTIONS.map((_, i) => `想一想 ${i + 1}`), '圖鑑', '最後遊玩'];
-    const body = rows.map((r) => [r.nickname, r.step === null ? '還沒開始' : STEPS[Math.min(5, r.step)], r.done ? '是' : '', r.stars ?? '', r.broken,
+    const body = rows.map((r) => [r.nickname, r.step === null ? '還沒開始' : STEPS[Math.min(6, r.step)], r.done ? '是' : '', r.stars ?? '', r.broken,
       ...QUESTIONS.map((q, i) => (r.answers[i] === undefined || r.answers[i] < 0 ? '' : r.answers[i] === q.answer ? '對' : `錯（選${'ABC'[r.answers[i]]}）`)),
       `${r.cards}/${CARD_ORDER.length}`, when(r.updated_at)]);
     const url = URL.createObjectURL(new Blob([toCsv(head, body)], { type: 'text/csv' }));
@@ -127,7 +127,7 @@ export function TeacherPage() {
                   {rows.map((r) => (
                     <tr key={r.student_id} className={r.step === null ? 'idle' : ''}>
                       <td>{r.nickname}</td>
-                      <td>{r.step === null ? '還沒開始' : r.done ? '過關' : STEPS[Math.min(5, r.step)]}</td>
+                      <td>{r.step === null ? '還沒開始' : r.done ? '過關' : STEPS[Math.min(6, r.step)]}</td>
                       <td className="tp-st">{r.done ? '★'.repeat(r.stars ?? 0) + '☆'.repeat(3 - (r.stars ?? 0)) : ''}</td>
                       <td>{r.step === null ? '' : r.broken}</td>
                       {QUESTIONS.map((q, i) => {

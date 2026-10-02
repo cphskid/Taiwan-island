@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { simulate, solved, canDig, canPlace, type Ground } from './flow';
 import { parseHeights } from './terrain';
 import { place, type Dir, type Piece } from './pieces';
-import { LEVELS } from '../data/babao-levels';
+import { FLOOD, LEVELS } from '../data/babao-levels';
 import type { Cell } from './iso';
 
 // 小地圖：右邊一條河（col 3），圳頭在 (2,0)
@@ -78,7 +78,7 @@ describe('水流引擎', () => {
 });
 
 describe('八堡圳三個小關', () => {
-  for (const lv of LEVELS) {
+  for (const lv of [...LEVELS, FLOOD]) {
     it(`${lv.title}：照解法會過，什麼都不做不會過`, () => {
       expect(solved(simulate(lv, [], []), lv.need)).toBe(false);
       const sol = cages(lv.solution.cages);
@@ -113,5 +113,28 @@ describe('八堡圳三個小關', () => {
     expect(late.blocked.length).toBeGreaterThan(0);
     const r = simulate(lv, cages([{ cell: { col: 12, row: 1 }, dir: 3 }]), []);
     expect(r.broken).toHaveLength(1);
+  });
+});
+
+describe('洪水大謎題', () => {
+  it('三道水全部搶進來，圳道滿出來淹田；留一道給溪才過', () => {
+    const all = simulate(FLOOD, cages(LEVELS[2].solution.cages), FLOOD.solution.canals);
+    expect(all.delivered).toBe(6);
+    expect(all.overflow).toBe(true);
+    expect(solved(all, FLOOD.need)).toBe(false);
+    const ok = simulate(FLOOD, cages(FLOOD.solution.cages), FLOOD.solution.canals);
+    expect(ok.overflow).toBe(false);
+    expect(ok.delivered).toBe(4);
+  });
+
+  it('只引一道水不夠', () => {
+    const one = simulate(FLOOD, cages([{ cell: { col: 11, row: 3 }, dir: 2 }]), FLOOD.solution.canals);
+    expect(one.delivered).toBe(2);
+    expect(solved(one, FLOOD.need)).toBe(false);
+  });
+
+  it('沒有容量的關卡不會滿出來', () => {
+    const r = simulate(LEVELS[2], cages(LEVELS[2].solution.cages), LEVELS[2].solution.canals);
+    expect(r.overflow).toBe(false);
   });
 });

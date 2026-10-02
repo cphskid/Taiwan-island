@@ -4,11 +4,13 @@
 
 import { keyFor } from './owner';
 
-export const STEPS = ['開場', '認識地形', '做竹蛇籠', '導水', '分水', '豐收'] as const;
-export type Step = 0 | 1 | 2 | 3 | 4 | 5;
+export const STEPS = ['開場', '認識地形', '做竹蛇籠', '導水', '分水', '洪水', '豐收'] as const;
+export type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export const LAST: Step = 6;
 
 export interface Progress {
   v: 1;
+  ver: 2; // 2026-10-02 加了「洪水」一步（舊存檔 ver 沒有＝豐收在第 5 步）
   step: Step; // 目前在第幾步
   reached: Step; // 玩到過最遠的一步
   revealed: string[]; // 撥開雲霧的格子 "col,row"
@@ -23,6 +25,10 @@ export interface Progress {
   answers: number[]; // 反思題選了哪一個（-1 還沒答）
   stars: number;
   done: boolean;
+  note: boolean; // 撿到神秘旅人的紙條了
+  flood: boolean; // 洪水大謎題過了
+  friends: string[]; // 這章交到的時光朋友（給樂園護照用）
+  keepsakes: string[]; // 拿到的信物
 }
 
 export const CAGES_NEEDED = 6; // 三小關 1＋2＋3
@@ -30,8 +36,9 @@ export const CAGE_COST = { bamboo: 1, stone: 2 };
 
 export function fresh(): Progress {
   return {
-    v: 1, step: 0, reached: 0, revealed: [], found: [], cards: [], taken: [],
+    v: 1, ver: 2, step: 0, reached: 0, revealed: [], found: [], cards: [], taken: [],
     bamboo: 0, stone: 0, cages: 0, level: 0, broken: 0, answers: [], stars: 0, done: false,
+    note: false, flood: false, friends: [], keepsakes: [],
   };
 }
 
@@ -43,10 +50,22 @@ export function load(store: Pick<Storage, 'getItem'> | undefined = globalThis.lo
     if (!raw) return fresh();
     const p = JSON.parse(raw) as Partial<Progress>;
     if (p.v !== 1) return fresh();
-    return { ...fresh(), ...p };
+    return migrate(p);
   } catch {
     return fresh();
   }
+}
+
+// 舊存檔（只有六步）：豐收從第 5 步搬到第 6 步；已經玩完的直接算到最後
+export function migrate(p: Partial<Progress>): Progress {
+  const out = { ...fresh(), ...p, ver: 2 as const };
+  if (p.ver !== 2) {
+    const up = (s: number | undefined) => ((s ?? 0) >= 5 ? 6 : s ?? 0) as Step;
+    out.step = up(p.step);
+    out.reached = up(p.reached);
+    if (p.done) { out.step = LAST; out.reached = LAST; out.flood = true; }
+  }
+  return out;
 }
 
 export function save(p: Progress, store: Pick<Storage, 'setItem'> | undefined = globalThis.localStorage) {

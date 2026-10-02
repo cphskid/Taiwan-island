@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { goTo, load, save, STEPS, type Progress, type Step } from '../core/save';
+import { goTo, LAST, load, save, STEPS, type Progress, type Step } from '../core/save';
 import { Opening } from './steps/Opening';
 import { Explore } from './steps/Explore';
 import { Craft } from './steps/Craft';
 import { Puzzle } from './steps/Puzzle';
 import { ShareStep } from './steps/ShareStep';
+import { Flood } from './steps/Flood';
 import { Finale } from './steps/Finale';
 import { Album } from './Album';
 import { CARD_ORDER } from '../data/babao-chapter';
@@ -12,8 +13,8 @@ import { awardStamp, pushCloud } from '../net/cloud';
 import { ambience, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
 
-// 關卡裡不放音樂，只放環境音：田野、溪邊；分水那一步照季節自己換，豐收放短曲
-const AMB = ['SE-61', 'SE-61', 'SE-61', 'SE-62', null, null] as const;
+// 關卡裡不放音樂，只放環境音：田野、溪邊；分水那一步照季節自己換，洪水是雨聲，豐收放短曲
+const AMB = ['SE-61', 'SE-61', 'SE-61', 'SE-62', null, 'SE-76', null] as const;
 
 export interface StepProps {
   p: Progress;
@@ -22,14 +23,14 @@ export interface StepProps {
   exit: () => void; // 回全台大地圖
 }
 
-// 第五章「八堡圳」：步驟 0～5 串起來，進度存在這台平板。
+// 第五章「八堡圳」：步驟 0～6 串起來，進度存在這台平板。
 // 網址加 ?step=3 可以直接跳到某一步（測試用）。
 export function Chapter({ onExit, album }: { onExit: () => void; album: readonly string[] }) {
   const [book, setBook] = useState(false);
   const [p, setP] = useState<Progress>(() => {
     const saved = load();
     const jump = Number(new URLSearchParams(location.search).get('step'));
-    return jump >= 0 && jump <= 5 && location.search.includes('step=') ? goTo(saved, jump as Step) : saved;
+    return jump >= 0 && jump <= LAST && location.search.includes('step=') ? goTo(saved, jump as Step) : saved;
   });
   useEffect(() => { save(p); pushCloud('ch5', p); }, [p]);
   useEffect(() => { if (p.done) void awardStamp('ch5'); }, [p.done]);
@@ -37,7 +38,7 @@ export function Chapter({ onExit, album }: { onExit: () => void; album: readonly
   useEffect(() => { if (p.step !== 4) ambience(AMB[p.step]); }, [p.step]);
 
   const set = (fn: (p: Progress) => Progress) => setP((old) => fn(old));
-  const next = () => setP((old) => goTo(old, Math.min(5, old.step + 1) as Step));
+  const next = () => setP((old) => goTo(old, Math.min(LAST, old.step + 1) as Step));
   const have = new Set([...album, ...p.cards]);
   const props: StepProps = { p, set, next, exit: onExit };
 
@@ -64,7 +65,8 @@ export function Chapter({ onExit, album }: { onExit: () => void; album: readonly
         {p.step === 2 && <Craft {...props} />}
         {p.step === 3 && <Puzzle {...props} />}
         {p.step === 4 && <ShareStep {...props} />}
-        {p.step === 5 && <Finale {...props} />}
+        {p.step === 5 && <Flood {...props} />}
+        {p.step === 6 && <Finale {...props} />}
       </div>
       {book && <Album have={[...have]} onClose={() => setBook(false)} />}
     </div>

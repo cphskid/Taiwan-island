@@ -35,4 +35,20 @@ describe('本機存檔', () => {
     expect(starsOf({ ...fresh(), answers: [0, 1] }, [0, 1])).toBe(3);
     expect(starsOf({ ...fresh(), broken: 1, answers: [0, 2] }, [0, 1])).toBe(1);
   });
+
+  it('舊存檔（六步）：豐收搬到第 6 步，玩完的算到最後', () => {
+    const s = memory();
+    s.setItem('island.ch5.v1', JSON.stringify({ v: 1, step: 5, reached: 5, done: false }));
+    expect(load(s)).toMatchObject({ ver: 2, step: 6, reached: 6 });
+    s.setItem('island.ch5.v1', JSON.stringify({ v: 1, step: 3, reached: 4 }));
+    expect(load(s)).toMatchObject({ step: 3, reached: 4, friends: [] });
+    s.setItem('island.ch5.v1', JSON.stringify({ v: 1, step: 2, reached: 5, done: true }));
+    expect(load(s)).toMatchObject({ step: 6, reached: 6, flood: true });
+  });
+
+  it('新存檔不會再搬一次', () => {
+    const s = memory();
+    save({ ...fresh(), step: 5, reached: 5 }, s);
+    expect(load(s).step).toBe(5);
+  });
 });

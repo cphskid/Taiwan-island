@@ -15,7 +15,7 @@ describe('老師細節頁統計', () => {
   const r = classReport(rows, [0, 1, 2], [3, 3, 3]);
   it('人數', () => {
     expect(r).toMatchObject({ total: 4, played: 3, done: 2, notStarted: 1, avgStars: 2 });
-    expect(r.steps).toEqual([0, 0, 0, 1, 0, 0]);
+    expect(r.steps).toEqual([0, 0, 0, 1, 0, 0, 0]);
   });
   it('每題答對幾個、錯的人最常選哪個', () => {
     expect(r.questions[0]).toEqual({ answered: 2, right: 1, picks: [1, 1, 0], commonWrong: 1 });

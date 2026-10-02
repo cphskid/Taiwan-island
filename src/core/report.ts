@@ -18,8 +18,8 @@ export interface QuestionStat { answered: number; right: number; picks: number[]
 export function classReport(rows: readonly DetailRow[], answers: readonly number[], options: readonly number[]) {
   const played = rows.filter((r) => r.step !== null);
   const done = rows.filter((r) => r.done);
-  const steps = [0, 0, 0, 0, 0, 0];
-  for (const r of played) if (!r.done) steps[Math.max(0, Math.min(5, r.step ?? 0))] += 1;
+  const steps = [0, 0, 0, 0, 0, 0, 0];
+  for (const r of played) if (!r.done) steps[Math.max(0, Math.min(6, r.step ?? 0))] += 1;
   const questions: QuestionStat[] = answers.map((right, qi) => {
     const picks = Array.from({ length: options[qi] }, () => 0);
     let answered = 0, ok = 0;

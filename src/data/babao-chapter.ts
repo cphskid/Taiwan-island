@@ -58,17 +58,17 @@ export const QUAN: Cell = { col: 9, row: 8 };
 export const key = (c: Cell) => `${c.col},${c.row}`;
 
 // 圖鑑卡（P6-5）：這一章 12 張，分人物、地點、物品、知識四類。
-// 文字照國小社會五年級（康軒版）清領時期水利開發的內容寫，每張附公開可查的出處；上正式站前請社會科老師審。
+// 文字照國小社會五年級下學期（康軒版）清帝國時期水利開發的內容寫，每張附公開可查的出處；上正式站前請社會科老師審。
 // 巴布薩族的文字與圖要另外找人審（見規劃書）。
 export type CardKind = '人物' | '地點' | '物品' | '知識';
 export interface Card { id: string; title: string; kind: CardKind; text: string; img?: string; source: string }
 const SRC = {
-  textbook: '國小社會五年級（康軒版）〈清領時期的開發〉水利建設',
+  textbook: '國小社會五年級下學期（康軒版）〈清帝國時期臺灣的發展與改變〉水利開發',
   encyclo: '文化部《臺灣大百科全書》「八堡圳」條',
   water: '農業部農田水利署彰化管理處〈八堡圳〉簡介',
   river: '經濟部水利署第四河川分署〈濁水溪〉流域介紹',
   pingpu: '原住民族委員會〈平埔族群〉介紹；國立臺灣史前文化博物館',
-  map: '國小社會五年級（康軒版）〈認識地形圖〉等高線與分層設色',
+  map: '國小社會四年級〈地形圖〉分層設色；等高線是遊戲裡的延伸',
 };
 export const CARDS: Record<string, Card> = {
   shi: { id: 'shi', title: '施世榜', kind: '人物', img: 'island/shi.webp', source: `${SRC.encyclo}；${SRC.textbook}`,
@@ -111,65 +111,114 @@ export const PLACES: Place[] = [
 ];
 
 // 對話
-export type Who = 'tick' | 'shi' | 'lin' | 'babuza' | 'zhang' | 'quan';
-export interface Line { who: Who; text: string; mood?: 'wave' | 'happy' | 'thinking' | 'worried' }
-export const PEOPLE: Record<Who, { name: string; img?: string; badge?: string; color: string }> = {
+// 阿蓮（漳州莊女孩）、阿穆（巴布薩族少年）是這一章的夥伴：一人知道一半線索、有心願也有怕的事，
+// 分水時會跟你意見不同，最後送你信物。兩人都是虛構角色；阿穆的名字、穿著和說法上正式站前要找人審。
+// 夥伴的正式圖（F-01、F-02）還沒到，先借現有的圖；到了以後在 moods 裡放各表情。
+export type Who = 'tick' | 'shi' | 'lin' | 'babuza' | 'zhang' | 'quan' | 'lian' | 'mu' | 'traveler';
+export type Mood = 'wave' | 'happy' | 'thinking' | 'worried';
+export interface Line { who: Who; text: string; mood?: Mood }
+export const PEOPLE: Record<Who, { name: string; img?: string; moods?: Partial<Record<Mood, string>>; badge?: string; color: string }> = {
   tick: { name: '滴答', color: '#ffc23d' },
   shi: { name: '施世榜', img: 'island/shi.webp', color: '#8a5429' },
   lin: { name: '林先生', img: 'island/lin.webp', color: '#4aa834' },
   babuza: { name: '巴布薩族社眾', img: 'island/babuza.webp', color: '#b9894f' },
   zhang: { name: '漳州莊莊民', img: 'people/P-08_1.webp', color: '#3b6fd1' },
   quan: { name: '泉州莊莊民', img: 'people/P-02_6.webp', color: '#f07f1d' },
+  lian: { name: '阿蓮', img: 'people/P-02_1.webp', color: '#d9467a' }, // 佔位圖，等 F-01
+  mu: { name: '阿穆', img: 'island/babuza.webp', color: '#9a5a2a' }, // 佔位圖，等 F-02
+  traveler: { name: '？？？', badge: '？', color: '#4a4f63' }, // 戴斗笠的神秘旅人，臉一直看不到
 };
 
+// 時間卡住：齒輪掉在哪個時代，那裡就一直重複同一天
+export const LOOP_DAY = 37;
 export const OPENING: Line[] = [
-  { who: 'tick', mood: 'wave', text: '見習生，歡迎來到 1709 年的彰化平原！我的第五顆時之齒輪，就掉在這附近。' },
-  { who: 'tick', mood: 'worried', text: '可是你看，田都乾得裂開了……大家好像遇到麻煩了。' },
-  { who: 'shi', text: '我是施世榜。這片平原的土很肥，可是一到旱季就沒有水，稻子種不起來。我想從濁水溪開一條圳，把水引到平原上。' },
-  { who: 'babuza', text: '我們巴布薩族很早就住在這片平原上。開圳會經過我們生活的地方，請先跟我們好好商量。' },
-  { who: 'zhang', text: '我們漳州莊有 6 塊田，最需要水了！' },
-  { who: 'quan', text: '我們泉州莊雖然只有 4 塊田，也一樣需要水啊！' },
-  { who: 'tick', mood: 'thinking', text: '水只有一條溪，大家都需要。見習生，我們一起幫忙吧！' },
+  { who: 'tick', mood: 'worried', text: `公雞又叫了……見習生，這已經是第 ${LOOP_DAY} 次同一個早上。` },
+  { who: 'tick', mood: 'thinking', text: '我的第五顆齒輪掉在 1709 年的彰化平原。齒輪不回來，這裡的時間就卡在大家最頭痛的這一天。' },
+  { who: 'shi', text: '我是施世榜。我想從濁水溪開一條圳，讓平原旱季也有水。可是圳頭一做好，就被大水沖垮。' },
+  { who: 'lian', text: '我叫阿蓮，住在漳州莊。阿嬤說，好想在冬天前吃一碗新米煮的飯……可是田都裂開了。' },
+  { who: 'mu', text: '我是阿穆，巴布薩族的。這條溪什麼時候漲、什麼時候退，我閉著眼睛都知道。' },
+  { who: 'mu', text: '你們要開圳，要先問過我們。溪是大家的，不能把水全部拿走。' },
+  { who: 'lian', text: '我知道田要多少水，阿穆知道溪。可是……我很怕大水。' },
+  { who: 'tick', mood: 'happy', text: '一個懂田、一個懂溪，再加上你。我們三個一起，讓時間往前走吧！' },
 ];
-export const MISSIONS = ['把濁水溪的水引進圳道', '讓兩個莊的田都豐收', '弄懂為什麼要這樣做'];
+// 開場最後的「時光朋友」卡：一人一句心願、一句怕的事
+export const FRIENDS: { who: Who; from: string; wish: string; fear: string }[] = [
+  { who: 'lian', from: '漳州莊', wish: '讓阿嬤吃到新米', fear: '怕大水' },
+  { who: 'mu', from: '巴布薩族', wish: '溪裡一直有魚', fear: '怕溪被搶光' },
+];
+export const GOAL = '讓旱季也有水，時間才會往前走';
 
 export const EXPLORE_INTRO: Line[] = [
-  { who: 'tick', mood: 'thinking', text: '雲霧把地圖蓋住了。點一下雲霧就能撥開，找出五個地方：濁水溪、平原、漳州莊、泉州莊、巴布薩族的社。' },
+  { who: 'lian', text: '雲霧好濃，連我都認不得路了。點一點雲霧，找出溪、平原、兩個莊和阿穆的社。' },
 ];
 export const HIGHEST_ASK: Line[] = [
-  { who: 'tick', mood: 'happy', text: '五個地方都找到了！現在打開右邊的「地形眼鏡」，看看哪裡最高。' },
-  { who: 'tick', mood: 'thinking', text: '找到以後，在地圖上點一下最高的地方。' },
+  { who: 'mu', text: '我阿公說：水都是從最高的地方來的。' },
+  { who: 'tick', mood: 'thinking', text: '戴上地形眼鏡看看，點一下最高的地方！' },
 ];
 
 export const CRAFT_INTRO: Line[] = [
-  { who: 'lin', text: '我是林先生。要把濁水溪的大水引進圳道，不能硬擋，要用竹蛇籠把水「導」過去。' },
-  { who: 'lin', text: '去竹林砍竹子、到溪邊撿石頭。一個竹蛇籠要 1 根竹子、2 顆石頭，總共要做 6 個。大石堆有 4 顆，小石堆只有 2 顆。' },
-  { who: 'lin', text: '石頭不多，要省著用喔！' },
+  { who: 'lin', text: '我姓林。大水不能硬擋，要用竹蛇籠把水「導」過去。一個籠子要 1 根竹子、2 顆石頭，做 6 個。' },
+  { who: 'mu', text: '石頭在溪邊。溪水退了才撿得到；漲起來的時候，千萬別靠近！' },
+  { who: 'lian', text: '我、我在岸上幫你看水……' },
 ];
 
 export const PUZZLE_INTRO: Line[] = [
-  { who: 'lin', text: '竹蛇籠上有一個金色箭頭：箭頭指哪裡，水就往哪裡轉。' },
-  { who: 'lin', text: '把竹蛇籠拖進河裡，按「旋轉」讓箭頭對準圳頭。放下前會先看到白點畫的預計水路，再按「放水」。' },
+  { who: 'lian', text: '你看，籠子上有金色箭頭。箭頭指哪裡，水會不會就往哪裡轉？' },
 ];
+// 導水每一關失敗後，誰來說那一關的提示
+export const LEVEL_HELPER: Who[] = ['lian', 'mu', 'mu'];
 
 export const SHARE_INTRO: Line[] = [
-  { who: 'lin', text: '水引進來了！圳道在分水閘分成兩條，一條去漳州莊、一條去泉州莊。' },
-  { who: 'lin', text: '拉閘板決定兩邊開多大。水太少田會乾，太多會淹。讓 10 塊田都綠起來，還要撐過季節變化。' },
+  { who: 'lian', text: '水來了！先給漳州莊吧，我們田最多，阿嬤在等新米！' },
+  { who: 'mu', text: '慢著。全部開進圳道，溪就乾了。我們社裡的人要在溪邊捕魚、取水。' },
+  { who: 'quan', text: '泉州莊也有 4 塊田啊！' },
+  { who: 'tick', mood: 'thinking', text: '田要顧，溪也要顧。拉閘板試試看。' },
 ];
-export const SHARE_HINT = '漳州莊 6 塊田、泉州莊 4 塊田。田多的那邊要多分一點水，不一定是兩邊一樣多。';
+export const SHARE_HINT: Line = { who: 'mu', text: '田多的那邊多分一點，不一定兩邊一樣多。可是溪裡一定要留水。' };
+export const SHARE_RIVER: Line = { who: 'mu', text: '溪快乾了！魚都擠在小水窪裡，關小一點！' };
+
+// 洪水大謎題
+export const FLOOD_INTRO: Line[] = [
+  { who: 'tick', mood: 'worried', text: '颱風來了！溪水一下子漲好高！' },
+  { who: 'mu', text: '這種水我看過。整條溪都灌進圳道的話，圳會撐破的。' },
+  { who: 'lian', text: '水、水好大……我不敢看。' },
+];
+// 神秘旅人留在竹蛇籠上的紙條（伏筆：七張拼起來是一張地圖；旅人其實是長大的你）
+export const NOTE = { text: '大水不要全部搶，留一條給溪。', sign: '戴斗笠的旅人' };
+export const NOTE_AFTER: Line[] = [
+  { who: 'tick', mood: 'thinking', text: '這是誰留的？這個字……我好像在哪裡看過。' },
+  { who: 'lian', text: '紙的背面畫了一小塊地圖耶。' },
+];
+export const FLOOD_PASS: Line[] = [
+  { who: 'mu', text: '圳沒有破，溪裡也還有水。你剛剛留的那一條，救了我們的魚。' },
+  { who: 'lian', text: '我……剛剛一直睜著眼睛，沒有躲起來！' },
+];
+
+// 豐收：齒輪回來、時間往前走；夥伴道別看你怎麼玩
+export const HARVEST: Line[] = [
+  { who: 'tick', mood: 'happy', text: '公雞叫了，可是今天是新的一天！時間往前走了！' },
+  { who: 'lian', text: '稻子黃了！阿嬤吃到新米了，她說是她吃過最香的一碗。' },
+];
+export const FAREWELL = {
+  careful: { who: 'mu', text: '你一個竹蛇籠都沒弄壞，比我阿公還會看水。' } as Line,
+  bumpy: { who: 'mu', text: '籠子壞了幾個也沒關係，你每次都有再試一次。' } as Line,
+  keep: { who: 'lian', text: '這片竹片是從第一個竹蛇籠上拆下來的，給你。以後看到它，要記得我喔。' } as Line,
+};
+export const KEEPSAKE = { id: 'bamboo-strip', title: '綁紅線的竹片', text: '阿蓮從第一個竹蛇籠上拆下來送你的竹片。很久很久以後，好像會有人認得它……' };
 
 // 真的是這樣嗎？
 export const TRUTH = {
   title: '真的是這樣嗎？',
-  game: '遊戲裡，你一個人一下子就把圳道挖好了，兩個莊也很快就談好怎麼分水。',
+  game: '遊戲裡，你和阿蓮、阿穆一下子就把圳道挖好了，大家也很快就談好怎麼分水。阿蓮和阿穆是遊戲裡的角色，歷史上沒有記錄這兩個人。',
   real: '真實的八堡圳，是施世榜從 1709 年開始，找了很多人一起挖，前後大約花了十年才完成。開圳的地方本來就有巴布薩族人在生活，水要怎麼分，也常常要一次又一次地商量。',
   source: `${SRC.encyclo}；${SRC.textbook}`,
 };
 
 // 反思題（P6-5）：每題對到一張圖鑑卡，答完可以回圖鑑看
-export interface Question { q: string; options: string[]; answer: number; why: string; card: string }
+export interface Question { who: Who; q: string; options: string[]; answer: number; why: string; card: string }
 export const QUESTIONS: Question[] = [
   {
+    who: 'mu',
     q: '圳道為什麼要沿著等高線，慢慢往低的地方挖？',
     options: ['因為水只會往一樣高或更低的地方流', '因為這樣挖比較快', '因為等高線上的土比較軟'],
     answer: 0,
@@ -177,6 +226,7 @@ export const QUESTIONS: Question[] = [
     card: 'head',
   },
   {
+    who: 'lian',
     q: '為什麼用竹蛇籠「導」水，比正面「擋」水好？',
     options: ['竹子比石頭還硬', '斜斜地把水導走，大水比較不會把籠子整個沖壞', '擋水可以讓水流得比較快'],
     answer: 1,
@@ -184,6 +234,7 @@ export const QUESTIONS: Question[] = [
     card: 'cage',
   },
   {
+    who: 'lian',
     q: '漳州莊 6 塊田、泉州莊 4 塊田，怎麼分水比較公平？',
     options: ['兩邊分一樣多', '先挖到圳道的先用', '照田的多少分，田多的多分一點'],
     answer: 2,

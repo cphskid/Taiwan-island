@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { goodRange, perField, setGate, startShare, stateOf, tick, type Share } from './share';
+import { goodRange, perField, riverOk, setGate, startShare, stateOf, tick, type Share } from './share';
 
 const run = (s: Share, sec: number) => {
   for (let t = 0; t < sec; t += 0.1) s = tick(s, 0.1);
@@ -48,7 +48,7 @@ describe('分水協商', () => {
     expect(s.fails).toBe(1);
     s = run(s, 3);
     expect(s.fails).toBe(1); // 同一個設定只算一次
-    s = setGate(setGate(s, 'zhang', 60), 'quan', 40);
+    s = setGate(setGate(s, 'zhang', 55), 'quan', 35);
     s = run(s, 12);
     expect(s.season).toBe('rain');
     s = run(s, 5);
@@ -56,5 +56,22 @@ describe('分水協商', () => {
     s = setGate(setGate(s, 'zhang', 40), 'quan', 25);
     s = run(s, 25);
     expect(s.done).toBe(true);
+  });
+});
+
+describe('溪裡要留水', () => {
+  it('旱季 6:4 全開，田都綠可是溪乾了；55%／35% 三邊都顧到', () => {
+    expect(riverOk('dry', { zhang: 60, quan: 40 })).toBe(false);
+    expect(riverOk('dry', { zhang: 55, quan: 35 })).toBe(true);
+    const p = perField('dry', { zhang: 55, quan: 35 });
+    expect(stateOf(p.zhang)).toBe('ok');
+    expect(stateOf(p.quan)).toBe('ok');
+  });
+
+  it('溪乾了不算過：田全綠也撐不住', () => {
+    let s = setGate(setGate(startShare(), 'zhang', 60), 'quan', 40);
+    s = run(s, 15);
+    expect(s.season).toBe('dry');
+    expect(s.fails).toBe(1);
   });
 });

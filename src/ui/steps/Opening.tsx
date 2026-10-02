@@ -1,29 +1,48 @@
 import { useState } from 'react';
-import { CARDS, MISSIONS, OPENING, img } from '../../data/babao-chapter';
-import { CardPop, Talk } from '../Talk';
+import { CARDS, FRIENDS, GOAL, LOOP_DAY, OPENING, PEOPLE, img } from '../../data/babao-chapter';
+import { CardPop, Face, Talk } from '../Talk';
 import type { StepProps } from '../Chapter';
+import { sfx } from '../../audio';
 
-const BASE = import.meta.env.BASE_URL;
+type Phase = 'loop' | 'talk' | 'friends';
 
-// 步驟 0 開場：滴答帶你穿越到溪邊，大家輪流說難處，最後彈出任務板
+// 步驟 0 開場：同一個早上重來第 37 次（時間卡住）→ 認識施世榜和兩位夥伴 → 時光朋友卡
 export function Opening({ p, set, next }: StepProps) {
-  const [board, setBoard] = useState(false);
+  const [phase, setPhase] = useState<Phase>('loop');
   const [card, setCard] = useState(false);
   const talked = () => {
-    setBoard(true);
+    setPhase('friends');
     if (!p.cards.includes('shi')) { set((o) => ({ ...o, cards: [...o.cards, 'shi'] })); setCard(true); }
   };
   return (
     <div className="scene opening">
       <img className="scene-bg" src={img('S-01')} alt="" />
-      {!board && <Talk lines={OPENING} onDone={talked} />}
+      {phase === 'loop' && (
+        <button className="loop-day" onClick={() => { sfx('SE-09'); setPhase('talk'); }}>
+          <span className="loop-rooster">喔喔喔——</span>
+          <b>同一個早上</b>
+          <strong>第 {LOOP_DAY} 次</strong>
+          <span className="talk-next">點一下 ▶</span>
+        </button>
+      )}
+      {phase === 'talk' && <Talk lines={OPENING} onDone={talked} />}
       {card && <CardPop title={CARDS.shi.title} text={CARDS.shi.text} onClose={() => setCard(false)} />}
-      {board && (
+      {phase === 'friends' && !card && (
         <div className="talk-cover">
-          <div className="mission panel">
-            <img src={`${BASE}img/tick/happy.webp`} alt="" />
-            <h2>任務板</h2>
-            <ol>{MISSIONS.map((m) => <li key={m}>{m}</li>)}</ol>
+          <div className="mission panel friends">
+            <h2>時光朋友</h2>
+            <div className="friend-row">
+              {FRIENDS.map((f) => (
+                <div key={f.who} className="friend">
+                  <Face who={f.who} />
+                  <b style={{ color: PEOPLE[f.who].color }}>{PEOPLE[f.who].name}</b>
+                  <small>{f.from}</small>
+                  <span>💛 {f.wish}</span>
+                  <span>💦 {f.fear}</span>
+                </div>
+              ))}
+            </div>
+            <p className="goal"><img src={img('gear')} alt="" />{GOAL}</p>
             <button className="btn green" onClick={next}>出發！</button>
           </div>
         </div>

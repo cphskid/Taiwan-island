@@ -57,7 +57,7 @@ export function Explore({ p, set, next }: StepProps) {
           setSay(null);
           set((old) => ({ ...old, cards: [...old.cards, 'contour'] }));
           setPop((q) => [...q, 'contour']);
-        } else setSay('還有更高的地方。顏色越褐的地方越高，往地圖上方找找看。');
+        } else setSay('那裡還不夠高。溪水是從哪一邊流下來的？');
       }
     },
   }, []);
@@ -86,7 +86,7 @@ export function Explore({ p, set, next }: StepProps) {
         </button>
       </div>
       {contours && <Legend />}
-      <Say line={say ? { who: 'tick', mood: 'thinking', text: say } : allFound && !done && !ask ? { who: 'tick', mood: 'thinking', text: '打開地形眼鏡，點一下最高的地方。' } : null} />
+      <Say line={say ? { who: 'mu', text: say } : allFound && !done && !ask ? { who: 'mu', text: '水都是從最高的地方來的。' } : null} />
       {done && !card && (
         <div className="next-bar"><span>地形都認識了！</span><button className="btn green" onClick={next}>下一步：做竹蛇籠</button></div>
       )}

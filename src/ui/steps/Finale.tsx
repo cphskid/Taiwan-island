@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react';
-import { CARDS, QUESTIONS, TRUTH, img } from '../../data/babao-chapter';
+import { CARDS, FAREWELL, HARVEST, KEEPSAKE, PEOPLE, QUESTIONS, TRUTH, img } from '../../data/babao-chapter';
+import { Face, Talk } from '../Talk';
 import { fresh, starsOf } from '../../core/save';
 import { PARK_URL } from '../../net/park';
 import type { StepProps } from '../Chapter';
 import { ambience, jingle, sfx } from '../../audio';
 
 const BASE = import.meta.env.BASE_URL;
-type Phase = 'harvest' | 'truth' | 'quiz' | 'stars';
+type Phase = 'talk' | 'harvest' | 'farewell' | 'keepsake' | 'truth' | 'quiz' | 'stars';
+const FRIENDS = ['lian', 'mu'];
 
-// 步驟 5 結算：豐收、拿到時之齒輪、「真的是這樣嗎？」卡、反思題、星星
+// 步驟 6 結算：時間往前走、豐收拿回齒輪、夥伴道別送信物、「真的是這樣嗎？」卡、夥伴問反思題、星星
 export function Finale({ p, set, exit }: StepProps) {
-  const [phase, setPhase] = useState<Phase>(p.done ? 'stars' : 'harvest');
+  const [phase, setPhase] = useState<Phase>(p.done ? 'stars' : 'talk');
   const [qi, setQi] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const q = QUESTIONS[qi];
-  useEffect(() => { ambience(phase === 'quiz' || phase === 'truth' ? 'SE-61' : null); if (phase === 'harvest') jingle('MU-17'); }, [phase]);
+  useEffect(() => { ambience(phase === 'quiz' || phase === 'truth' ? 'SE-61' : null); if (phase === 'talk') jingle('MU-17'); }, [phase]);
 
   const answer = (i: number) => {
     if (picked !== null) return;
@@ -40,15 +42,40 @@ export function Finale({ p, set, exit }: StepProps) {
     <div className="scene finale">
       <img className="scene-bg" src={img('S-03')} alt="" />
 
+      {phase === 'talk' && <Talk lines={HARVEST} onDone={() => setPhase('harvest')} />}
       {phase === 'harvest' && (
         <div className="talk-cover">
           <div className="panel mission">
             <img className="gear" src={img('gear')} alt="" />
             <h2>大豐收！</h2>
-            <p>漳州莊和泉州莊的稻子都變成金黃色了。<br />滴答拿回了第五顆時之齒輪！</p>
+            <p>漳州莊和泉州莊的稻子都變成金黃色了。<br />卡住的時間往前走，滴答拿回了第五顆時之齒輪！</p>
             <p className="grows">拿到圖鑑卡「八堡圳」：{CARDS.babao.text}</p>
             <img src={`${BASE}img/tick/happy.webp`} alt="" />
-            <button className="btn green" onClick={() => { set((o) => (o.cards.includes('babao') ? o : { ...o, cards: [...o.cards, 'babao'] })); setPhase('truth'); }}>繼續</button>
+            <button className="btn green" onClick={() => { set((o) => (o.cards.includes('babao') ? o : { ...o, cards: [...o.cards, 'babao'] })); setPhase('farewell'); }}>繼續</button>
+          </div>
+        </div>
+      )}
+
+      {phase === 'farewell' && (
+        <Talk lines={[p.broken === 0 ? FAREWELL.careful : FAREWELL.bumpy, FAREWELL.keep]} onDone={() => {
+          sfx('SE-36');
+          set((o) => ({ ...o, keepsakes: o.keepsakes.includes(KEEPSAKE.id) ? o.keepsakes : [...o.keepsakes, KEEPSAKE.id], friends: [...o.friends, ...FRIENDS.filter((f) => !o.friends.includes(f))] }));
+          setPhase('keepsake');
+        }} />
+      )}
+
+      {phase === 'keepsake' && (
+        <div className="talk-cover">
+          <div className="panel mission keepsake">
+            <small>拿到信物</small>
+            <div className="bamboo-strip" aria-hidden><i /></div>
+            <h2>{KEEPSAKE.title}</h2>
+            <p>{KEEPSAKE.text}</p>
+            <div className="friend-row">
+              {FRIENDS.map((f) => <div key={f} className="friend mini"><Face who={f as 'lian'} small /><b style={{ color: PEOPLE[f as 'lian'].color }}>{PEOPLE[f as 'lian'].name}</b></div>)}
+            </div>
+            <p className="grows">阿蓮和阿穆成為你的時光朋友了！</p>
+            <button className="btn green" onClick={() => setPhase('truth')}>繼續</button>
           </div>
         </div>
       )}
@@ -69,7 +96,7 @@ export function Finale({ p, set, exit }: StepProps) {
         <div className="talk-cover">
           <div className="panel quiz">
             <small>想一想（{qi + 1} / {QUESTIONS.length}）</small>
-            <h3>{q.q}</h3>
+            <div className="quiz-ask"><Face who={q.who} small /><h3><b style={{ color: PEOPLE[q.who].color }}>{PEOPLE[q.who].name}：</b>{q.q}</h3></div>
             {q.options.map((o, i) => (
               <button
                 key={o}
@@ -98,10 +125,11 @@ export function Finale({ p, set, exit }: StepProps) {
               <li className={p.broken === 0 ? 'on' : ''}>竹蛇籠一個都沒被沖壞{p.broken ? `（壞了 ${p.broken} 個）` : ''}</li>
               <li className={QUESTIONS.every((x, i) => p.answers[i] === x.answer) ? 'on' : ''}>想一想全部答對</li>
             </ul>
+            {p.keepsakes.includes(KEEPSAKE.id) && <p className="cards-got">信物：{KEEPSAKE.title}　時光朋友：阿蓮、阿穆</p>}
             <p className="cards-got">圖鑑卡：{p.cards.map((c) => CARDS[c]?.title).filter(Boolean).join('、')}</p>
             <div className="row">
               <button className="btn green" onClick={exit}>回大地圖看看</button>
-              <button className="btn orange" onClick={() => set(() => ({ ...fresh() }))}>從頭再玩</button>
+              <button className="btn orange" onClick={() => set((o) => ({ ...fresh(), friends: o.friends, keepsakes: o.keepsakes, note: o.note }))}>從頭再玩</button>
               {PARK_URL && <a className="btn orange" href={PARK_URL}>回樂園</a>}
             </div>
           </div>

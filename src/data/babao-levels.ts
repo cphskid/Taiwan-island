@@ -15,7 +15,7 @@ import type { Dir } from '../core/pieces';
 export interface Level extends Ground {
   id: number;
   title: string;
-  hint: string; // 林先生的一句提示
+  hint: string; // 失敗之後夥伴說的一句提示（一開始不顯示說明）
   cages: number; // 這關最多放幾個竹蛇籠
   digs: number; // 這關最多挖幾格圳道（人力有限）
   need: number; // 要有多少水量流到分水閘
@@ -26,7 +26,7 @@ const KEY: Record<string, Kind> = {
   r: 'river', g: 'grass', c: 'canal', t: 'gate', x: 'rock', f: 'field', b: 'bamboo', s: 'stone', v: 'village',
 };
 
-function level(def: Omit<Level, keyof Ground> & { volume: number; map: string[]; heights: string[] }): Level {
+function level(def: Omit<Level, keyof Ground> & { volume: number; cap?: number; map: string[]; heights: string[] }): Level {
   const { map, heights, volume, ...rest } = def;
   const lanes: Cell[] = [];
   for (let col = 0; col < map[0].length; col++) if (map[0][col] === 'r') lanes.push({ col, row: 0 });
@@ -44,11 +44,36 @@ function level(def: Omit<Level, keyof Ground> & { volume: number; map: string[];
 const c = (col: number, row: number): Cell => ({ col, row });
 const path = (s: string): Cell[] => s.split(' ').map((p) => { const [a, b] = p.split(',').map(Number); return c(a, b); });
 
+const L3_MAP = [
+  'bbggggsggggrrr',
+  'bgggggggggsrrr',
+  'gggggggggggrrr',
+  'gggggfgggggrxr',
+  'ffgggfggvggrrr',
+  'ffgggggggggxrr',
+  'gggvgggggggrrr',
+  'tggggggsgggrrr',
+  'ffggggggggbrrr',
+  'ffgggvggggbrrr',
+];
+const L3_HEIGHTS = [
+  '33444555555444',
+  '33344455555444',
+  '23334445555444',
+  '22333444444444',
+  '22233334433444',
+  '12223333433334',
+  '11222332333333',
+  '11122222233333',
+  '01111222223333',
+  '00111122222333',
+];
+
 export const LEVELS: Level[] = [
   level({
     id: 1,
     title: '第一關：轉個彎',
-    hint: '竹蛇籠上的金色箭頭指哪裡，水就往哪裡轉。把竹蛇籠放進河裡、按旋轉，讓箭頭對準圳頭。',
+    hint: '竹蛇籠上的金色箭頭指哪裡，水就往哪裡轉。',
     cages: 2, digs: 0, need: 1, volume: 1,
     map: [
       'bbgggggggggffr',
@@ -79,7 +104,7 @@ export const LEVELS: Level[] = [
   level({
     id: 2,
     title: '第二關：沿著等高線挖',
-    hint: '兩道水都要引進來才夠。圳道只能往一樣高或更低的地方挖，直直挖過去會掉進低窪地。打開地形眼鏡找路，最多挖 18 格。',
+    hint: '水不會往高處爬。戴上地形眼鏡，沿著同一條線挖。',
     cages: 3, digs: 18, need: 2, volume: 1,
     map: [
       'gbbggggggggfrr',
@@ -112,36 +137,29 @@ export const LEVELS: Level[] = [
   }),
   level({
     id: 3,
-    title: '第三關：大水來了',
-    hint: '水更大了，三道水都要引進來。河裡有大石頭會把水擋住；正面硬擋的竹蛇籠會被沖壞。一個接一個把水往圳頭那邊導，最多挖 16 格。',
+    title: '第三關：水更大了',
+    hint: '大石頭會擋水，正面硬擋的籠子會被沖壞。一個接一個往旁邊導。',
     cages: 3, digs: 16, need: 6, volume: 2,
-    map: [
-      'bbggggsggggrrr',
-      'bgggggggggsrrr',
-      'gggggggggggrrr',
-      'gggggfgggggrxr',
-      'ffgggfggvggrrr',
-      'ffgggggggggxrr',
-      'gggvgggggggrrr',
-      'tggggggsgggrrr',
-      'ffggggggggbrrr',
-      'ffgggvggggbrrr',
-    ],
-    heights: [
-      '33444555555444',
-      '33344455555444',
-      '23334445555444',
-      '22333444444444',
-      '22233334433444',
-      '12223333433334',
-      '11222332333333',
-      '11122222233333',
-      '01111222223333',
-      '00111122222333',
-    ],
+    map: L3_MAP,
+    heights: L3_HEIGHTS,
     solution: {
       cages: [{ cell: c(13, 1), dir: 2 }, { cell: c(12, 1), dir: 2 }, { cell: c(11, 3), dir: 2 }],
       canals: path('10,3 9,3 8,3 7,3 7,4 7,5 6,5 6,6 6,7 5,7 4,7 3,7 2,7 1,7'),
     },
   }),
 ];
+
+// 第五步「洪水來了」大謎題：跟第三關一樣的地形，可是颱風來了水很大，圳道只裝得下 4 份。
+// 三道水全部搶進來（6 份）圳道會滿出來淹田；要留一道給溪（巴布薩族的人也要用水）。
+export const FLOOD: Level = level({
+  id: 4,
+  title: '洪水來了',
+  hint: '大水不要全部搶進來，留一條給溪。',
+  cages: 3, digs: 16, need: 4, volume: 2, cap: 4,
+  map: L3_MAP,
+  heights: L3_HEIGHTS,
+  solution: {
+    cages: [{ cell: c(12, 1), dir: 2 }, { cell: c(11, 3), dir: 2 }],
+    canals: path('10,3 9,3 8,3 7,3 7,4 7,5 6,5 6,6 6,7 5,7 4,7 3,7 2,7 1,7'),
+  },
+});

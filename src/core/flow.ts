@@ -8,6 +8,7 @@
 // 5. 被轉到一般的地上（不是河、不是圳道）就是淹到不該淹的地方。
 // 6. 進了圳道，水沿著挖好的圳道往一樣高或更低的格子擴散；比上一格高的地方水就停住。
 // 7. 每道水流有水量；流到分水閘的水量加起來夠了（need）才算過關，大水要把幾道水流都導進來。
+// 8. 圳道有容量（cap）的話，流進分水閘的水超過容量，圳道就滿出來淹掉（洪水關：要留一些水給溪）。
 //
 // simulate() 一次算出整條水路和每一格水「幾步之後到」，step 動畫只是讓時間往前走。
 
@@ -26,6 +27,7 @@ export interface Ground {
   heights: Heights;
   flow: Dir; // 河往哪個方向流
   lanes: Lane[];
+  cap?: number; // 圳道最多裝多少水，超過就滿出來（沒有就不限）
 }
 
 export interface Wet { cell: Cell; t: number } // 第 t 步水到這格
@@ -38,6 +40,7 @@ export interface FlowResult {
   blocked: Wet[]; // 水被正面擋住停下來的地方
   gates: Cell[]; // 有水到的分水閘（目標）
   delivered: number; // 流到分水閘的水量
+  overflow: boolean; // 水太多，圳道滿出來了
   steps: number; // 全部流完要幾步
 }
 
@@ -60,7 +63,7 @@ export const canPlace = (g: Ground, c: Cell) => inside(c, g.cols, g.rows) && g.k
 export function simulate(g: Ground, pieces: readonly Piece[], canals: readonly Cell[]): FlowResult {
   const kind = kindWith(g, canals);
   const h = g.heights;
-  const out: FlowResult = { river: [], canal: [], broken: [], flooded: [], blocked: [], gates: [], delivered: 0, steps: 0 };
+  const out: FlowResult = { river: [], canal: [], broken: [], flooded: [], blocked: [], gates: [], delivered: 0, overflow: false, steps: 0 };
   const brokenIds = new Set<number>();
   const inflow: (Wet & { volume: number })[] = []; // 水從哪一格、第幾步、多少水量進圳道
   const seenRiver = new Map<string, number>();
@@ -142,6 +145,13 @@ export function simulate(g: Ground, pieces: readonly Piece[], canals: readonly C
   for (const k of gates) {
     const [col, row] = k.split(',').map(Number);
     out.gates.push({ col, row });
+  }
+
+  // 圳道裝不下：分水閘那裡滿出來，淹到旁邊
+  if (g.cap !== undefined && out.delivered > g.cap) {
+    out.overflow = true;
+    const last = Math.max(0, ...out.canal.map((w) => w.t));
+    for (const cell of out.gates) mark(out.flooded, cell, last);
   }
 
   out.steps = Math.max(0, ...[out.river, out.canal, out.broken, out.flooded, out.blocked].flat().map((w) => w.t));
