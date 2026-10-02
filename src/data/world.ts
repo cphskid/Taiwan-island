@@ -84,7 +84,7 @@ export const PADDIES: Pt[] = [
 ];
 
 // 會動的小人和動物。path 來回走；at 是站著做事的地方
-export type ActorKind = 'farmer' | 'carrier' | 'worker' | 'buffalo' | 'hen' | 'dog';
+export type ActorKind = 'farmer' | 'carrier' | 'worker' | 'buffalo' | 'hen' | 'dog' | 'hoer' | 'porter' | 'woman' | 'lian' | 'magpie';
 export interface ActorDef {
   kind: ActorKind;
   path?: Pt[];
@@ -104,17 +104,55 @@ export const ACTORS: ActorDef[] = [
   { kind: 'dog', path: [{ x: 412, y: 612 }, { x: 470, y: 620 }, { x: 530, y: 640 }], speed: 18, who: '小狗', says: '汪！汪！', lod: 3 },
   { kind: 'hen', path: [{ x: 386, y: 610 }, { x: 402, y: 616 }], speed: 4, who: '母雞', says: '咯咯咯～', lod: 3 },
   { kind: 'hen', path: [{ x: 540, y: 655 }, { x: 556, y: 660 }], speed: 4, who: '母雞', says: '咯咯咯～', lod: 3 },
+  { kind: 'lian', at: { x: 352, y: 630 }, who: '阿蓮', says: '今年冬天，阿嬤終於吃到新米煮的飯了！我在幫忙插秧喔。', lod: 0 },
+  { kind: 'hoer', at: { x: 494, y: 606 }, who: '翻土的阿伯', says: '有圳水，土就鬆鬆軟軟的，一鋤頭下去好輕鬆。', lod: 1 },
+  { kind: 'porter', path: [{ x: 414, y: 616 }, { x: 452, y: 636 }, { x: 500, y: 650 }, { x: 522, y: 654 }], speed: 7, who: '挑擔的莊民', says: '把漳州莊的菜挑去泉州莊換鹽，兩個莊現在常常走動。', lod: 1 },
+  { kind: 'woman', path: [{ x: 550, y: 654 }, { x: 590, y: 656 }, { x: 628, y: 638 }, { x: 656, y: 626 }], speed: 6, who: '提籃子的阿姆', says: '我去圳頭的土地公廟拜拜，謝謝今年風調雨順。', lod: 2 },
+  { kind: 'magpie', path: [{ x: 300, y: 566 }, { x: 420, y: 572 }, { x: 560, y: 580 }, { x: 720, y: 590 }], speed: 26, who: '臺灣藍鵲', says: '嘎嘎！（田裡有水、有蟲，鳥也飛回來了。）', lod: 2 },
 ];
 
 // 每種角色用哪幾張圖（public/img/island/），以及在地圖上多高（原圖像素）
-export const ACTOR_ART: Record<ActorKind, { walk: string[]; idle: string; work?: Record<'plant' | 'harvest', string>; height: number }> = {
+// loop：站在原地反覆做的動作（翻土、插秧）；fly：在天上飛，上下輕輕飄
+export const ACTOR_ART: Record<ActorKind, { walk: string[]; idle: string; work?: Record<'plant' | 'harvest', string>; loop?: string[]; fly?: boolean; height: number }> = {
   farmer: { walk: ['farmer-2', 'farmer-3', 'farmer-4', 'farmer-3'], idle: 'farmer-1', height: 17 },
   worker: { walk: ['farmer-2', 'farmer-3'], idle: 'farmer-1', work: { plant: 'farmer-5', harvest: 'farmer-6' }, height: 17 },
   carrier: { walk: ['farmer-7'], idle: 'farmer-7', height: 17 },
   buffalo: { walk: ['buffalo-2', 'buffalo-3'], idle: 'buffalo-4', height: 15 },
   dog: { walk: ['dog-2', 'dog-3'], idle: 'dog-4', height: 9 },
   hen: { walk: ['hen-2', 'hen-3'], idle: 'hen-4', height: 7 },
+  hoer: { walk: ['p8-2', 'p8-3'], idle: 'p8-1', loop: ['p8-1', 'p8-5'], height: 19 },
+  porter: { walk: ['p8-6'], idle: 'p8-6', height: 19 },
+  woman: { walk: ['p2-2', 'p2-3'], idle: 'p2-4', height: 16 },
+  lian: { walk: ['lian-2', 'lian-3'], idle: 'lian-1', loop: ['lian-5', 'lian-5', 'lian-1'], height: 15 },
+  magpie: { walk: ['magpie-4', 'magpie-5'], idle: 'magpie-6', fly: true, height: 9 },
 };
+
+// 聚落周圍的樹、竹林、蘆葦，圳頭的攔水堰（O-04、O-02）。flip＝左右翻過來，看起來不會一模一樣
+export const SCENERY: { name: string; at: Pt; width: number; flip?: boolean }[] = [
+  { name: 'weir', at: { x: 694, y: 632 }, width: 26 },
+  { name: 'tree', at: { x: 372, y: 590 }, width: 20 },
+  { name: 'tree', at: { x: 428, y: 588 }, width: 17, flip: true },
+  { name: 'tree', at: { x: 314, y: 606 }, width: 18 },
+  { name: 'tree', at: { x: 510, y: 660 }, width: 18, flip: true },
+  { name: 'tree', at: { x: 562, y: 662 }, width: 20 },
+  { name: 'tree', at: { x: 690, y: 602 }, width: 18, flip: true },
+  { name: 'tree', at: { x: 618, y: 658 }, width: 16 },
+  { name: 'o4-bamboo', at: { x: 302, y: 588 }, width: 20 },
+  { name: 'o4-bamboo', at: { x: 358, y: 580 }, width: 16, flip: true },
+  { name: 'reeds', at: { x: 470, y: 664 }, width: 18 },
+  { name: 'reeds', at: { x: 640, y: 664 }, width: 16, flip: true },
+  { name: 'reeds', at: { x: 726, y: 640 }, width: 16 },
+];
+
+// 炊煙：每個聚落屋頂上冒出來的煙
+export const SMOKE: Pt[] = [{ x: 390, y: 582 }, { x: 410, y: 586 }, { x: 526, y: 630 }, { x: 542, y: 634 }, { x: 330, y: 582 }];
+
+// 莊和莊之間走出來的土路（T-02 泥土貼圖）
+export const ROADS: Pt[][] = [
+  [{ x: 336, y: 606 }, { x: 366, y: 612 }, { x: 392, y: 614 }],
+  [{ x: 410, y: 616 }, { x: 452, y: 636 }, { x: 500, y: 650 }, { x: 522, y: 654 }],
+  [{ x: 548, y: 654 }, { x: 590, y: 656 }, { x: 628, y: 638 }, { x: 664, y: 622 }],
+];
 
 // 季節：一輪 80 秒，秧苗 → 綠稻 → 金黃 → 收割
 export const SEASON_SECONDS = 80;
