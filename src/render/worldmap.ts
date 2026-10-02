@@ -99,7 +99,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
 
   const names = new Set<string>(['m01', 'm01-relief', 'rift', 'badge-canal', 't2-water', 't2-dirt', 'smoke', 'm2-paddy-green', 'm2-paddy-gold']);
   for (const d of SCENERY) names.add(d.name);
-  for (const b of BUILDINGS) names.add(`m2-${b.name}`);
+  for (const b of BUILDINGS) names.add(b.name);
   for (const a of Object.values(ACTOR_ART)) {
     for (const f of [...a.walk, a.idle, ...Object.values(a.work ?? {}), ...(a.loop ?? [])]) names.add(f);
   }
@@ -260,7 +260,8 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     return { green, gold };
   });
   for (const b of BUILDINGS) {
-    const sp = put(`m2-${b.name}`, b.at, b.width);
+    const sp = put(b.name, b.at, b.width);
+    if (b.flip) sp.scale.x *= -1;
     grow.push({ sp, k: sp.scale.x, delay: 0.1 + grow.length * 0.08 });
   }
   for (const d of SCENERY) {

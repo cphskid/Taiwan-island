@@ -71,12 +71,19 @@ export const CANAL: Pt[][] = [
   [{ x: 560, y: 618 }, { x: 552, y: 628 }, { x: 540, y: 638 }],
 ];
 
-export type SpriteName = 'zhang' | 'quan' | 'tribe' | 'shrine';
-export const BUILDINGS: { name: SpriteName; at: Pt; width: number }[] = [
-  { name: 'tribe', at: { x: 330, y: 596 }, width: 44 },
-  { name: 'zhang', at: { x: 398, y: 600 }, width: 50 },
-  { name: 'quan', at: { x: 532, y: 648 }, width: 48 },
-  { name: 'shrine', at: { x: 668, y: 612 }, width: 30 },
+// 聚落：W-01 不帶底座的房子一棟一棟排成村子（漳州莊在左、泉州莊在右下），巴布薩族社還是 M-02 的圖
+export const BUILDINGS: { name: string; at: Pt; width: number; flip?: boolean }[] = [
+  { name: 'm2-tribe', at: { x: 330, y: 596 }, width: 44 },
+  { name: 'w1-7', at: { x: 398, y: 586 }, width: 30 },
+  { name: 'w1-4', at: { x: 372, y: 603 }, width: 30 },
+  { name: 'w1-1', at: { x: 400, y: 600 }, width: 30 },
+  { name: 'w1-2', at: { x: 424, y: 607 }, width: 21, flip: true },
+  { name: 'w1-1', at: { x: 530, y: 648 }, width: 28, flip: true },
+  { name: 'w1-2', at: { x: 508, y: 654 }, width: 20 },
+  { name: 'w1-3', at: { x: 552, y: 656 }, width: 16 },
+  { name: 'w1-6', at: { x: 588, y: 648 }, width: 19 },
+  { name: 'w1-8', at: { x: 606, y: 653 }, width: 15, flip: true },
+  { name: 'w1-5', at: { x: 668, y: 614 }, width: 12 },
 ];
 // 稻田：隨季節從秧苗、綠稻變成金黃，再收割
 export const PADDIES: Pt[] = [
@@ -84,7 +91,7 @@ export const PADDIES: Pt[] = [
 ];
 
 // 會動的小人和動物。path 來回走；at 是站著做事的地方
-export type ActorKind = 'farmer' | 'carrier' | 'worker' | 'buffalo' | 'hen' | 'dog' | 'hoer' | 'porter' | 'woman' | 'lian' | 'magpie';
+export type ActorKind = 'farmer' | 'carrier' | 'worker' | 'buffalo' | 'hen' | 'dog' | 'hoer' | 'porter' | 'woman' | 'lian' | 'magpie' | 'washer' | 'waterer' | 'kid' | 'duck' | 'swimmer';
 export interface ActorDef {
   kind: ActorKind;
   path?: Pt[];
@@ -108,6 +115,11 @@ export const ACTORS: ActorDef[] = [
   { kind: 'hoer', at: { x: 494, y: 606 }, who: '翻土的阿伯', says: '有圳水，土就鬆鬆軟軟的，一鋤頭下去好輕鬆。', lod: 1 },
   { kind: 'porter', path: [{ x: 414, y: 616 }, { x: 452, y: 636 }, { x: 500, y: 650 }, { x: 522, y: 654 }], speed: 7, who: '挑擔的莊民', says: '把漳州莊的菜挑去泉州莊換鹽，兩個莊現在常常走動。', lod: 1 },
   { kind: 'woman', path: [{ x: 550, y: 654 }, { x: 590, y: 656 }, { x: 628, y: 638 }, { x: 656, y: 626 }], speed: 6, who: '提籃子的阿姆', says: '我去圳頭的土地公廟拜拜，謝謝今年風調雨順。', lod: 2 },
+  { kind: 'washer', at: { x: 470, y: 613 }, who: '在圳邊洗衣服的阿姆', says: '以前要走到濁水溪邊洗，現在圳水就流過莊頭，方便多了。', lod: 0 },
+  { kind: 'waterer', path: [{ x: 556, y: 628 }, { x: 548, y: 638 }, { x: 536, y: 644 }], speed: 5, who: '挑水的阿嬸', says: '挑圳水回家煮飯，再也不用等下雨了。', lod: 1 },
+  { kind: 'kid', path: [{ x: 382, y: 618 }, { x: 410, y: 622 }, { x: 436, y: 628 }], speed: 14, who: '莊裡的小孩', says: '我在追雞！阿爸說今年收成好，過年可以吃甜粿。', lod: 1 },
+  { kind: 'swimmer', path: [{ x: 640, y: 621 }, { x: 600, y: 619 }, { x: 560, y: 617 }], speed: 4, who: '鴨子', says: '呱呱！（有圳水的地方，農家就養得起鴨子。）', lod: 2 },
+  { kind: 'duck', path: [{ x: 516, y: 664 }, { x: 532, y: 668 }], speed: 3, who: '鴨子', says: '呱呱呱～', lod: 3 },
   { kind: 'magpie', path: [{ x: 300, y: 566 }, { x: 420, y: 572 }, { x: 560, y: 580 }, { x: 720, y: 590 }], speed: 26, who: '臺灣藍鵲', says: '嘎嘎！（田裡有水、有蟲，鳥也飛回來了。）', lod: 2 },
 ];
 
@@ -125,6 +137,11 @@ export const ACTOR_ART: Record<ActorKind, { walk: string[]; idle: string; work?:
   woman: { walk: ['p2-2', 'p2-3'], idle: 'p2-4', height: 16 },
   lian: { walk: ['lian-2', 'lian-3'], idle: 'lian-1', loop: ['lian-5', 'lian-5', 'lian-1'], height: 15 },
   magpie: { walk: ['magpie-4', 'magpie-5'], idle: 'magpie-6', fly: true, height: 9 },
+  washer: { walk: ['w3-2', 'w3-3'], idle: 'w3-1', loop: ['w3-5', 'w3-5', 'w3-5', 'w3-4'], height: 16 },
+  waterer: { walk: ['w3-7'], idle: 'w3-7', height: 16 },
+  kid: { walk: ['w4-2', 'w4-3'], idle: 'w4-10', height: 12 },
+  duck: { walk: ['w5-2', 'w5-3'], idle: 'w5-1', height: 6 },
+  swimmer: { walk: ['w5-4'], idle: 'w5-4', height: 5 },
 };
 
 // 聚落周圍的樹、竹林、蘆葦，圳頭的攔水堰（O-04、O-02）。flip＝左右翻過來，看起來不會一模一樣
@@ -133,13 +150,21 @@ export const SCENERY: { name: string; at: Pt; width: number; flip?: boolean }[] 
   { name: 'tree', at: { x: 372, y: 590 }, width: 20 },
   { name: 'tree', at: { x: 428, y: 588 }, width: 17, flip: true },
   { name: 'tree', at: { x: 314, y: 606 }, width: 18 },
-  { name: 'tree', at: { x: 510, y: 660 }, width: 18, flip: true },
-  { name: 'tree', at: { x: 562, y: 662 }, width: 20 },
+  { name: 'tree', at: { x: 570, y: 664 }, width: 18 },
   { name: 'tree', at: { x: 690, y: 602 }, width: 18, flip: true },
   { name: 'tree', at: { x: 618, y: 658 }, width: 16 },
   { name: 'o4-bamboo', at: { x: 302, y: 588 }, width: 20 },
   { name: 'o4-bamboo', at: { x: 358, y: 580 }, width: 16, flip: true },
   { name: 'reeds', at: { x: 470, y: 664 }, width: 18 },
+  { name: 'w2-1', at: { x: 505, y: 632 }, width: 9 },
+  { name: 'w2-1', at: { x: 622, y: 628 }, width: 8, flip: true },
+  { name: 'w2-2', at: { x: 414, y: 594 }, width: 8 },
+  { name: 'w2-3', at: { x: 572, y: 658 }, width: 13 },
+  { name: 'w2-4', at: { x: 548, y: 634 }, width: 11 },
+  { name: 'w2-5', at: { x: 382, y: 614 }, width: 8 },
+  { name: 'w2-6', at: { x: 492, y: 662 }, width: 15 },
+  { name: 'w2-8', at: { x: 360, y: 606 }, width: 10 },
+  { name: 'w2-9', at: { x: 538, y: 660 }, width: 8, flip: true },
   { name: 'reeds', at: { x: 640, y: 664 }, width: 16, flip: true },
   { name: 'reeds', at: { x: 726, y: 640 }, width: 16 },
 ];
