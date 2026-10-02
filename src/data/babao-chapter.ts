@@ -116,7 +116,8 @@ export const PLACES: Place[] = [
 // 夥伴的圖：F-01B、F-02B 表情表（public/img/story/），moods 是每個表情用哪一格。
 export type Who = 'tick' | 'shi' | 'lin' | 'babuza' | 'zhang' | 'quan' | 'lian' | 'mu' | 'traveler'
   | 'yan' | 'potter' | 'jade' | 'smith' | 'arch' // 第一章（data/ch1.ts）
-  | 'ani' | 'elder' | 'hunter' | 'trader'; // 第二章（data/ch2.ts）
+  | 'ani' | 'elder' | 'hunter' | 'trader' // 第二章（data/ch2.ts）
+  | 'xlian' | 'chen' | 'veteran' | 'villager'; // 第四章（data/ch4.ts）
 export type Mood = 'wave' | 'happy' | 'thinking' | 'worried' | 'scared' | 'sad' | 'determined' | 'frown' | 'angry' | 'thumbs' | 'listen' | 'laugh' | 'surprised' | 'shout' | 'me';
 export const TICK_MOODS: readonly Mood[] = ['wave', 'happy', 'thinking', 'worried'];
 export interface Line { who: Who; text: string; mood?: Mood }
@@ -149,6 +150,13 @@ export const PEOPLE: Record<Who, { name: string; img?: string; moods?: Partial<R
   elder: { name: '部落長老', img: 'ch2/p-16-elder.webp', color: '#7a5230' },
   hunter: { name: '獵人叔叔', img: 'ch2/p-16-hunter.webp', color: '#55703a' },
   trader: { name: '外地來的商人', img: 'ch2/p-16-trader.webp', color: '#34508a' },
+  // 第四章：小蓮（虛構的屯田兵女兒，F-07B 表情）、陳永華、老兵、村社的阿姨（P-18；村社的寫法待審）
+  xlian: { name: '小蓮', img: 'ch4/f-07b-happy.webp', color: '#3f63b5', moods: {
+    happy: 'ch4/f-07b-happy.webp', worried: 'ch4/f-07b-worried.webp', scared: 'ch4/f-07b-scared.webp', sad: 'ch4/f-07b-sad.webp',
+    determined: 'ch4/f-07b-determined.webp', frown: 'ch4/f-07b-frown.webp', angry: 'ch4/f-07b-angry.webp', thumbs: 'ch4/f-07b-thumbs.webp' } },
+  chen: { name: '陳永華', img: 'ch4/p-18-chen.webp', color: '#2f4f8f' },
+  veteran: { name: '老兵伯伯', img: 'ch4/p-18-veteran.webp', color: '#7a5a3a' },
+  villager: { name: '村社的阿姨', img: 'ch4/p-18-villager.webp', color: '#3d7a6a' },
 };
 
 // 時間卡住：齒輪掉在哪個時代，那裡就一直重複同一天
