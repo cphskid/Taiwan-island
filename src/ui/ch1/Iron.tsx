@@ -111,27 +111,27 @@ function ForestBoard({ onDone, oops }: { onDone: (deer: boolean) => void; oops: 
               style={{ left: `${colX(row, col) * 100}%`, top: `${ROW_Y[row] * 100}%`, ['--s' as string]: ROW_S[row] }}
               onClick={() => tap(i)} aria-label={t === 'tree' ? '砍樹' : t === 'stump' ? '種樹苗' : '樹苗'}>
               <img src={art(`o-05-${t}`)} alt="" />
-              {cost > 0 && <span className={`steps-badge ${t}`}>{t === 'stump' && '🌱'}{'👣'.repeat(cost)}</span>}
+              {cost > 0 && <span className={`steps-badge ${t}`}>{t === 'stump' && '🌱'}{Array.from({ length: cost }, (_, k) => <i key={k} className="bean" />)}</span>}
             </button>
           );
         })}
         {smelting && <img className="hill-furnace" src={art('o-05-furnace-hot')} alt="" />}
+        {rain && <div className="rainfall" />}
+      </div>
         <div className="iron-hud">
           <div className="seasons">
             {Array.from({ length: FOREST.seasons }, (_, k) => (
               <span key={k} className={k + 1 === f.season ? 'on' : k + 1 < f.season ? 'past' : ''}>第 {k + 1} 季{FOREST.rainAfter.includes(k + 1) ? ' 🌧️' : ''}</span>
             ))}
           </div>
-          <p className="steps-left" title="這一季還能走幾步">
-            {Array.from({ length: FOREST.actions }, (_, k) => <i key={k} className={k < f.left ? 'on' : ''}>👣</i>)}
+          <p className="steps-left" title="這一季還有幾顆體力">
+            <small>體力</small>{Array.from({ length: FOREST.actions }, (_, k) => <i key={k} className={`bean ${k < f.left ? 'on' : ''}`} />)}
           </p>
           <p className="wood-n"><img src={art('o-05-woodpile')} alt="木材" />× <b>{f.wood}</b></p>
           <p className="iron-n">{Array.from({ length: FOREST.iron }, (_, k) => <img key={k} className={k < f.iron ? 'on' : ''} src={art('g-03-knife')} alt="" />)}</p>
           <button className="btn orange" disabled={f.wood < FOREST.woodPerIron || smelting || f.iron >= FOREST.iron} onClick={doSmelt}>🔥 煉一爐（3 份木材）</button>
           <button className="btn green" disabled={!!rain || smelting || f.iron >= FOREST.iron} onClick={endIt}>結束這一季</button>
         </div>
-        {rain && <div className="rainfall" />}
-      </div>
       <Say line={say} />
     </div>
   );
