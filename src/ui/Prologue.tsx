@@ -9,6 +9,7 @@ import type { Line } from '../data/babao-chapter';
 import { Say, Talk } from './Talk';
 import { ambience, jingle, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
+import { Beacon, Goal, compass } from './Guide';
 
 type Phase = 'tower' | 'oops' | 'warp' | 'find' | 'drift' | 'land' | 'village' | 'end';
 const STEP_MS = 380;
@@ -105,7 +106,7 @@ const CHART_NAMES: { k: keyof typeof LANDS; x: number; y: number }[] = [
 ];
 const WIND_SPOTS = [[0.12, 0.62], [0.3, 0.4], [0.32, 0.82], [0.68, 0.55], [0.75, 0.85], [0.62, 0.15], [0.88, 0.45]];
 
-function SeaChart({ lv, boat, wind, trail }: { lv: DriftLevel; boat: Pos; wind: Season | null; trail: Pos[] }) {
+function SeaChart({ lv, boat, wind, trail, spot }: { lv: DriftLevel; boat: Pos; wind: Season | null; trail: Pos[]; spot: boolean }) {
   const at = (p: Pos) => ({ left: `${((p.col + 0.5) / lv.cols) * 100}%`, top: `${((p.row + 0.5) / lv.rows) * 100}%` });
   const flows: { p: Pos; ne: boolean }[] = [];
   let harbor: Pos | null = null;
@@ -126,6 +127,7 @@ function SeaChart({ lv, boat, wind, trail }: { lv: DriftLevel; boat: Pos; wind: 
         {trail.length > 1 && <polyline points={trail.map((p) => `${p.col + 0.5},${p.row + 0.5}`).join(' ')} vectorEffect="non-scaling-stroke" />}
       </svg>
       {harbor && <span className="chart-harbor" style={at(harbor)}>⚓</span>}
+      {harbor && <Beacon style={at(harbor)} label="港口：船停這裡" spot={spot} />}
       <span className="chart-boat" style={at(boat)}>⛵</span>
     </div>
   );
@@ -152,6 +154,7 @@ function Find({ onFound }: { onFound: () => void }) {
             onClick={() => tap(p.k)}><span>？</span></button>
         ))}
       </div>
+      {!intro && <Goal floating text="在海圖上點一下臺灣" />}
       <Say line={say} />
       {intro && <Talk lines={FIND_INTRO} onDone={() => setIntro(false)} />}
     </div>
@@ -232,14 +235,17 @@ function DriftLevelView({ lv, onPass }: { lv: DriftLevel; onPass: () => void }) 
     : fails >= 1 ? { who: 'tick', mood: 'thinking', text: lv.hint }
     : null;
   const busy = anim !== null;
+  const harbor = useMemo(() => { let h: Pos = lv.start; lv.map.forEach((r, row) => { const col = r.indexOf('H'); if (col >= 0) h = { col, row }; }); return h; }, [lv]);
+  const away = compass(harbor.col - boat.col, harbor.row - boat.row);
 
   return (
     <div className="scene sea-scene">
       <div className="levels">
         {DRIFTS.map((d) => <span key={d.id} className={`lv ${d.id === lv.id ? 'on' : d.id < lv.id ? 'past' : ''}`}>{d.id}</span>)}
         <span className="hint plain"><b>{lv.title}</b></span>
+        <Goal text={`轉天氣羅盤、按出航，把 ⛵ 漂到 ⚓ 港口`} />
       </div>
-      <SeaChart lv={lv} boat={boat} wind={season} trail={trail} />
+      <SeaChart lv={lv} boat={boat} wind={season} trail={trail} spot={!intro} />
       <div className="food">🍙 糧食 <b>{lv.legs - legs}</b></div>
       <div className="compass panel">
         <b>天氣羅盤</b>
@@ -260,6 +266,7 @@ function DriftLevelView({ lv, onPass }: { lv: DriftLevel; onPass: () => void }) 
       {result && (
         <div className={`result ${result === 'arrived' ? 'ok' : ''}`}>
           <p>{OUTCOME_TEXT[result]}</p>
+          {result !== 'arrived' && <p className="tip">滴答：⚓ 港口在船的{away}，哪一季的風（或海流）會往那邊走？</p>}
           {result === 'arrived'
             ? <button className="btn green" onClick={onPass}>{lv.id < DRIFTS.length ? '下一關' : '上岸！'}</button>
             : <button className="btn orange" onClick={reset}>再試一次</button>}
@@ -351,6 +358,7 @@ function Land({ showFact, onDone }: { showFact: (f: Fact, then: () => void) => v
           <img className="tool-img" src={isl('h-eye')} alt="" />地形眼鏡
         </button>
       </div>
+      {t && !asking && <Goal floating text={t.goal} />}
       {task === 2 && <div className="season-tag">❄️ 冬天：東北季風</div>}
       {glasses && (
         <div className="legend world-legend">
@@ -387,6 +395,7 @@ function Village({ done, onChosen, onEnd }: { done: boolean; onChosen: () => voi
           </button>
         ))}
       </IslandMap>
+      {!done && !asking && !built && <Goal floating text="點一個 📍，選最適合蓋基地的地方" />}
       {!done && <Say line={say} />}
       {asking && <Talk lines={[VILLAGE_ASK]} onDone={() => setAsking(false)} />}
       {done && <Talk lines={PROLOGUE_END} onDone={onEnd} />}

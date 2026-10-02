@@ -6,6 +6,7 @@ import { CardPop, Say, Talk } from '../Talk';
 import type { Line } from '../../data/babao-chapter';
 import type { StepProps } from '../Chapter';
 import { sfx } from '../../audio';
+import { BoardBeacon, Goal } from '../Guide';
 
 // 溪水一漲一退：退的時候才撿得到溪邊的石頭。阿穆聽得出溪水要漲了，會先提醒。
 const LOW_MS = 6000;
@@ -83,6 +84,10 @@ export function Craft({ p, set, next }: StepProps) {
   }, [short]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const finished = p.cages >= CAGES_NEEDED;
+  // 還沒拿的竹林、石堆各指一處（離鏡頭起點最近的）
+  const near = (pick: (c: { col: number; row: number }) => boolean) => left.filter(pick).sort((a, b) => Math.hypot(a.col - 6, a.row - 3) - Math.hypot(b.col - 6, b.row - 3))[0] ?? null;
+  const nearBamboo = near((c) => CHAPTER.kind(c) === 'bamboo');
+  const nearStone = near((c) => CHAPTER.stones(c) > 0);
   useEffect(() => { if (finished && !p.cards.includes('cage')) { setCard(true); set((o) => ({ ...o, cards: [...o.cards, 'cage'] })); } }, [finished]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const line: Line | null = short ? { who: 'lin', text: '材料不太夠，我這裡還有一些，先拿去用吧！' }
@@ -98,8 +103,11 @@ export function Craft({ p, set, next }: StepProps) {
         <div className={`tide ${tide.high ? 'high' : ''}`}>{tide.high ? '🌊 溪水：漲' : '🪨 溪水：退'}</div>
       )}
       {tide.high && !finished && <div className="tide-wash" />}
+      {!finished && !intro && nearBamboo && p.bamboo < need * CAGE_COST.bamboo && <BoardBeacon board={board} cell={nearBamboo} label="竹林：點這裡砍竹子" small />}
+      {!finished && !intro && nearStone && p.stone < need * CAGE_COST.stone && <BoardBeacon board={board} cell={nearStone} label="石堆：水退時點這裡" small />}
       {splash > 0 && <div className="splash">撲通！</div>}
       <div className="mats">
+        {!finished && <Goal text={canCraft(p) ? '材料夠了！按下面「編竹蛇籠」' : '點竹林砍竹子、溪水退時點石堆撿石頭'} />}
         <span><img src={img('g-bamboo')} alt="" />竹子 <b>{p.bamboo}</b></span>
         <span><img src={img('g-stone')} alt="" />石頭 <b>{p.stone}</b></span>
         <span><img src={img('g-cage-full')} alt="" />竹蛇籠 <b>{p.cages} / {CAGES_NEEDED}</b></span>

@@ -566,6 +566,45 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .island-map>img.base.dim{opacity:.12}
 .island-map>img.relief{opacity:1}
 
+/* 任務引導（Guide.tsx）：目標條、目標標記、聚光、畫面外箭頭 */
+.quest{pointer-events:none;display:inline-flex;align-items:center;gap:6px;background:#2e7d32;color:#fff;border:3px solid #fff;border-radius:999px;padding:4px 14px 4px 8px;font-weight:900;font-size:17px;line-height:1.35;box-shadow:0 3px 10px rgba(0,0,0,.25);max-width:100%}
+.quest i{font-style:normal;font-size:20px}
+.quest span{animation:questin .5s ease-out}
+@keyframes questin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.quest.floating{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:4;max-width:min(620px,calc(100% - 24px))}
+.levels{flex-wrap:wrap}
+.levels .quest{align-self:center}
+.checklist .quest,.mats .quest{flex-basis:100%;justify-content:flex-start}
+.land-scene .season-tag{top:62px}
+.beacon{position:absolute;z-index:3;pointer-events:none;width:0;height:0}
+.beacon.spotting{z-index:5}
+.beacon-ring{position:absolute;left:0;top:0;width:64px;height:64px;translate:-50% -50%;border-radius:50%;border:5px solid #ffe066;box-shadow:0 0 14px #ffe066;animation:ring 1.6s ease-out infinite}
+.beacon-ring.late{animation-delay:.8s}
+@keyframes ring{from{transform:scale(.35);opacity:1}to{transform:scale(1.5);opacity:0}}
+.beacon-flag{position:absolute;left:0;bottom:14px;translate:-50% 0;display:flex;flex-direction:column;align-items:center;animation:bob .55s ease-in-out infinite alternate}
+.beacon-flag span{white-space:nowrap;background:#ffe066;color:#3a2412;border:3px solid #3a2412;border-radius:12px;padding:1px 10px;font-weight:900;font-size:16px;box-shadow:0 3px 8px rgba(0,0,0,.3)}
+.beacon-flag b{color:#ffe066;font-size:26px;line-height:.9;-webkit-text-stroke:2px #3a2412;text-shadow:0 2px 4px rgba(0,0,0,.35)}
+.beacon.small .beacon-flag{bottom:6px}
+.beacon.small .beacon-flag span{background:#fff8e6;font-size:14px;border-width:2px;padding:0 8px}
+.beacon.small .beacon-flag b{font-size:18px;color:#fff8e6}
+.beacon.spotting .beacon-flag span{font-size:22px;padding:4px 14px}
+.beacon-spot{position:absolute;left:0;top:0;width:150px;height:150px;translate:-50% -50%;border-radius:50%;border:4px solid #ffe066;box-shadow:0 0 0 200vmax rgba(10,20,40,.55);animation:spot 2.6s ease-out forwards}
+@keyframes spot{0%{width:900px;height:900px;opacity:0}15%{opacity:1}55%{width:150px;height:150px;opacity:1}100%{width:150px;height:150px;opacity:0}}
+.beacon-edge{position:absolute;left:0;top:0;translate:-50% -50%;display:flex;flex-direction:column;align-items:center;gap:2px}
+.beacon-edge i{font-style:normal;font-size:30px;color:#ffe066;-webkit-text-stroke:2px #3a2412;animation:pulse .6s ease-in-out infinite alternate}
+.beacon-edge span{white-space:nowrap;background:#ffe066;color:#3a2412;border:2px solid #3a2412;border-radius:10px;padding:0 8px;font-weight:900;font-size:14px}
+.result .tip{color:var(--ink);font-size:17px;font-weight:700}
+@media (max-height:600px){
+  .quest{font-size:13px;padding:2px 10px 2px 6px;border-width:2px}
+  .quest i{font-size:15px}
+  .quest.floating{top:6px}
+  .beacon-ring{width:46px;height:46px}
+  .beacon-flag span{font-size:13px}
+  .beacon-flag b{font-size:20px}
+}
+.sea-scene .levels{z-index:4}
+.checklist .quest span{background:none;color:inherit;padding:0;border-radius:0}
+.result{z-index:5}
 /* ── 第一章《島嶼的第一道火光》 ── */
 .ch1 .stage{background:#1d2433}
 .ch1 .scene>.talk-cover,.ch1 .scene>.say{z-index:6}
