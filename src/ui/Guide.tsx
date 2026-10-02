@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
+import React, { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import type { Board } from '../render/board';
 import type { Cell } from '../core/iso';
 
@@ -14,10 +14,34 @@ import type { Cell } from '../core/iso';
 //
 // 標記放在 position:relative 的容器裡（.board-wrap、.art-frame），不擋點擊。
 
+// 目標條只放一行短句：第一個「。」前面那句。後面的規則說明點一下才展開。
+// floating 的目標條 6 秒後自己縮成 🎯 小圓鈕，不擋遊戲畫面；點一下再打開，目標換了也會自己打開。
+const FOLD_MS = 6000;
 export function Goal({ text, floating }: { text: string; floating?: boolean }) {
+  const cut = text.indexOf('。');
+  const short = cut > 0 && cut < text.length - 1 ? text.slice(0, cut) : text.replace(/。$/, '');
+  const more = short.length < text.replace(/。$/, '').length;
+  const [open, setOpen] = useState(false); // 展開完整說明
+  const [folded, setFolded] = useState(false); // 縮成小圓鈕
+  useEffect(() => {
+    setFolded(false);
+    setOpen(false);
+    if (!floating) return;
+    const t = setTimeout(() => setFolded(true), FOLD_MS);
+    return () => clearTimeout(t);
+  }, [text, floating]);
+  const tap = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (folded) { setFolded(false); return; }
+    if (more) setOpen(!open);
+    else if (floating) setFolded(true);
+  };
   return (
-    <div className={`quest ${floating ? 'floating' : ''}`}>
-      <i>🎯</i><span key={text}>{text}</span>
+    <div className={`quest ${floating ? 'floating' : ''} ${folded ? 'folded' : ''} ${open ? 'open' : ''}`} onClick={tap}
+      role="button" aria-label={folded ? '打開目標' : '目標'}>
+      <i>🎯</i>
+      {!folded && <span key={text}>{open ? text : short}</span>}
+      {!folded && more && <em>{open ? '▴' : '說明▾'}</em>}
     </div>
   );
 }

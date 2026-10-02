@@ -568,11 +568,15 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .island-map>img.relief{opacity:1}
 
 /* 任務引導（Guide.tsx）：目標條、目標標記、聚光、畫面外箭頭 */
-.quest{pointer-events:none;display:inline-flex;align-items:center;gap:6px;background:#2e7d32;color:#fff;border:3px solid #fff;border-radius:999px;padding:4px 14px 4px 8px;font-weight:900;font-size:17px;line-height:1.35;box-shadow:0 3px 10px rgba(0,0,0,.25);max-width:100%}
+.quest{pointer-events:auto;cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:#2e7d32;color:#fff;border:3px solid #fff;border-radius:999px;padding:4px 14px 4px 8px;font-weight:900;font-size:17px;line-height:1.35;box-shadow:0 3px 10px rgba(0,0,0,.25);max-width:100%}
 .quest i{font-style:normal;font-size:20px}
-.quest span{animation:questin .5s ease-out}
+.quest span{animation:questin .5s ease-out;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.quest.open span{white-space:normal}
+.quest em{font-style:normal;font-size:13px;background:rgba(255,255,255,.25);border-radius:10px;padding:0 6px;white-space:nowrap;flex:none}
+.quest.folded{padding:4px;border-radius:50%;animation:pulse .9s ease-in-out 2 alternate}
+.quest.folded i{font-size:22px}
 @keyframes questin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-.quest.floating{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:4;max-width:min(620px,calc(100% - 24px))}
+.quest.floating{position:absolute;top:12px;left:50%;translate:-50% 0;z-index:4;max-width:min(560px,calc(100% - 140px))}
 .levels{flex-wrap:wrap}
 .levels .quest{align-self:center}
 .checklist .quest,.mats .quest{flex-basis:100%;justify-content:flex-start}
@@ -969,3 +973,36 @@ img.gear{width:110px;height:110px;object-fit:contain}
   .fire-chain.big li img{width:32px;height:28px}
   .recap{font-size:12px;padding:4px 10px}
 }
+.quest.floating.folded{left:12px;translate:none}
+
+/* 第一章煉鐵：樹種在真的山坡圖上 */
+.hill-wrap{padding:52px 10px 10px}
+.hill{position:relative;width:min(100%,calc((100dvh - 170px) * 1.79));aspect-ratio:1376/768;border-radius:20px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.hill-bg{position:absolute;inset:0;width:100%;height:100%}
+.hill-tree{position:absolute;width:calc(9% * var(--s));aspect-ratio:3/4;translate:-50% -100%;border:0;background:none;padding:0;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;z-index:1;transition:transform .15s}
+.hill-tree.steep{z-index:2}
+.hill-tree::before{content:"";position:absolute;left:15%;right:15%;bottom:-4%;height:16%;border-radius:50%;background:radial-gradient(rgba(40,25,10,.45),transparent 70%)}
+.hill-tree img{position:relative;width:100%;height:100%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 3px 2px rgba(0,0,0,.3))}
+.hill-tree.stump img{height:45%}
+.hill-tree.sapling img{height:55%;cursor:default}
+.hill-tree:hover{transform:translateY(-4px)}
+.hill-tree:active{transform:scale(.92)}
+.hill-tree.slide{animation:shake .12s linear 8}
+.steps-badge{position:absolute;top:-4px;left:50%;translate:-50% 0;font-size:clamp(10px,1.4vw,15px);line-height:1;white-space:nowrap;background:rgba(255,250,235,.92);border:2px solid #b98a4e;border-radius:10px;padding:2px 4px;opacity:0;transition:opacity .15s;pointer-events:none}
+.hill-tree:hover .steps-badge,.hill-tree:focus-visible .steps-badge,.hill-tree.stump .steps-badge{opacity:1}
+.hill-tree.stump .steps-badge{top:auto;bottom:48%}
+@media (hover:none){.steps-badge{opacity:.95}}
+.slope-risk{position:absolute;top:40%;height:36%;width:13%;translate:-50% 0;border-radius:40%;background:radial-gradient(rgba(224,69,44,.45),transparent 70%);animation:blink .7s ease-in-out infinite alternate;pointer-events:none;z-index:1}
+.slope-risk b{position:absolute;left:50%;bottom:-6%;translate:-50% 0;font-size:clamp(16px,2.6vw,30px);text-shadow:0 2px 3px rgba(0,0,0,.4)}
+.mudslide{position:absolute;top:45%;width:14%;height:50%;translate:-50% 0;border-radius:40% 40% 50% 50%;background:linear-gradient(#8a5a2b,#6b4220 70%,rgba(107,66,32,.0));transform-origin:top;animation:mud 1.6s ease-in forwards;z-index:3;pointer-events:none}
+@keyframes mud{from{transform:scaleY(.05);opacity:.4}to{transform:scaleY(1);opacity:.95}}
+.hill-deer{position:absolute;left:60%;top:13%;width:7%;animation:bob 2s ease-in-out infinite;pointer-events:none}
+.hill-furnace{position:absolute;left:87%;top:88%;width:11%;translate:-50% -50%;filter:drop-shadow(0 0 24px rgba(255,140,40,.9));animation:pop .3s}
+.iron-hud{position:absolute;left:1.5%;top:3%;width:max(150px,21%);display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:8px;border-radius:16px;background:rgba(255,248,230,.88);border:3px solid var(--wood-2);text-align:center;z-index:4}
+.iron-hud p{margin:0;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px}
+.iron-hud .steps-left i{font-style:normal;font-size:clamp(14px,1.8vw,22px);opacity:.2;filter:grayscale(1)}
+.iron-hud .steps-left i.on{opacity:1;filter:none}
+.iron-hud .wood-n img{width:34px}
+.iron-hud .iron-n img{width:30px}
+.iron-hud .btn{min-width:0;width:100%;font-size:14px;min-height:36px;padding:4px 6px}
+.hill .rainfall{position:absolute;inset:0;z-index:5}
