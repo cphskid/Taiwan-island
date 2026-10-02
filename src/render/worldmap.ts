@@ -90,6 +90,20 @@ function rng(seed: number) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
 }
 
+// 大地圖一打開就要用的圖（進場進度條也照這份先讀好，見 ui/Island.tsx firstScreenImages）
+function mapImageNames(): Set<string> {
+  const names = new Set<string>(['m01', 'm01-relief', 'rift', 'badge-canal', 't2-water', 't2-dirt', 'smoke', 'm2-paddy-green', 'm2-paddy-gold']);
+  for (const L of Object.values(LIFE)) {
+    for (const d of [...L!.buildings, ...(L!.scenery ?? [])]) names.add(d.name);
+    for (const c of L!.cycles ?? []) for (const f of c.frames) names.add(f);
+  }
+  for (const a of Object.values(ACTOR_ART)) {
+    for (const f of [...a.walk, a.idle, ...Object.values(a.work ?? {}), ...(a.loop ?? [])]) names.add(f);
+  }
+  return names;
+}
+export const mapImageUrls = () => [...[...mapImageNames()].map(isl), MAP.regions];
+
 export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): Promise<WorldMap> {
   const app = new Application();
   await app.init({
@@ -101,14 +115,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   });
   host.appendChild(app.canvas);
 
-  const names = new Set<string>(['m01', 'm01-relief', 'rift', 'badge-canal', 't2-water', 't2-dirt', 'smoke', 'm2-paddy-green', 'm2-paddy-gold']);
-  for (const L of Object.values(LIFE)) {
-    for (const d of [...L!.buildings, ...(L!.scenery ?? [])]) names.add(d.name);
-    for (const c of L!.cycles ?? []) for (const f of c.frames) names.add(f);
-  }
-  for (const a of Object.values(ACTOR_ART)) {
-    for (const f of [...a.walk, a.idle, ...Object.values(a.work ?? {}), ...(a.loop ?? [])]) names.add(f);
-  }
+  const names = mapImageNames();
   const tex: Record<string, Texture> = {};
   const [regions] = await Promise.all([
     loadRegions(),
