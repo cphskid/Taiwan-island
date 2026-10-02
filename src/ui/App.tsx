@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { canEnter, PARK_URL, whoAmI, type Who } from '../net/park';
+import { canEnter, PARK_MAP, PARK_URL, whoAmI, type Who } from '../net/park';
 import { Island } from './Island';
 import { setSaveOwner } from '../core/owner';
 import { load, save } from '../core/save';
@@ -40,7 +40,7 @@ export function App() {
     <div className="app">
       <header className="top">
         {PARK_URL && (
-          <a className="park-btn" href={PARK_URL} title="回樂園">
+          <a className="park-btn" href={PARK_MAP ?? undefined} title="回樂園">
             <img src={`${BASE}img/park.webp`} alt="" />
             <span>回樂園</span>
           </a>

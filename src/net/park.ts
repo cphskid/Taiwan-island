@@ -12,6 +12,8 @@ export const FACILITY = 'island_pioneer';
 const URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const KEY = import.meta.env.VITE_SUPABASE_KEY as string | undefined;
 export const PARK_URL = (import.meta.env.VITE_PARK_URL as string | undefined) ?? null;
+// 「回樂園」連到島嶼地圖（#map），不要回到 Start Game 開場
+export const PARK_MAP = PARK_URL ? `${PARK_URL}#map` : null;
 
 export const db: SupabaseClient | null = URL && KEY
   ? createClient(URL, KEY, { auth: { persistSession: true, autoRefreshToken: true } })

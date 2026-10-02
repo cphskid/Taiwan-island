@@ -1,4 +1,4 @@
-import { PARK_URL } from '../net/park';
+import { PARK_MAP, PARK_URL } from '../net/park';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -11,7 +11,7 @@ export function Gate({ reason, needLogin, onRetry }: { reason: string; needLogin
         <p>{reason}</p>
         <div className="row">
           <button className="btn orange" onClick={onRetry}>再試一次</button>
-          {PARK_URL && <a className="btn green" href={PARK_URL}>{needLogin ? '去樂園登入' : '回樂園'}</a>}
+          {PARK_URL && <a className="btn green" href={PARK_MAP ?? undefined}>{needLogin ? '去樂園登入' : '回樂園'}</a>}
         </div>
       </div>
     </div>

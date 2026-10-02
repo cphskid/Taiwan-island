@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { CARDS, FAREWELL, HARVEST, KEEPSAKE, PEOPLE, QUESTIONS, TRUTH, img } from '../../data/babao-chapter';
 import { Face, Talk } from '../Talk';
 import { fresh, starsOf } from '../../core/save';
-import { PARK_URL } from '../../net/park';
+import { PARK_MAP, PARK_URL } from '../../net/park';
 import type { StepProps } from '../Chapter';
 import { ambience, jingle, sfx } from '../../audio';
 
@@ -130,7 +130,7 @@ export function Finale({ p, set, exit }: StepProps) {
             <div className="row">
               <button className="btn green" onClick={exit}>回大地圖看看</button>
               <button className="btn orange" onClick={() => set((o) => ({ ...fresh(), friends: o.friends, keepsakes: o.keepsakes, note: o.note }))}>從頭再玩</button>
-              {PARK_URL && <a className="btn orange" href={PARK_URL}>回樂園</a>}
+              {PARK_URL && <a className="btn orange" href={PARK_MAP ?? undefined}>回樂園</a>}
             </div>
           </div>
         </div>

@@ -6,9 +6,9 @@
 
 import { Application, Assets, Container, Graphics, Sprite, Text, Texture, TilingSprite } from 'pixi.js';
 import { clampView, fitView, panBy, zoomAt, type View } from '../core/camera';
-import { lodLevel, nearest, paddyLook, seasonAt, walker, type Pt } from '../core/world';
+import { lodLevel, nearest, paddyLook, pointAlong, seasonAt, walker, type Pt } from '../core/world';
 import {
-  ACTOR_ART, ACTORS, BUILDINGS, CANAL, CHAPTERS, MAP, PADDIES, SEASON_SECONDS, isl,
+  ACTOR_ART, ACTORS, BUILDINGS, CANAL, CHAPTERS, MAP, PADDIES, ROADS, SCENERY, SEASON_SECONDS, SMOKE, isl,
   type ActorDef, type ChapterId,
 } from '../data/world';
 
@@ -97,10 +97,11 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   });
   host.appendChild(app.canvas);
 
-  const names = new Set<string>(['m01', 'm01-relief', 'rift', 'badge-canal', 't2-water', 'm2-paddy-green', 'm2-paddy-gold']);
-  for (const b of BUILDINGS) names.add(`m2-${b.name}`);
+  const names = new Set<string>(['m01', 'm01-relief', 'rift', 'badge-canal', 't2-water', 't2-dirt', 'smoke', 'm2-paddy-green', 'm2-paddy-gold']);
+  for (const d of SCENERY) names.add(d.name);
+  for (const b of BUILDINGS) names.add(b.name);
   for (const a of Object.values(ACTOR_ART)) {
-    for (const f of [...a.walk, a.idle, ...Object.values(a.work ?? {})]) names.add(f);
+    for (const f of [...a.walk, a.idle, ...Object.values(a.work ?? {}), ...(a.loop ?? [])]) names.add(f);
   }
   const tex: Record<string, Texture> = {};
   const [regions] = await Promise.all([
@@ -201,21 +202,45 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   };
 
   // ── 彰化平原活起來（第五章過關後）──
-  const canal = new Graphics();
-  for (const line of CANAL) {
-    canal.moveTo(line[0].x, line[0].y);
-    for (const p of line.slice(1)) canal.lineTo(p.x, p.y);
-    canal.stroke({ width: 7, color: 0x8a5a2e, cap: 'round', join: 'round' });
-    canal.moveTo(line[0].x, line[0].y);
-    for (const p of line.slice(1)) canal.lineTo(p.x, p.y);
-    canal.stroke({ width: 4, color: 0x6fc0e0, cap: 'round', join: 'round' });
-  }
-  canal.zIndex = -1000;
+  // 圳道：土堤（T-02 泥土）裡面流著水（T-02 水面，慢慢往下游捲），線條照折線拉成平順的曲線
+  const curve = (g: Graphics, line: readonly Pt[]) => {
+    g.moveTo(line[0].x, line[0].y);
+    for (let i = 1; i < line.length - 1; i++) {
+      const m = { x: (line[i].x + line[i + 1].x) / 2, y: (line[i].y + line[i + 1].y) / 2 };
+      g.quadraticCurveTo(line[i].x, line[i].y, m.x, m.y);
+    }
+    const end = line[line.length - 1];
+    g.lineTo(end.x, end.y);
+  };
+  const strokeMask = (lines: readonly (readonly Pt[])[], width: number) => {
+    const g = new Graphics();
+    for (const line of lines) { curve(g, line); g.stroke({ width, color: 0xffffff, cap: 'round', join: 'round' }); }
+    return g;
+  };
+  const tiled = (name: string, k: number, lines: readonly (readonly Pt[])[], width: number) => {
+    const holder = new Container();
+    const ts = new TilingSprite({ texture: tex[name], width: MAP.width, height: MAP.height });
+    ts.tileScale.set(k);
+    const m = strokeMask(lines, width);
+    ts.mask = m;
+    holder.addChild(ts, m);
+    return { holder, ts };
+  };
+  const roads = tiled('t2-dirt', 0.03, ROADS, 3.2);
+  roads.holder.alpha = 0.75;
+  roads.holder.zIndex = -1100;
+  const bank = tiled('t2-dirt', 0.035, CANAL, 8.5);
+  bank.holder.zIndex = -1000;
+  const water = tiled('t2-water', 0.05, CANAL, 5);
+  water.holder.zIndex = -999;
+  const shine = new Graphics();
+  for (const line of CANAL) { curve(shine, line); shine.stroke({ width: 1.2, color: 0xffffff, alpha: 0.28, cap: 'round', join: 'round' }); }
+  shine.zIndex = -998;
   const flow = new Graphics();
-  flow.zIndex = -999;
+  flow.zIndex = -997;
   const lifeCh5 = new Container();
   lifeCh5.sortableChildren = true;
-  lifeCh5.addChild(canal, flow);
+  lifeCh5.addChild(roads.holder, bank.holder, water.holder, shine, flow);
   life.addChild(lifeCh5);
   const put = (name: string, at: Pt, width: number, anchorY = 0.7) => {
     const sp = new Sprite(tex[name]);
@@ -235,9 +260,23 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     return { green, gold };
   });
   for (const b of BUILDINGS) {
-    const sp = put(`m2-${b.name}`, b.at, b.width);
+    const sp = put(b.name, b.at, b.width);
+    if (b.flip) sp.scale.x *= -1;
     grow.push({ sp, k: sp.scale.x, delay: 0.1 + grow.length * 0.08 });
   }
+  for (const d of SCENERY) {
+    const sp = put(d.name, d.at, d.width, 0.75);
+    if (d.flip) sp.scale.x *= -1;
+    grow.push({ sp, k: sp.scale.x, delay: 0.2 + Math.random() * 0.6 });
+  }
+  // 炊煙：每個煙囪三團煙，輪流往上飄、變大、變淡
+  const smoke = SMOKE.flatMap((at, i) => [0, 1, 2].map((j) => {
+    const sp = new Sprite(tex.smoke);
+    sp.anchor.set(0.5);
+    sp.zIndex = 10000;
+    lifeCh5.addChild(sp);
+    return { sp, at, ph: i * 0.37 + j / 3 };
+  }));
   const actors = ACTORS.map((def, i) => {
     const art = ACTOR_ART[def.kind];
     const sp = new Sprite(tex[art.idle]);
@@ -253,25 +292,24 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     for (let i = 1; i < line.length; i++) L += Math.hypot(line[i].x - line[i - 1].x, line[i].y - line[i - 1].y);
     return L;
   });
+  // 水面上幾道反光，順著圳道往下游漂（不要太多，免得像虛線）
   const drawFlow = (t: number) => {
     flow.clear();
+    water.ts.tilePosition.set(-t * 6, t * 1.5);
     CANAL.forEach((line, li) => {
       const L = canalLens[li];
-      for (let d = (t * 14) % 12; d < L; d += 12) {
-        let left = d, i = 1;
-        while (i < line.length) {
-          const seg = Math.hypot(line[i].x - line[i - 1].x, line[i].y - line[i - 1].y);
-          if (left <= seg) break;
-          left -= seg;
-          i++;
-        }
-        if (i >= line.length) break;
-        const a = line[i - 1], b = line[i];
-        const seg = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-        flow.circle(a.x + ((b.x - a.x) * left) / seg, a.y + ((b.y - a.y) * left) / seg, 1.1);
+      for (let d = (t * 10) % 34; d < L; d += 34) {
+        const a = pointAlong(line, d), b = pointAlong(line, Math.min(L, d + 4));
+        flow.moveTo(a.x, a.y).lineTo(b.x, b.y);
       }
     });
-    flow.fill({ color: 0xffffff, alpha: 0.9 });
+    flow.stroke({ width: 0.9, color: 0xffffff, alpha: 0.6, cap: 'round' });
+    for (const s of smoke) {
+      const u = (t * 0.25 + s.ph) % 1;
+      s.sp.position.set(s.at.x + Math.sin((t + s.ph * 6) * 0.8) * 1.5 + u * 4, s.at.y - u * 16);
+      s.sp.scale.set((3 + u * 7) / s.sp.texture.width * 1.6);
+      s.sp.alpha = 0.55 * Math.sin(u * Math.PI);
+    }
   };
   const setLife = (on: boolean) => { lifeCh5.visible = on; };
 
@@ -497,6 +535,8 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
             name = art.walk[Math.floor((t + a.ph) * 6) % art.walk.length];
             bob = art.walk.length === 1 ? Math.abs(Math.sin((t + a.ph) * 8)) * 0.8 : 0;
           }
+        } else if (art.loop) {
+          name = art.loop[Math.floor((t + a.ph) * 1.6) % art.loop.length];
         } else if (art.work) {
           if (season === 'seedling') name = art.work.plant;
           else if (season === 'harvest' || (season === 'golden' && phase % 1 > 0.75)) name = art.work.harvest;
@@ -505,8 +545,9 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
         if (a.sp.texture !== tex[name]) a.sp.texture = tex[name];
         const k = art.height / a.sp.texture.height;
         a.sp.scale.set(left ? -k : k, k);
+        if (art.fly) bob = 3 + Math.sin((t + a.ph) * 3) * 1.5;
         a.sp.position.set(a.at.x, a.at.y - bob);
-        a.sp.zIndex = a.at.y;
+        a.sp.zIndex = art.fly ? 20000 : a.at.y;
       }
     }
   });

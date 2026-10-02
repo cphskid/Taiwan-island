@@ -52,17 +52,29 @@ function audio(): AudioContext | null {
   return ctx;
 }
 
-// 第一次點畫面時解鎖（iPad Safari 一定要在點擊裡 resume）
+// 解鎖音訊。iPad／iPhone 的 Safari 只認 touchend、click 這類「放開手指」的點擊，pointerdown 不算；
+// 所以每種點擊都聽，一直試到真的出聲為止，不是只試第一下。
+const GESTURES = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'];
 export function unlock() {
   const a = audio();
-  if (a && a.state === 'suspended') void a.resume();
-  resumeWanted();
+  if (!a) return stopListening();
+  try { // iOS 老規矩：在點擊裡先播一個無聲的音
+    const s = a.createBufferSource();
+    s.buffer = a.createBuffer(1, 1, 22050);
+    s.connect(a.destination);
+    s.start(0);
+  } catch { /* 播不了就算了 */ }
+  if (a.state === 'running') { resumeWanted(); return stopListening(); }
+  a.resume().then(() => { if (a.state === 'running') { resumeWanted(); stopListening(); } }).catch(() => {});
 }
-if (typeof window !== 'undefined') {
-  const once = () => { unlock(); window.removeEventListener('pointerdown', once, true); window.removeEventListener('keydown', once, true); };
-  window.addEventListener('pointerdown', once, true);
-  window.addEventListener('keydown', once, true);
-}
+function listen() { if (typeof window !== 'undefined') GESTURES.forEach((e) => window.addEventListener(e, unlock, true)); }
+function stopListening() { if (typeof window !== 'undefined') GESTURES.forEach((e) => window.removeEventListener(e, unlock, true)); }
+listen();
+// iPhone 側邊靜音鍵打開時，網頁聲音預設會被吃掉；宣告成「播放」就照樣出聲（要安靜用喇叭開關）
+try {
+  const nav = globalThis.navigator as unknown as { audioSession?: { type: string } } | undefined;
+  if (nav?.audioSession) nav.audioSession.type = 'playback';
+} catch { /* 舊版沒有 */ }
 
 function load(code: string): Promise<AudioBuffer | null> {
   const have = buffers.get(code);
