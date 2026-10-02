@@ -226,7 +226,7 @@ function ActorSay({ actor, onClose }: { actor: ActorDef; onClose: () => void }) 
   const art = ACTOR_ART[actor.kind];
   return (
     <button className="say actor-say" onClick={onClose} aria-label="收起">
-      <div className="face small" style={{ borderColor: '#4aa834' }}><img src={`${BASE}img/island/${art.idle}.webp`} alt="" style={{ objectFit: 'contain' }} /></div>
+      <div className="face small" style={{ borderColor: '#4aa834' }}><img src={isl(art.idle)} alt="" style={{ objectFit: 'contain' }} /></div>
       <p><b style={{ color: '#2e7d22' }}>{actor.who}</b>{actor.says}</p>
       <i className="say-x">✕</i>
     </button>

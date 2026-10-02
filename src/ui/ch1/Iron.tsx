@@ -44,8 +44,19 @@ function ForestBoard({ onDone, oops }: { onDone: (deer: boolean) => void; oops: 
   const [warned, setWarned] = useState<{ steep: boolean; deer: boolean }>({ steep: false, deer: false });
   const [rain, setRain] = useState<number[] | null>(null); // 正在下雨；裡面是土石流的直排
   const [smelting, setSmelting] = useState(false);
+  const [start, setStart] = useState<Forest>(f); // 這一季開始時的樣子：土石流只退回這一季
+  const [ask, setAsk] = useState(false); // 下雨前山坡有危險：先問一次
   const deer = grown(f) >= DEER_AT;
   const risky = slideCols(FOREST, f);
+  const rainy = FOREST.rainAfter.includes(f.season);
+  // 陡坡同一直排已經砍了一棵：另一棵要留著（或補種樹苗）
+  const guard = new Set<number>();
+  for (let c = 0; c < FOREST.cols; c++) {
+    const col = Array.from({ length: FOREST.steepRows }, (_, r) => (FOREST.farRows + r) * FOREST.cols + c);
+    const trees = col.filter((i) => f.trees[i] === 'tree');
+    if (trees.length === 1 && col.some((i) => f.trees[i] === 'stump')) guard.add(trees[0]);
+  }
+  const needWood = Math.max(0, (FOREST.iron - f.iron) * FOREST.woodPerIron - f.wood);
 
   const fail = (line: Line) => {
     oops();
@@ -73,9 +84,14 @@ function ForestBoard({ onDone, oops }: { onDone: (deer: boolean) => void; oops: 
       if (g.iron >= FOREST.iron) setTimeout(() => onDone(grown(g) >= DEER_AT), 900);
     }, 1200);
   };
-  const endIt = () => {
-    const raining = FOREST.rainAfter.includes(f.season);
-    const g = endSeason(FOREST, f);
+  const endIt = (sure = false) => {
+    if (rainy && risky.length && !sure) { sfx('SE-04'); setAsk(true); return; }
+    setAsk(false);
+    const raining = rainy;
+    let cur = f;
+    for (let k = smelt(FOREST, cur); k; k = smelt(FOREST, cur)) cur = k; // 木材夠就自動煉掉，不會因為忘了按而失敗
+    if (cur.iron >= FOREST.iron) { setF(cur); setTimeout(() => onDone(grown(cur) >= DEER_AT), 600); return; }
+    const g = endSeason(FOREST, cur);
     const slides = g.slides.slice(f.slides.length);
     if (!raining) { finishSeason(g); return; }
     sfx('SE-74');
@@ -83,20 +99,35 @@ function ForestBoard({ onDone, oops }: { onDone: (deer: boolean) => void; oops: 
     setRain(slides);
     setTimeout(() => {
       setRain(null);
-      if (slides.length) { sfx('SE-71'); fail(IRON_SAY.slide); setF(forestOf(FOREST)); return; }
+      if (slides.length) { sfx('SE-71'); fail(IRON_SAY.slide); setF(start); return; }
       setSay(IRON_SAY.safe);
       finishSeason(g);
     }, 2200);
   };
   const finishSeason = (g: Forest) => {
     sfx('SE-02');
-    if (forestOver(FOREST, g) && g.iron < FOREST.iron) { fail(IRON_SAY.noWood); setF(forestOf(FOREST)); return; }
+    if (forestOver(FOREST, g) && g.iron < FOREST.iron) { const s0 = forestOf(FOREST); fail(IRON_SAY.noWood); setF(s0); setStart(s0); return; }
     setF(g);
+    setStart(g);
   };
 
   return (
     <div className="iron-wrap hill-wrap">
-      <Goal floating text={`煉 ${FOREST.iron} 爐鐵，村子不能被土石流沖到。${IRON_RULES}`} />
+      <Goal floating text={`煉鐵 ${f.iron}/${FOREST.iron}：還要砍 ${needWood} 份木材，陡坡同一直排要留一棵樹。${IRON_RULES}`} />
+      <div className="iron-hud">
+        <div className="seasons">
+          {Array.from({ length: FOREST.seasons }, (_, k) => (
+            <span key={k} className={k + 1 === f.season ? 'on' : k + 1 < f.season ? 'past' : ''}>第 {k + 1} 季{FOREST.rainAfter.includes(k + 1) ? ' 🌧️' : ''}</span>
+          ))}
+        </div>
+        <p className="steps-left" title="這一季還有幾顆體力">
+          <small>體力</small>{Array.from({ length: FOREST.actions }, (_, k) => <i key={k} className={`bean ${k < f.left ? 'on' : ''}`} />)}
+        </p>
+        <p className="wood-n"><img src={art('o-05-woodpile')} alt="木材" />× <b>{f.wood}</b></p>
+        <p className="iron-n">{Array.from({ length: FOREST.iron }, (_, k) => <img key={k} className={k < f.iron ? 'on' : ''} src={art('g-03-knife')} alt="" />)}</p>
+        <button className={`btn orange ${f.wood >= FOREST.woodPerIron && f.iron < FOREST.iron ? 'ready' : ''}`} disabled={f.wood < FOREST.woodPerIron || smelting || f.iron >= FOREST.iron} onClick={doSmelt}>🔥 煉一爐（3 份木材）</button>
+        <button className="btn green" disabled={!!rain || smelting || f.iron >= FOREST.iron} onClick={() => endIt()}>結束這一季{rainy ? ' 🌧️' : ''}</button>
+      </div>
       <div className={`hill ${rain ? 'raining' : ''}`}>
         <img className="hill-bg" src={art('w-04')} alt="村子上面的山坡" />
         {deer && <img className="hill-deer" src={`${import.meta.env.BASE_URL}img/ch2/deer-eat.webp`} alt="鹿" />}
@@ -111,27 +142,26 @@ function ForestBoard({ onDone, oops }: { onDone: (deer: boolean) => void; oops: 
               style={{ left: `${colX(row, col) * 100}%`, top: `${ROW_Y[row] * 100}%`, ['--s' as string]: ROW_S[row] }}
               onClick={() => tap(i)} aria-label={t === 'tree' ? '砍樹' : t === 'stump' ? '種樹苗' : '樹苗'}>
               <img src={art(`o-05-${t}`)} alt="" />
-              {cost > 0 && <span className={`steps-badge ${t}`}>{t === 'stump' && '🌱'}{'👣'.repeat(cost)}</span>}
+              {guard.has(i) ? <span className="keep-badge">🛡️ 留著我</span>
+                : cost > 0 && <span className={`steps-badge ${t}`}>{t === 'stump' && '🌱'}{Array.from({ length: cost }, (_, k) => <i key={k} className="bean" />)}</span>}
             </button>
           );
         })}
         {smelting && <img className="hill-furnace" src={art('o-05-furnace-hot')} alt="" />}
-        <div className="iron-hud">
-          <div className="seasons">
-            {Array.from({ length: FOREST.seasons }, (_, k) => (
-              <span key={k} className={k + 1 === f.season ? 'on' : k + 1 < f.season ? 'past' : ''}>第 {k + 1} 季{FOREST.rainAfter.includes(k + 1) ? ' 🌧️' : ''}</span>
-            ))}
-          </div>
-          <p className="steps-left" title="這一季還能走幾步">
-            {Array.from({ length: FOREST.actions }, (_, k) => <i key={k} className={k < f.left ? 'on' : ''}>👣</i>)}
-          </p>
-          <p className="wood-n"><img src={art('o-05-woodpile')} alt="木材" />× <b>{f.wood}</b></p>
-          <p className="iron-n">{Array.from({ length: FOREST.iron }, (_, k) => <img key={k} className={k < f.iron ? 'on' : ''} src={art('g-03-knife')} alt="" />)}</p>
-          <button className="btn orange" disabled={f.wood < FOREST.woodPerIron || smelting || f.iron >= FOREST.iron} onClick={doSmelt}>🔥 煉一爐（3 份木材）</button>
-          <button className="btn green" disabled={!!rain || smelting || f.iron >= FOREST.iron} onClick={endIt}>結束這一季</button>
-        </div>
         {rain && <div className="rainfall" />}
       </div>
+      {ask && (
+        <div className="talk-cover" onClick={() => setAsk(false)}>
+          <div className="panel mission rain-ask" onClick={(e) => e.stopPropagation()}>
+            <h3>⚠ 這一季結束會下大雨！</h3>
+            <p>閃紅色的那一排陡坡，上下兩棵樹都砍光了，雨一來土石就會沖到村子。<br />點那裡的樹樁 🌱 種樹苗，根就抓得住土。</p>
+            <div className="row">
+              <button className="btn green" onClick={() => setAsk(false)}>回去種樹苗</button>
+              <button className="btn orange" onClick={() => endIt(true)}>照樣結束</button>
+            </div>
+          </div>
+        </div>
+      )}
       <Say line={say} />
     </div>
   );
