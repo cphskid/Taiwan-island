@@ -61,7 +61,7 @@ function ForestBoard({ onDone, oops }: { onDone: () => void; oops: () => void })
   const doSmelt = () => {
     const g = smelt(FOREST, f);
     if (!g) return;
-    sfx('SE-60');
+    sfx('SE-46');
     setSmelting(true);
     setTimeout(() => {
       setSmelting(false);

@@ -13,8 +13,8 @@ import { Iron } from './ch1/Iron';
 import { Dig } from './ch1/Dig';
 import { Finale1 } from './ch1/Finale1';
 
-// 環境音：海邊山洞、河口、溪邊田野、海邊、考古工地（田野）
-const AMB = ['SE-62', 'SE-62', 'SE-62', 'SE-61', 'SE-62', 'SE-61', null] as const;
+// 環境音：夜晚海邊山洞、山洞、野燒柴火，之後照原本的溪邊、森林、考古工地
+const AMB = ['SE-47', 'SE-47', 'SE-44', 'SE-61', 'SE-62', 'SE-61', null] as const;
 
 export interface Step1Props {
   p: Progress1;
@@ -35,8 +35,9 @@ export function Ch1({ onExit, album }: { onExit: () => void; album: readonly str
   });
   useEffect(() => { save1(p); pushCloud('ch1', p); }, [p]);
   useEffect(() => { if (p.done) void awardStamp('ch1'); }, [p.done]);
-  useEffect(() => { music(null); return () => ambience(null); }, []);
-  useEffect(() => { ambience(AMB[p.step]); }, [p.step]);
+  useEffect(() => () => { music(null); ambience(null); }, []);
+  // 開場放史前探索曲，進關卡就只留環境音
+  useEffect(() => { ambience(AMB[p.step]); music(p.step === 0 ? 'MU-18' : null); }, [p.step]);
 
   const set = (fn: (p: Progress1) => Progress1) => setP((old) => fn(old));
   const next = () => setP((old) => goTo1(old, Math.min(LAST1, old.step + 1) as Step1));

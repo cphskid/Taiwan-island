@@ -8,10 +8,11 @@
 export type SeCode =
   | 'SE-01' | 'SE-02' | 'SE-03' | 'SE-04' | 'SE-05' | 'SE-07' | 'SE-08' | 'SE-09'
   | 'SE-13' | 'SE-31' | 'SE-32' | 'SE-33' | 'SE-34' | 'SE-35' | 'SE-36' | 'SE-37' | 'SE-38' | 'SE-39' | 'SE-40' | 'SE-41'
+  | 'SE-42' | 'SE-43' | 'SE-45' | 'SE-46'
   | 'SE-50' | 'SE-51' | 'SE-52' | 'SE-53' | 'SE-54' | 'SE-56' | 'SE-57' | 'SE-58' | 'SE-60'
   | 'SE-63' | 'SE-64' | 'SE-65' | 'SE-66' | 'SE-67' | 'SE-68' | 'SE-69' | 'SE-70' | 'SE-71' | 'SE-72' | 'SE-73' | 'SE-74';
-export type MuCode = 'MU-10' | 'MU-13' | 'MU-14' | 'MU-17';
-export type AmbCode = 'SE-30' | 'SE-55' | 'SE-61' | 'SE-62' | 'SE-75' | 'SE-76';
+export type MuCode = 'MU-10' | 'MU-13' | 'MU-14' | 'MU-17' | 'MU-18';
+export type AmbCode = 'SE-30' | 'SE-44' | 'SE-47' | 'SE-55' | 'SE-61' | 'SE-62' | 'SE-75' | 'SE-76';
 
 const BASE = import.meta.env.BASE_URL;
 const url = (code: string) => `${BASE}audio/${code}.mp3`;

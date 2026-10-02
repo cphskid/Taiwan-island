@@ -72,7 +72,7 @@ function GrindBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: 
       setH(lv.from); setStrokes(0);
       return;
     }
-    sfx('SE-69');
+    sfx('SE-45');
     setH(g); setStrokes(strokes + 1);
     if (grindDone(g, lv)) { setDone(true); setSay(null); setTimeout(onDone, 1500); }
   };
@@ -87,7 +87,7 @@ function GrindBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: 
     let cur = h;
     seq.forEach((i, j) => {
       demo.current = window.setTimeout(() => {
-        cur = grind(cur, i); sfx('SE-69'); setH(cur);
+        cur = grind(cur, i); sfx('SE-45'); setH(cur);
         if (j === seq.length - 1) { setDone(true); setTimeout(onDone, 1500); }
       }, 600 * (j + 1));
     });

@@ -40,7 +40,7 @@ export function Knap({ p, set, next, oops }: Step1Props) {
         }} />
       )}
       {phase === 'drillIntro' && <Talk lines={DRILL_INTRO} onDone={() => setPhase('drill')} />}
-      {phase === 'drill' && <Drill onDone={() => { sfx('SE-60'); setPhase('back'); }} />}
+      {phase === 'drill' && <Drill onDone={() => { sfx('SE-43'); setPhase('back'); }} />}
       {phase === 'back' && <Talk lines={FIRE_BACK} onDone={() => {
         const more = ['changbin', 'chopper'].filter((c) => !p.cards.includes(c));
         set((o) => addCard1(o, 'changbin', 'chopper'));
@@ -119,7 +119,7 @@ function KnapBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
       setStone(start);
       return;
     }
-    sfx('SE-68');
+    sfx('SE-42');
     setStone(r.stone);
     if (knapDone(r.stone)) { setDone(true); setSay(null); setTimeout(onDone, 1400); }
   };
@@ -140,7 +140,7 @@ function KnapBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
     plan.forEach((m, i) => {
       demo.current = window.setTimeout(() => {
         st = strike(st, m.cell, m.dir).stone;
-        sfx('SE-68');
+        sfx('SE-42');
         setStone(st);
         if (i === plan.length - 1) { setDone(true); setTimeout(onDone, 1400); }
       }, 500 * (i + 1));
