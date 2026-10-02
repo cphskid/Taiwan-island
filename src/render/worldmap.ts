@@ -16,6 +16,7 @@ const MAX_ZOOM = 6; // 最多放大到「放得下整張」的幾倍
 const TAP_SLOP = 8;
 const FOG_STEP = 58; // 雲一團一團的間距（原圖像素）
 const SEA = 0x58b4d8;
+const LABEL_PX = 14; // 地圖上章名的字在畫面上幾 px
 
 export type RiftState = 'open' | 'locked' | 'hook' | 'done';
 
@@ -331,8 +332,8 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     badge.scale.set(44 / badge.texture.height);
     badge.visible = false;
     const label = new Text({
-      text: `${ch.no}\n${ch.title}`,
-      style: { fontFamily: '"Noto Sans TC", system-ui, sans-serif', fontSize: 20, fontWeight: '900', fill: 0xffffff, align: 'center', stroke: { color: 0x6b3f1f, width: 6 }, lineHeight: 24 },
+      text: `${ch.no}・${ch.title}`,
+      style: { fontFamily: '"Noto Sans TC", system-ui, sans-serif', fontSize: LABEL_PX * 2, fontWeight: '900', fill: 0xffffff, align: 'center', stroke: { color: 0x6b3f1f, width: 7 } },
       resolution: 2,
     });
     label.anchor.set(0.5, 0);
@@ -355,14 +356,20 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   const apply = () => {
     world.scale.set(view.scale);
     world.position.set(view.x, view.y);
-    // 裂縫和字在畫面上大約固定大小：拉遠不會小到看不見，拉近也不會蓋住整個平原
+    // 裂縫在畫面上大約固定大小（拉遠不會小到看不見，也不會蓋住台灣輪廓）；字一律同樣大小。
+    // 還沒開放的章拉近才出現名字，免得一整片字蓋住地圖
     const vs = view.scale;
+    const z = vs / fit();
     for (const r of riftList) {
       const lit = r.state === 'open' || r.state === 'hook';
-      const screen = clamp(72 * vs, lit ? 84 : 52, lit ? 140 : 90);
-      r.box.scale.set(screen / (72 * vs));
-      const z = vs / fit();
-      r.label.visible = r.state === 'done' ? z < 2 : lit || z > 1.5;
+      const screen = clamp(72 * vs, lit ? 64 : 38, lit ? 104 : 64);
+      const k = screen / (72 * vs);
+      r.box.scale.set(k);
+      r.label.scale.set(0.5 / (vs * k));
+      const up = CHAPTERS.find((c) => c.id === r.id)!.labelUp;
+      r.label.anchor.set(up ? 1 : 0.5, up ? 0.5 : 0);
+      r.label.position.set(up ? -20 : 0, up ? -36 : 4 / (vs * k));
+      r.label.visible = r.state === 'done' ? z < 2 : lit || z > 1.8;
     }
   };
   apply();
@@ -563,7 +570,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
         r.rift.alpha = r.state === 'locked' ? 0.55 : 1;
         r.rift.tint = r.state === 'locked' ? 0xb8c4cc : 0xffffff;
         const ch = CHAPTERS.find((c) => c.id === r.id)!;
-        r.label.text = r.state === 'locked' || r.state === 'hook' ? `${ch.no}\n${ch.title}（施工中）` : `${ch.no}\n${ch.title}`;
+        r.label.text = `${ch.no}・${ch.title}`;
         r.label.style.fill = r.state === 'locked' ? 0xdfe6ea : r.state === 'done' ? 0xfff2b0 : 0xffffff;
       }
       apply();

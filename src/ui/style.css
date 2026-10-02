@@ -33,7 +33,7 @@ body{background:var(--sky);color:var(--ink);font-family:var(--f);overflow:hidden
 
 /* P6-1 觸控：右側工具鈕、下方物品列、拖曳中的竹蛇籠、地形眼鏡圖例 */
 .tools{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px}
-.tool{width:84px;min-height:84px;border-radius:22px;border:4px solid var(--gold);background:linear-gradient(#a8703d,#6b3f1f);color:var(--cream);font:700 15px var(--f);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 4px 0 #4a2a12;cursor:pointer;touch-action:manipulation}
+.tool{width:84px;min-height:84px;white-space:nowrap;border-radius:22px;border:4px solid var(--gold);background:linear-gradient(#a8703d,#6b3f1f);color:var(--cream);font:700 15px var(--f);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 4px 0 #4a2a12;cursor:pointer;touch-action:manipulation}
 .tool:active{transform:translateY(3px);box-shadow:0 1px 0 #4a2a12}
 .tool:disabled{opacity:.45;cursor:default}
 .tool.on{background:linear-gradient(#7fd85a,#4aa834)}
@@ -228,7 +228,7 @@ img.gear{width:110px;height:110px;object-fit:contain}
   .hint{max-width:380px;font-size:13px;padding:3px 8px;line-height:1.4;border-width:2px}
   .hint b{font-size:14px}
   .tools{right:6px;gap:6px}
-  .tool{width:62px;min-height:56px;border-radius:16px;border-width:3px;font-size:12px;box-shadow:0 3px 0 #4a2a12}
+  .tool{width:64px;min-height:54px;border-radius:16px;border-width:3px;font-size:11px;white-space:nowrap;box-shadow:0 3px 0 #4a2a12}
   .tool-img{width:30px;height:30px}
   .tool-icon{font-size:22px}
   .tray{bottom:6px;left:calc(50% - 34px);gap:6px;padding:4px 8px;border-width:3px;border-radius:18px}
@@ -331,18 +331,18 @@ img.gear{width:110px;height:110px;object-fit:contain}
   55%{left:50%;top:50%;transform:translate(-50%,-50%) scale(1.1) rotate(200deg)}
   100%{left:var(--tx);top:var(--ty);transform:translate(-50%,-50%) scale(.25) rotate(540deg);opacity:1}
 }
-.timeline{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:3;display:flex;gap:4px;padding:6px;background:rgba(255,244,220,.92);border:4px solid var(--wood-2);border-radius:20px;box-shadow:inset 0 0 0 2px var(--gold);max-width:calc(100% - 24px);overflow-x:auto}
-.era{display:flex;flex-direction:column;align-items:center;min-width:72px;min-height:52px;padding:2px 8px;border-radius:14px;border:2px solid #c9a46b;background:#fff8e6;color:#9c8466;font:700 15px var(--f);cursor:pointer;touch-action:manipulation;position:relative}
-.era small{font-size:12px;font-weight:700}
+.timeline{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:3;display:flex;flex-wrap:nowrap;gap:4px;padding:5px;background:rgba(255,244,220,.92);border:4px solid var(--wood-2);border-radius:20px;box-shadow:inset 0 0 0 2px var(--gold);max-width:calc(100% - 24px);overflow-x:auto}
+.era{flex:0 0 auto;display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto;column-gap:4px;align-items:center;justify-items:start;white-space:nowrap;min-height:46px;padding:3px 10px 3px 5px;border-radius:14px;border:2px solid #c9a46b;background:#fff8e6;color:#9c8466;font:700 15px var(--f);cursor:pointer;touch-action:manipulation;position:relative}
+.era small{grid-column:2;font-size:11px;font-weight:700;line-height:1.1}
+.era span{grid-column:2;line-height:1.15}
 .era.open{color:var(--ink);border-color:var(--gold);background:linear-gradient(#e6fbff,#b9eef7);box-shadow:0 0 10px #7ff0ff}
 .era.done{color:#fff;border-color:var(--gold);background:linear-gradient(#7fd85a,#4aa834)}
-.era.done::after{content:'✓';position:absolute;right:4px;top:0;font-size:12px}
+.era.done::after{content:'✓';position:absolute;right:3px;top:1px;font-size:11px}
 .era.on{outline:3px solid var(--wood-2)}
-.era-badge{position:absolute;left:-12px;top:-14px;width:34px;height:34px;filter:drop-shadow(0 1px 2px #0004)}
+.era-badge{grid-row:1/3;width:30px;height:30px;filter:drop-shadow(0 1px 2px #0004)}
 .era.locked .era-badge{filter:grayscale(.7) opacity(.8)}
 .card-badge{float:right;width:64px;height:64px;margin:-6px 18px 0 6px}
 .sound-btn .tool-icon{font-size:20px}
-.era+.era::before{content:'';position:absolute;left:-5px;top:50%;width:6px;height:3px;background:#c9a46b}
 .chapter-card{position:absolute;right:110px;top:50%;transform:translateY(-50%);z-index:4;width:min(320px,calc(100% - 140px));text-align:center;padding:18px 18px 16px;animation:pop .3s ease-out}
 .chapter-card small{color:var(--wood-2);font-weight:700}
 .chapter-card h2{margin:4px 0 6px;font-size:26px}
@@ -364,8 +364,9 @@ img.gear{width:110px;height:110px;object-fit:contain}
   .clock{width:96px;height:96px}
   .clock b{font-size:12px;bottom:-22px}
   .timeline{bottom:4px;padding:3px}
-  .era{min-width:58px;min-height:40px;font-size:13px}
+  .era{min-height:36px;padding:2px 8px 2px 3px;font-size:13px;column-gap:3px}
   .era small{font-size:10px}
+  .era-badge{width:24px;height:24px}
   .world .say{bottom:58px}
   .chapter-card{right:84px;padding:10px 14px}
   .chapter-card h2{font-size:20px}
