@@ -86,7 +86,7 @@ export function Explore({ p, set, next }: StepProps) {
         </button>
       </div>
       {contours && <Legend />}
-      <Say line={say ? { who: 'mu', text: say } : allFound && !done && !ask ? { who: 'mu', text: '水都是從最高的地方來的。' } : null} />
+      <Say line={say ? { who: 'mu', mood: 'frown', text: say } : allFound && !done && !ask ? { who: 'mu', mood: 'listen', text: '水都是從最高的地方來的。' } : null} />
       {done && !card && (
         <div className="next-bar"><span>地形都認識了！</span><button className="btn green" onClick={next}>下一步：做竹蛇籠</button></div>
       )}

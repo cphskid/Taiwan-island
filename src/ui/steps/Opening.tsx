@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CARDS, FRIENDS, GOAL, LOOP_DAY, OPENING, PEOPLE, img } from '../../data/babao-chapter';
-import { CardPop, Face, Talk } from '../Talk';
+import { CardPop, Talk } from '../Talk';
 import type { StepProps } from '../Chapter';
 import { sfx } from '../../audio';
 
@@ -34,7 +34,7 @@ export function Opening({ p, set, next }: StepProps) {
             <div className="friend-row">
               {FRIENDS.map((f) => (
                 <div key={f.who} className="friend">
-                  <Face who={f.who} />
+                  <img className="friend-body" src={`${import.meta.env.BASE_URL}img/${f.body}`} alt="" />
                   <b style={{ color: PEOPLE[f.who].color }}>{PEOPLE[f.who].name}</b>
                   <small>{f.from}</small>
                   <span>💛 {f.wish}</span>

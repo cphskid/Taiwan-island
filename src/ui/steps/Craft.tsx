@@ -49,7 +49,7 @@ export function Craft({ p, set, next }: StepProps) {
         if (live.current.high) {
           sfx('SE-57');
           setSplash((n) => n + 1);
-          setSay({ who: 'mu', text: '溪水在漲！先退回來，等水退了再去。' });
+          setSay({ who: 'mu', mood: 'shout', text: '溪水在漲！先退回來，等水退了再去。' });
           return;
         }
         const n = CHAPTER.stones(c);
@@ -87,8 +87,8 @@ export function Craft({ p, set, next }: StepProps) {
 
   const line: Line | null = short ? { who: 'lin', text: '材料不太夠，我這裡還有一些，先拿去用吧！' }
     : say ?? (finished ? null
-      : tide.warn ? { who: 'mu', text: '聽！溪水的聲音變了，要漲了。' }
-      : tide.high && p.stone < CAGE_COST.stone ? { who: 'lian', text: '水好大……先去砍竹子吧？' }
+      : tide.warn ? { who: 'mu', mood: 'listen', text: '聽！溪水的聲音變了，要漲了。' }
+      : tide.high && p.stone < CAGE_COST.stone ? { who: 'lian', mood: 'scared', text: '水好大……先去砍竹子吧？' }
       : null);
 
   return (

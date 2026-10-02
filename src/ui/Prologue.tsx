@@ -56,11 +56,9 @@ export function Prologue({ onDone }: { onDone: () => void }) {
   );
 }
 
-// ── 時光鐘塔：滴答叫你別按紅色按鈕 ──
-const GEAR_FLY = Array.from({ length: 7 }, (_, i) => {
-  const a = (i / 7) * Math.PI * 2 - Math.PI / 2;
-  return { dx: Math.cos(a) * 70, dy: Math.sin(a) * 60, r: 360 + i * 90 };
-});
+// ── 時光鐘塔：滴答叫你別按紅色按鈕（K-01 鐘塔內部，按下去換 K-02 齒輪噴飛）──
+const STORY = `${import.meta.env.BASE_URL}img/story/`;
+const BUTTON = { x: 0.505, y: 0.685 }; // K-01 圖上紅色按鈕的位置
 
 function Tower({ phase, setPhase }: { phase: Phase; setPhase: (p: Phase) => void }) {
   const [talk, setTalk] = useState(true);
@@ -77,21 +75,28 @@ function Tower({ phase, setPhase }: { phase: Phase; setPhase: (p: Phase) => void
   }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className={`scene tower ${phase}`}>
-      <div className="tower-clock">
-        <img src={isl('clock')} alt="" />
-        {phase !== 'tower' && GEAR_FLY.map((g, i) => (
-          <img key={i} className="tower-gear" src={isl('gear')} alt="" style={{ '--dx': `${g.dx}vw`, '--dy': `${g.dy}vh`, '--r': `${g.r}deg`, animationDelay: `${i * 60}ms` } as React.CSSProperties} />
-        ))}
+      <div className="art-frame">
+        <img className="art" src={`${STORY}K-01.webp`} alt="" />
+        <img className={`art fly ${phase === 'tower' ? '' : 'on'}`} src={`${STORY}K-02.webp`} alt="" />
+        {phase === 'tower' && !talk && (
+          <button className="red-button" style={{ left: `${BUTTON.x * 100}%`, top: `${BUTTON.y * 100}%` }} onClick={press} aria-label="紅色按鈕" />
+        )}
       </div>
-      {phase === 'tower' && (
-        <button className="red-button" onClick={press} aria-label="紅色按鈕"><span /></button>
-      )}
       {phase === 'tower' && talk && <Talk lines={TOWER} onDone={() => setTalk(false)} />}
       {phase === 'oops' && <Talk lines={TOWER_OOPS} onDone={() => setPhase('warp')} />}
       {phase === 'warp' && <div className="warp" />}
     </div>
   );
 }
+
+// K-03 序章海圖上各塊陸地可以點的範圍（圖的比例座標，橢圓）
+const CHART_SPOTS: { k: keyof typeof LANDS; x: number; y: number; rx: number; ry: number }[] = [
+  { k: 'C', x: 0.15, y: 0.22, rx: 0.17, ry: 0.28 },
+  { k: 'C', x: 0.31, y: 0.07, rx: 0.1, ry: 0.09 },
+  { k: 'T', x: 0.505, y: 0.49, rx: 0.1, ry: 0.25 },
+  { k: 'J', x: 0.83, y: 0.2, rx: 0.14, ry: 0.15 },
+  { k: 'U', x: 0.52, y: 0.93, rx: 0.08, ry: 0.1 },
+];
 
 // ── 海圖（找到臺灣、漂流共用）──
 function SeaChart({ lv, boat, wind, onLand, glow, trail }: {
@@ -140,22 +145,27 @@ function SeaChart({ lv, boat, wind, onLand, glow, trail }: {
   );
 }
 
-// ── 找到臺灣 ──
+// ── 找到臺灣（K-03 海圖）──
 function Find({ onFound }: { onFound: () => void }) {
-  const lv = DRIFTS[0];
   const [intro, setIntro] = useState(true);
   const [say, setSay] = useState<Line | null>(null);
   const [wrong, setWrong] = useState(0);
+  const tap = (k: keyof typeof LANDS) => {
+    if (k === 'T') { sfx('SE-05'); jingle('MU-13'); onFound(); return; }
+    sfx('SE-04');
+    setWrong((n) => n + 1);
+    setSay({ who: 'tick', mood: 'thinking', text: FIND_WRONG(LANDS[k].name) });
+  };
   return (
     <div className="scene sea-scene">
-      <SeaChart lv={lv} boat={null} wind={null} glow={wrong >= 3} onLand={(p) => {
-        const k = landAt(lv, p);
-        if (!k) return;
-        if (k === 'T') { sfx('SE-05'); jingle('MU-13'); onFound(); return; }
-        sfx('SE-04');
-        setWrong((n) => n + 1);
-        setSay({ who: 'tick', mood: 'thinking', text: FIND_WRONG(LANDS[k].name) });
-      }} />
+      <div className="art-frame">
+        <img className="art" src={`${STORY}K-03.webp`} alt="" />
+        {CHART_SPOTS.map((p, i) => (
+          <button key={i} className={`chart-spot ${wrong >= 3 && p.k === 'T' ? 'glow' : ''}`} aria-label="這是哪裡？"
+            style={{ left: `${(p.x - p.rx) * 100}%`, top: `${(p.y - p.ry) * 100}%`, width: `${p.rx * 200}%`, height: `${p.ry * 200}%` }}
+            onClick={() => tap(p.k)}><span>？</span></button>
+        ))}
+      </div>
       <Say line={say} />
       {intro && <Talk lines={FIND_INTRO} onDone={() => setIntro(false)} />}
     </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { PEOPLE, type Line } from '../data/babao-chapter';
+import { PEOPLE, TICK_MOODS, type Line } from '../data/babao-chapter';
 import { sfx } from '../audio';
 
 const BASE = import.meta.env.BASE_URL;
@@ -28,7 +28,7 @@ export function Talk({ lines, onDone }: { lines: readonly Line[]; onDone: () => 
 export function Face({ who, mood, small }: { who: Line['who']; mood?: Line['mood']; small?: boolean }) {
   const p = PEOPLE[who];
   const art = (mood && p.moods?.[mood]) || p.img;
-  const src = who === 'tick' ? `img/tick/${mood ?? 'happy'}.webp` : art ? `img/${art}` : null;
+  const src = who === 'tick' ? `img/tick/${mood && TICK_MOODS.includes(mood) ? mood : 'happy'}.webp` : art ? `img/${art}` : null;
   return (
     <div className={`face ${small ? 'small' : ''} ${who}`} style={{ borderColor: p.color }}>
       {src ? <img src={`${BASE}${src}`} alt="" /> : <span style={{ background: p.color }}>{p.badge}</span>}

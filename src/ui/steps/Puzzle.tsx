@@ -228,7 +228,7 @@ export function FlowLevel({ p, set, level, levels, helper, intro: introLines, on
   const say: Line | null = topped ? { who: 'lin', text: '竹蛇籠不夠用，我幫你補做好了。' }
     : fails >= DEMO_AT ? { who: 'lin', text: '我做一次給你看：按「看示範」。' }
     : fails >= HINT_AT ? { who: helper, text: '我畫了白色的記號，照著放放看？' }
-    : fails >= 1 ? { who: helper, text: level.hint }
+    : fails >= 1 ? { who: helper, mood: helper === 'lian' ? 'worried' : 'listen', text: level.hint }
     : null;
 
   return (

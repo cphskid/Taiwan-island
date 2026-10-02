@@ -113,9 +113,10 @@ export const PLACES: Place[] = [
 // 對話
 // 阿蓮（漳州莊女孩）、阿穆（巴布薩族少年）是這一章的夥伴：一人知道一半線索、有心願也有怕的事，
 // 分水時會跟你意見不同，最後送你信物。兩人都是虛構角色；阿穆的名字、穿著和說法上正式站前要找人審。
-// 夥伴的正式圖（F-01、F-02）還沒到，先借現有的圖；到了以後在 moods 裡放各表情。
+// 夥伴的圖：F-01B、F-02B 表情表（public/img/story/），moods 是每個表情用哪一格。
 export type Who = 'tick' | 'shi' | 'lin' | 'babuza' | 'zhang' | 'quan' | 'lian' | 'mu' | 'traveler';
-export type Mood = 'wave' | 'happy' | 'thinking' | 'worried';
+export type Mood = 'wave' | 'happy' | 'thinking' | 'worried' | 'scared' | 'sad' | 'determined' | 'frown' | 'angry' | 'thumbs' | 'listen' | 'laugh' | 'surprised' | 'shout' | 'me';
+export const TICK_MOODS: readonly Mood[] = ['wave', 'happy', 'thinking', 'worried'];
 export interface Line { who: Who; text: string; mood?: Mood }
 export const PEOPLE: Record<Who, { name: string; img?: string; moods?: Partial<Record<Mood, string>>; badge?: string; color: string }> = {
   tick: { name: '滴答', color: '#ffc23d' },
@@ -124,9 +125,13 @@ export const PEOPLE: Record<Who, { name: string; img?: string; moods?: Partial<R
   babuza: { name: '巴布薩族社眾', img: 'island/babuza.webp', color: '#b9894f' },
   zhang: { name: '漳州莊莊民', img: 'people/P-08_1.webp', color: '#3b6fd1' },
   quan: { name: '泉州莊莊民', img: 'people/P-02_6.webp', color: '#f07f1d' },
-  lian: { name: '阿蓮', img: 'people/P-02_1.webp', color: '#d9467a' }, // 佔位圖，等 F-01
-  mu: { name: '阿穆', img: 'island/babuza.webp', color: '#9a5a2a' }, // 佔位圖，等 F-02
-  traveler: { name: '？？？', badge: '？', color: '#4a4f63' }, // 戴斗笠的神秘旅人，臉一直看不到
+  lian: { name: '阿蓮', img: 'story/F-01B_1.webp', color: '#d9467a', moods: {
+    happy: 'story/F-01B_1.webp', worried: 'story/F-01B_2.webp', scared: 'story/F-01B_3.webp', sad: 'story/F-01B_4.webp',
+    determined: 'story/F-01B_5.webp', frown: 'story/F-01B_6.webp', angry: 'story/F-01B_7.webp', thumbs: 'story/F-01B_8.webp' } },
+  mu: { name: '阿穆', img: 'story/F-02B_1.webp', color: '#9a5a2a', moods: {
+    happy: 'story/F-02B_1.webp', listen: 'story/F-02B_2.webp', frown: 'story/F-02B_3.webp', laugh: 'story/F-02B_4.webp',
+    surprised: 'story/F-02B_6.webp', shout: 'story/F-02B_7.webp', me: 'story/F-02B_8.webp' } },
+  traveler: { name: '？？？', img: 'story/F-03_1.webp', color: '#4a4f63' }, // 戴斗笠的神秘旅人，臉一直看不到
 };
 
 // 時間卡住：齒輪掉在哪個時代，那裡就一直重複同一天
@@ -135,76 +140,76 @@ export const OPENING: Line[] = [
   { who: 'tick', mood: 'worried', text: `公雞又叫了……見習生，這已經是第 ${LOOP_DAY} 次同一個早上。` },
   { who: 'tick', mood: 'thinking', text: '我的第五顆齒輪掉在 1709 年的彰化平原。齒輪不回來，這裡的時間就卡在大家最頭痛的這一天。' },
   { who: 'shi', text: '我是施世榜。我想從濁水溪開一條圳，讓平原旱季也有水。可是圳頭一做好，就被大水沖垮。' },
-  { who: 'lian', text: '我叫阿蓮，住在漳州莊。阿嬤說，好想在冬天前吃一碗新米煮的飯……可是田都裂開了。' },
-  { who: 'mu', text: '我是阿穆，巴布薩族的。這條溪什麼時候漲、什麼時候退，我閉著眼睛都知道。' },
-  { who: 'mu', text: '你們要開圳，要先問過我們。溪是大家的，不能把水全部拿走。' },
-  { who: 'lian', text: '我知道田要多少水，阿穆知道溪。可是……我很怕大水。' },
+  { who: 'lian', mood: 'sad', text: '我叫阿蓮，住在漳州莊。阿嬤說，好想在冬天前吃一碗新米煮的飯……可是田都裂開了。' },
+  { who: 'mu', mood: 'me', text: '我是阿穆，巴布薩族的。這條溪什麼時候漲、什麼時候退，我閉著眼睛都知道。' },
+  { who: 'mu', mood: 'frown', text: '你們要開圳，要先問過我們。溪是大家的，不能把水全部拿走。' },
+  { who: 'lian', mood: 'worried', text: '我知道田要多少水，阿穆知道溪。可是……我很怕大水。' },
   { who: 'tick', mood: 'happy', text: '一個懂田、一個懂溪，再加上你。我們三個一起，讓時間往前走吧！' },
 ];
 // 開場最後的「時光朋友」卡：一人一句心願、一句怕的事
-export const FRIENDS: { who: Who; from: string; wish: string; fear: string }[] = [
-  { who: 'lian', from: '漳州莊', wish: '讓阿嬤吃到新米', fear: '怕大水' },
-  { who: 'mu', from: '巴布薩族', wish: '溪裡一直有魚', fear: '怕溪被搶光' },
+export const FRIENDS: { who: Who; body: string; from: string; wish: string; fear: string }[] = [
+  { who: 'lian', body: 'story/F-01A_1.webp', from: '漳州莊', wish: '讓阿嬤吃到新米', fear: '怕大水' },
+  { who: 'mu', body: 'story/F-02A_1.webp', from: '巴布薩族', wish: '溪裡一直有魚', fear: '怕溪被搶光' },
 ];
 export const GOAL = '讓旱季也有水，時間才會往前走';
 
 export const EXPLORE_INTRO: Line[] = [
-  { who: 'lian', text: '雲霧好濃，連我都認不得路了。點一點雲霧，找出溪、平原、兩個莊和阿穆的社。' },
+  { who: 'lian', mood: 'worried', text: '雲霧好濃，連我都認不得路了。點一點雲霧，找出溪、平原、兩個莊和阿穆的社。' },
 ];
 export const HIGHEST_ASK: Line[] = [
-  { who: 'mu', text: '我阿公說：水都是從最高的地方來的。' },
+  { who: 'mu', mood: 'listen', text: '我阿公說：水都是從最高的地方來的。' },
   { who: 'tick', mood: 'thinking', text: '戴上地形眼鏡看看，點一下最高的地方！' },
 ];
 
 export const CRAFT_INTRO: Line[] = [
   { who: 'lin', text: '我姓林。大水不能硬擋，要用竹蛇籠把水「導」過去。一個籠子要 1 根竹子、2 顆石頭，做 6 個。' },
-  { who: 'mu', text: '石頭在溪邊。溪水退了才撿得到；漲起來的時候，千萬別靠近！' },
-  { who: 'lian', text: '我、我在岸上幫你看水……' },
+  { who: 'mu', mood: 'shout', text: '石頭在溪邊。溪水退了才撿得到；漲起來的時候，千萬別靠近！' },
+  { who: 'lian', mood: 'scared', text: '我、我在岸上幫你看水……' },
 ];
 
 export const PUZZLE_INTRO: Line[] = [
-  { who: 'lian', text: '你看，籠子上有金色箭頭。箭頭指哪裡，水會不會就往哪裡轉？' },
+  { who: 'lian', mood: 'happy', text: '你看，籠子上有金色箭頭。箭頭指哪裡，水會不會就往哪裡轉？' },
 ];
 // 導水每一關失敗後，誰來說那一關的提示
 export const LEVEL_HELPER: Who[] = ['lian', 'mu', 'mu'];
 
 export const SHARE_INTRO: Line[] = [
-  { who: 'lian', text: '水來了！先給漳州莊吧，我們田最多，阿嬤在等新米！' },
-  { who: 'mu', text: '慢著。全部開進圳道，溪就乾了。我們社裡的人要在溪邊捕魚、取水。' },
+  { who: 'lian', mood: 'determined', text: '水來了！先給漳州莊吧，我們田最多，阿嬤在等新米！' },
+  { who: 'mu', mood: 'frown', text: '慢著。全部開進圳道，溪就乾了。我們社裡的人要在溪邊捕魚、取水。' },
   { who: 'quan', text: '泉州莊也有 4 塊田啊！' },
   { who: 'tick', mood: 'thinking', text: '田要顧，溪也要顧。拉閘板試試看。' },
 ];
-export const SHARE_HINT: Line = { who: 'mu', text: '田多的那邊多分一點，不一定兩邊一樣多。可是溪裡一定要留水。' };
-export const SHARE_RIVER: Line = { who: 'mu', text: '溪快乾了！魚都擠在小水窪裡，關小一點！' };
+export const SHARE_HINT: Line = { who: 'mu', mood: 'listen', text: '田多的那邊多分一點，不一定兩邊一樣多。可是溪裡一定要留水。' };
+export const SHARE_RIVER: Line = { who: 'mu', mood: 'shout', text: '溪快乾了！魚都擠在小水窪裡，關小一點！' };
 
 // 洪水大謎題
 export const FLOOD_INTRO: Line[] = [
   { who: 'tick', mood: 'worried', text: '颱風來了！溪水一下子漲好高！' },
-  { who: 'mu', text: '這種水我看過。整條溪都灌進圳道的話，圳會撐破的。' },
-  { who: 'lian', text: '水、水好大……我不敢看。' },
+  { who: 'mu', mood: 'surprised', text: '這種水我看過。整條溪都灌進圳道的話，圳會撐破的。' },
+  { who: 'lian', mood: 'scared', text: '水、水好大……我不敢看。' },
 ];
 // 神秘旅人留在竹蛇籠上的紙條（伏筆：七張拼起來是一張地圖；旅人其實是長大的你）
-export const NOTE = { text: '大水不要全部搶，留一條給溪。', sign: '戴斗笠的旅人' };
+export const NOTE = { traveler: 'story/F-03_5.webp', map: 'story/G-02_10.webp', text: '大水不要全部搶，留一條給溪。', sign: '戴斗笠的旅人' };
 export const NOTE_AFTER: Line[] = [
   { who: 'tick', mood: 'thinking', text: '這是誰留的？這個字……我好像在哪裡看過。' },
-  { who: 'lian', text: '紙的背面畫了一小塊地圖耶。' },
+  { who: 'lian', mood: 'happy', text: '紙的背面畫了一小塊地圖耶。' },
 ];
 export const FLOOD_PASS: Line[] = [
-  { who: 'mu', text: '圳沒有破，溪裡也還有水。你剛剛留的那一條，救了我們的魚。' },
-  { who: 'lian', text: '我……剛剛一直睜著眼睛，沒有躲起來！' },
+  { who: 'mu', mood: 'laugh', text: '圳沒有破，溪裡也還有水。你剛剛留的那一條，救了我們的魚。' },
+  { who: 'lian', mood: 'determined', text: '我……剛剛一直睜著眼睛，沒有躲起來！' },
 ];
 
 // 豐收：齒輪回來、時間往前走；夥伴道別看你怎麼玩
 export const HARVEST: Line[] = [
   { who: 'tick', mood: 'happy', text: '公雞叫了，可是今天是新的一天！時間往前走了！' },
-  { who: 'lian', text: '稻子黃了！阿嬤吃到新米了，她說是她吃過最香的一碗。' },
+  { who: 'lian', mood: 'thumbs', text: '稻子黃了！阿嬤吃到新米了，她說是她吃過最香的一碗。' },
 ];
 export const FAREWELL = {
-  careful: { who: 'mu', text: '你一個竹蛇籠都沒弄壞，比我阿公還會看水。' } as Line,
-  bumpy: { who: 'mu', text: '籠子壞了幾個也沒關係，你每次都有再試一次。' } as Line,
-  keep: { who: 'lian', text: '這片竹片是從第一個竹蛇籠上拆下來的，給你。以後看到它，要記得我喔。' } as Line,
+  careful: { who: 'mu', mood: 'laugh', text: '你一個竹蛇籠都沒弄壞，比我阿公還會看水。' } as Line,
+  bumpy: { who: 'mu', mood: 'happy', text: '籠子壞了幾個也沒關係，你每次都有再試一次。' } as Line,
+  keep: { who: 'lian', mood: 'happy', text: '這片竹片是從第一個竹蛇籠上拆下來的，給你。以後看到它，要記得我喔。' } as Line,
 };
-export const KEEPSAKE = { id: 'bamboo-strip', title: '綁紅線的竹片', text: '阿蓮從第一個竹蛇籠上拆下來送你的竹片。很久很久以後，好像會有人認得它……' };
+export const KEEPSAKE = { id: 'bamboo-strip', img: 'story/G-02_7.webp', title: '綁紅線的竹片', text: '阿蓮從第一個竹蛇籠上拆下來送你的竹片。很久很久以後，好像會有人認得它……' };
 
 // 真的是這樣嗎？
 export const TRUTH = {

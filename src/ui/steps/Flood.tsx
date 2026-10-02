@@ -6,6 +6,7 @@ import { FlowLevel } from './Puzzle';
 import type { StepProps } from '../Chapter';
 import { sfx } from '../../audio';
 
+const BASE = import.meta.env.BASE_URL;
 type Phase = 'play' | 'note' | 'noteTalk' | 'pass' | 'done';
 
 // 步驟 5 洪水大謎題：颱風來了，三道水全搶進圳道會滿出來。
@@ -56,10 +57,10 @@ export function Flood({ p, set, next }: StepProps) {
           {noteOpen && (
             <div className="talk-cover" onClick={takeNote}>
               <div className="note-paper">
-                <div className="traveler" aria-hidden><i className="hat" /><i className="cloak" /></div>
+                <img className="traveler" src={`${BASE}img/${NOTE.traveler}`} alt="" />
                 <p>{NOTE.text}</p>
                 <small>—— {NOTE.sign}</small>
-                <div className="map-bit" aria-hidden />
+                <img className="map-bit" src={`${BASE}img/${NOTE.map}`} alt="" />
                 <span className="talk-next">點一下收好 ▶</span>
               </div>
             </div>

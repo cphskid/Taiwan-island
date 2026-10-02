@@ -50,7 +50,7 @@ export function Finale({ p, set, exit }: StepProps) {
             <h2>大豐收！</h2>
             <p>漳州莊和泉州莊的稻子都變成金黃色了。<br />卡住的時間往前走，滴答拿回了第五顆時之齒輪！</p>
             <p className="grows">拿到圖鑑卡「八堡圳」：{CARDS.babao.text}</p>
-            <img src={`${BASE}img/tick/happy.webp`} alt="" />
+            <div className="harvest-pals"><img src={`${BASE}img/tick/happy.webp`} alt="" /><img src={`${BASE}img/story/F-01A_7.webp`} alt="" /><img src={`${BASE}img/story/F-02A_1.webp`} alt="" /></div>
             <button className="btn green" onClick={() => { set((o) => (o.cards.includes('babao') ? o : { ...o, cards: [...o.cards, 'babao'] })); setPhase('farewell'); }}>繼續</button>
           </div>
         </div>
@@ -68,7 +68,7 @@ export function Finale({ p, set, exit }: StepProps) {
         <div className="talk-cover">
           <div className="panel mission keepsake">
             <small>拿到信物</small>
-            <div className="bamboo-strip" aria-hidden><i /></div>
+            <img className="keepsake-img" src={`${BASE}img/${KEEPSAKE.img}`} alt="" />
             <h2>{KEEPSAKE.title}</h2>
             <p>{KEEPSAKE.text}</p>
             <div className="friend-row">

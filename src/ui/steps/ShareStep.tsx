@@ -68,7 +68,7 @@ export function ShareStep({ p, set, next }: StepProps) {
             <div key={side} className={`branch ${side}`}>
               <div className={`canal-line ${s.gates[side] ? 'wet' : ''}`} style={{ ['--w' as string]: `${4 + s.gates[side] / 6}px` }} />
               <div className="villager">
-                <Face who={VOICE[side]} small />
+                <Face who={VOICE[side]} mood={st === 'ok' ? 'happy' : st === 'dry' ? 'sad' : 'scared'} small />
                 <div className={`bubble ${st}`}>{unfair ? `不公平！${SAYS[st]}` : SAYS[st]}</div>
               </div>
               <h3>{side === 'zhang' ? '漳州莊' : '泉州莊'}・{FIELDS[side]} 塊田</h3>
@@ -89,7 +89,7 @@ export function ShareStep({ p, set, next }: StepProps) {
         })}
       </div>
       <div className={`river-keep ${river ? 'ok' : 'dry'}`}>
-        <Face who="mu" small />
+        <Face who="mu" mood={river ? 'happy' : 'shout'} small />
         <div>
           <b>溪裡留下的水：{Math.round(riverLeft(s.season, s.gates) * 10) / 10} 份</b>
           <small>至少要 {RIVER_MIN} 份</small>
