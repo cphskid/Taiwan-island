@@ -8,8 +8,8 @@ import { Application, Assets, Container, Graphics, Sprite, Text, Texture, Tiling
 import { clampView, fitView, panBy, zoomAt, type View } from '../core/camera';
 import { lodLevel, nearest, paddyLook, pointAlong, seasonAt, walker, type Pt } from '../core/world';
 import {
-  ACTOR_ART, ACTORS, BUILDINGS, CANAL, CHAPTERS, MAP, PADDIES, ROADS, SCENERY, SEASON_SECONDS, SMOKE, isl,
-  type ActorDef, type ChapterId,
+  ACTOR_ART, CHAPTERS, LIFE, MAP, SEASON_SECONDS, isl,
+  type ActorDef, type ChapterId, type ChapterLife,
 } from '../data/world';
 
 const MAX_ZOOM = 6; // 最多放大到「一倍」的幾倍
@@ -102,8 +102,10 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   host.appendChild(app.canvas);
 
   const names = new Set<string>(['m01', 'm01-relief', 'rift', 'badge-canal', 't2-water', 't2-dirt', 'smoke', 'm2-paddy-green', 'm2-paddy-gold']);
-  for (const d of SCENERY) names.add(d.name);
-  for (const b of BUILDINGS) names.add(b.name);
+  for (const L of Object.values(LIFE)) {
+    for (const d of [...L!.buildings, ...(L!.scenery ?? [])]) names.add(d.name);
+    for (const c of L!.cycles ?? []) for (const f of c.frames) names.add(f);
+  }
   for (const a of Object.values(ACTOR_ART)) {
     for (const f of [...a.walk, a.idle, ...Object.values(a.work ?? {}), ...(a.loop ?? [])]) names.add(f);
   }
@@ -175,9 +177,23 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       if (near) thin.add(p);
     }
   };
-  const clearFog = (id: string) => {
+  // 過關長出來的東西附近，就算在隔壁區的邊上，雲也一起撥開（不然房子會被別區的雲蓋住一半）
+  const lifeSpots = (id: string): Pt[] => {
+    const L = LIFE[id as ChapterId];
+    if (!L) return [];
+    return [
+      ...L.buildings.map((b) => b.at), ...(L.scenery ?? []).map((d) => d.at), ...(L.cycles ?? []).map((c) => c.at),
+      ...L.actors.flatMap((a) => a.path ?? [a.at!]),
+    ];
+  };
+  const LIFE_CLEAR = 110;
+  const fogOf = (id: string) => {
     const r = regionOf(id);
-    for (const p of puffs) if (p.region === r) { p.gone = true; p.sp.visible = false; }
+    const spots = lifeSpots(id);
+    return puffs.filter((p) => !p.gone && (p.region === r || spots.some((q) => Math.hypot(p.x - q.x, p.y - q.y) < LIFE_CLEAR)));
+  };
+  const clearFog = (id: string) => {
+    for (const p of fogOf(id)) { p.gone = true; p.sp.visible = false; }
   };
 
   // ── 地形眼鏡：分層設色＋等高線，只露出撥開雲霧的地區（邊緣柔一點）──
@@ -205,7 +221,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     relief.height = MAP.height;
   };
 
-  // ── 彰化平原活起來（第五章過關後）──
+  // ── 過關的章，那一區活起來（資料在 data/world.ts 的 LIFE，一章一份）──
   // 圳道：土堤（T-02 泥土）裡面流著水（T-02 水面，慢慢往下游捲），線條照折線拉成平順的曲線
   const curve = (g: Graphics, line: readonly Pt[]) => {
     g.moveTo(line[0].x, line[0].y);
@@ -230,92 +246,117 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     holder.addChild(ts, m);
     return { holder, ts };
   };
-  const roads = tiled('t2-dirt', 0.03, ROADS, 3.2);
-  roads.holder.alpha = 0.75;
-  roads.holder.zIndex = -1100;
-  const bank = tiled('t2-dirt', 0.035, CANAL, 8.5);
-  bank.holder.zIndex = -1000;
-  const water = tiled('t2-water', 0.05, CANAL, 5);
-  water.holder.zIndex = -999;
-  const shine = new Graphics();
-  for (const line of CANAL) { curve(shine, line); shine.stroke({ width: 1.2, color: 0xffffff, alpha: 0.28, cap: 'round', join: 'round' }); }
-  shine.zIndex = -998;
-  const flow = new Graphics();
-  flow.zIndex = -997;
-  const lifeCh5 = new Container();
-  lifeCh5.sortableChildren = true;
-  lifeCh5.addChild(roads.holder, bank.holder, water.holder, shine, flow);
-  life.addChild(lifeCh5);
-  const put = (name: string, at: Pt, width: number, anchorY = 0.7) => {
-    const sp = new Sprite(tex[name]);
-    sp.anchor.set(0.5, anchorY);
-    sp.scale.set(width / sp.texture.width);
-    sp.position.set(at.x, at.y);
-    sp.zIndex = at.y;
-    lifeCh5.addChild(sp);
-    return sp;
-  };
-  const grow: { sp: Sprite; k: number; delay: number }[] = [];
-  const paddies = PADDIES.map((at) => {
-    const green = put('m2-paddy-green', at, 40, 0.6);
-    const gold = put('m2-paddy-gold', at, 40, 0.6);
-    green.zIndex = gold.zIndex = at.y - 30; // 田貼在地上，人站在上面
-    grow.push({ sp: green, k: green.scale.x, delay: 0.3 + Math.random() * 0.5 }, { sp: gold, k: gold.scale.x, delay: 0.3 });
-    return { green, gold };
-  });
-  for (const b of BUILDINGS) {
-    const sp = put(b.name, b.at, b.width);
-    if (b.flip) sp.scale.x *= -1;
-    grow.push({ sp, k: sp.scale.x, delay: 0.1 + grow.length * 0.08 });
-  }
-  for (const d of SCENERY) {
-    const sp = put(d.name, d.at, d.width, 0.75);
-    if (d.flip) sp.scale.x *= -1;
-    grow.push({ sp, k: sp.scale.x, delay: 0.2 + Math.random() * 0.6 });
-  }
-  // 炊煙：每個煙囪三團煙，輪流往上飄、變大、變淡
-  const smoke = SMOKE.flatMap((at, i) => [0, 1, 2].map((j) => {
-    const sp = new Sprite(tex.smoke);
-    sp.anchor.set(0.5);
-    sp.zIndex = 10000;
-    lifeCh5.addChild(sp);
-    return { sp, at, ph: i * 0.37 + j / 3 };
-  }));
-  const actors = ACTORS.map((def, i) => {
-    const art = ACTOR_ART[def.kind];
-    const sp = new Sprite(tex[art.idle]);
-    sp.anchor.set(0.5, 0.95);
-    const k = art.height / sp.texture.height;
-    sp.scale.set(k);
-    lifeCh5.addChild(sp);
-    return { def, sp, k, ph: i * 1.7, at: def.at ?? def.path![0] };
-  });
-  // 圳道裡的水往下游流：沿著圳道一顆一顆漂的亮點
-  const canalLens = CANAL.map((line) => {
-    let L = 0;
-    for (let i = 1; i < line.length; i++) L += Math.hypot(line[i].x - line[i - 1].x, line[i].y - line[i - 1].y);
-    return L;
-  });
-  // 水面上幾道反光，順著圳道往下游漂（不要太多，免得像虛線）
-  const drawFlow = (t: number) => {
-    flow.clear();
-    water.ts.tilePosition.set(-t * 6, t * 1.5);
-    CANAL.forEach((line, li) => {
-      const L = canalLens[li];
-      for (let d = (t * 10) % 34; d < L; d += 34) {
-        const a = pointAlong(line, d), b = pointAlong(line, Math.min(L, d + 4));
-        flow.moveTo(a.x, a.y).lineTo(b.x, b.y);
-      }
-    });
-    flow.stroke({ width: 0.9, color: 0xffffff, alpha: 0.6, cap: 'round' });
-    for (const s of smoke) {
-      const u = (t * 0.25 + s.ph) % 1;
-      s.sp.position.set(s.at.x + Math.sin((t + s.ph * 6) * 0.8) * 1.5 + u * 4, s.at.y - u * 16);
-      s.sp.scale.set((3 + u * 7) / s.sp.texture.width * 1.6);
-      s.sp.alpha = 0.55 * Math.sin(u * Math.PI);
+  const makeLife = (L: ChapterLife) => {
+    const box = new Container();
+    box.sortableChildren = true;
+    box.visible = false;
+    life.addChild(box);
+    const put = (name: string, at: Pt, width: number, anchorY = 0.7) => {
+      const sp = new Sprite(tex[name]);
+      sp.anchor.set(0.5, anchorY);
+      sp.scale.set(width / sp.texture.width);
+      sp.position.set(at.x, at.y);
+      sp.zIndex = at.y;
+      box.addChild(sp);
+      return sp;
+    };
+    // k：原本的大小；flip：左右翻過來（x 用負的）
+    const grow: { sp: Sprite; k: number; flip: boolean; delay: number }[] = [];
+    const fire: { sp: Sprite; k: number; flip: boolean; ph: number }[] = [];
+    if (L.roads) {
+      const roads = tiled('t2-dirt', 0.03, L.roads, 3.2);
+      roads.holder.alpha = 0.75;
+      roads.holder.zIndex = -1100;
+      box.addChild(roads.holder);
     }
+    let water: ReturnType<typeof tiled> | null = null;
+    const flow = new Graphics();
+    if (L.canal) {
+      const bank = tiled('t2-dirt', 0.035, L.canal, 8.5);
+      bank.holder.zIndex = -1000;
+      water = tiled('t2-water', 0.05, L.canal, 5);
+      water.holder.zIndex = -999;
+      const shine = new Graphics();
+      for (const line of L.canal) { curve(shine, line); shine.stroke({ width: 1.2, color: 0xffffff, alpha: 0.28, cap: 'round', join: 'round' }); }
+      shine.zIndex = -998;
+      flow.zIndex = -997;
+      box.addChild(bank.holder, water.holder, shine, flow);
+    }
+    const paddies = (L.paddies ?? []).map((at) => {
+      const green = put('m2-paddy-green', at, 40, 0.6);
+      const gold = put('m2-paddy-gold', at, 40, 0.6);
+      green.zIndex = gold.zIndex = at.y - 30; // 田貼在地上，人站在上面
+      grow.push({ sp: green, k: green.scale.y, flip: false, delay: 0.3 + Math.random() * 0.5 }, { sp: gold, k: gold.scale.y, flip: false, delay: 0.3 });
+      return { green, gold };
+    });
+    for (const b of L.buildings) {
+      const sp = put(b.name, b.at, b.width);
+      if (b.flip) sp.scale.x *= -1;
+      grow.push({ sp, k: sp.scale.y, flip: !!b.flip, delay: 0.1 + grow.length * 0.08 });
+      if (b.flicker) fire.push({ sp, k: sp.scale.y, flip: !!b.flip, ph: grow.length });
+    }
+    for (const d of L.scenery ?? []) {
+      const sp = put(d.name, d.at, d.width, 0.75);
+      if (d.flip) sp.scale.x *= -1;
+      grow.push({ sp, k: sp.scale.y, flip: !!d.flip, delay: 0.2 + Math.random() * 0.6 });
+      if (d.flicker) fire.push({ sp, k: sp.scale.y, flip: !!d.flip, ph: grow.length });
+    }
+    // 會換圖的東西：照第一張的比例縮放，換圖時輕輕彈一下
+    const cycles = (L.cycles ?? []).map((c) => {
+      const sp = put(c.frames[0], c.at, c.width, 0.8);
+      if (c.ground) sp.zIndex = c.at.y - 30;
+      const k = c.width / tex[c.frames[0]].width;
+      grow.push({ sp, k, flip: false, delay: 0.3 + Math.random() * 0.5 });
+      return { c, sp, k, cur: 0, t0: -9 };
+    });
+    // 炊煙：每個煙囪三團煙，輪流往上飄、變大、變淡
+    const smoke = (L.smoke ?? []).flatMap((at, i) => [0, 1, 2].map((j) => {
+      const sp = new Sprite(tex.smoke);
+      sp.anchor.set(0.5);
+      sp.zIndex = 10000;
+      box.addChild(sp);
+      return { sp, at, ph: i * 0.37 + j / 3 };
+    }));
+    const actors = L.actors.map((def, i) => {
+      const art = ACTOR_ART[def.kind];
+      const sp = new Sprite(tex[art.idle]);
+      sp.anchor.set(0.5, 0.95);
+      const k = art.height / sp.texture.height;
+      sp.scale.set(k);
+      box.addChild(sp);
+      return { def, sp, k, ph: i * 1.7, at: def.at ?? def.path![0] };
+    });
+    // 圳道裡的水往下游流：水面上幾道反光，順著圳道往下游漂（不要太多，免得像虛線）
+    const canalLens = (L.canal ?? []).map((line) => {
+      let len = 0;
+      for (let i = 1; i < line.length; i++) len += Math.hypot(line[i].x - line[i - 1].x, line[i].y - line[i - 1].y);
+      return len;
+    });
+    const drawFlow = (t: number) => {
+      if (water && L.canal) {
+        flow.clear();
+        water.ts.tilePosition.set(-t * 6, t * 1.5);
+        L.canal.forEach((line, li) => {
+          const len = canalLens[li];
+          for (let d = (t * 10) % 34; d < len; d += 34) {
+            const p = pointAlong(line, d), q = pointAlong(line, Math.min(len, d + 4));
+            flow.moveTo(p.x, p.y).lineTo(q.x, q.y);
+          }
+        });
+        flow.stroke({ width: 0.9, color: 0xffffff, alpha: 0.6, cap: 'round' });
+      }
+      for (const s of smoke) {
+        const u = (t * 0.25 + s.ph) % 1;
+        s.sp.position.set(s.at.x + Math.sin((t + s.ph * 6) * 0.8) * 1.5 + u * 4, s.at.y - u * 16);
+        s.sp.scale.set((3 + u * 7) / s.sp.texture.width * 1.6);
+        s.sp.alpha = 0.55 * Math.sin(u * Math.PI);
+      }
+    };
+    return { box, grow, fire, cycles, paddies, actors, drawFlow, growing: null as { t0: number } | null };
   };
-  const setLife = (on: boolean) => { lifeCh5.visible = on; };
+  const lives = new Map<string, ReturnType<typeof makeLife>>();
+  for (const [id, L] of Object.entries(LIFE)) if (L) lives.set(id, makeLife(L));
+  const setLife = (id: string, on: boolean) => { const l = lives.get(id); if (l) l.box.visible = on; };
 
   // ── 時空裂縫 ──
   interface Rift { id: ChapterId; box: Container; glow: Sprite; rift: Sprite; badge: Sprite; label: Text; state: RiftState }
@@ -418,8 +459,8 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   };
   const hitAt = (w: Pt): Hit | null => {
     const r = Math.max(8, 26 / view.scale);
-    if (lifeCh5.visible && !relief.visible) {
-      const vis = actors.filter((a) => a.sp.visible).map((a) => ({ at: a.at, a }));
+    if (!relief.visible) {
+      const vis = [...lives.values()].filter((L) => L.box.visible).flatMap((L) => L.actors).filter((a) => a.sp.visible).map((a) => ({ at: a.at, a }));
       const got = nearest(vis, { x: w.x, y: w.y - 6 }, r);
       if (got) return { kind: 'actor', actor: got.a.def };
     }
@@ -477,12 +518,11 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   // 一開始：撥開的地區沒有雲、第五章過了就活起來
   for (const id of opt.opened) clearFog(id);
   thinEdges();
-  setLife(openedSet.has('ch5'));
+  for (const id of lives.keys()) setLife(id, openedSet.has(id));
   buildRelief();
 
   // ── 每一格的動畫 ──
   let t = 0;
-  let growing: { t0: number } | null = null;
   const dispelling: { list: Puff[]; t0: number; cx: number; cy: number }[] = [];
   app.ticker.add((tk) => {
     t += tk.deltaMS / 1000;
@@ -517,24 +557,40 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       r.glow.scale.set((0.9 + 0.15 * pulse) * (lit ? 1 : 0), (1.25 + 0.2 * pulse) * (lit ? 1 : 0));
       r.rift.y = lit ? -Math.sin(t * 2) * 3 : 0;
     }
-    if (lifeCh5.visible) {
+    const lod = lodLevel(view.scale / unit());
+    const phase = t / SEASON_SECONDS;
+    const look = paddyLook(phase);
+    const season = seasonAt(phase);
+    for (const L of lives.values()) {
+      if (!L.box.visible) continue;
       // 建設長出來：從 0 彈到原本大小
-      if (growing) {
-        const u = t - growing.t0;
-        for (const g of grow) {
+      if (L.growing) {
+        const u = t - L.growing.t0;
+        for (const g of L.grow) {
           const k = clamp((u - g.delay) / 0.5, 0, 1);
           const s = k < 1 ? k * (1 + 0.25 * Math.sin(k * Math.PI)) : 1;
-          g.sp.scale.set(g.k * s);
+          g.sp.scale.set(g.k * s * (g.flip ? -1 : 1), g.k * s);
         }
-        if (u > 3) { growing = null; for (const g of grow) g.sp.scale.set(g.k); }
+        if (u > 3) { L.growing = null; for (const g of L.grow) g.sp.scale.set(g.k * (g.flip ? -1 : 1), g.k); }
       }
-      const phase = t / SEASON_SECONDS;
-      const look = paddyLook(phase);
-      if (!growing) for (const p of paddies) { p.green.alpha = look.green; p.gold.alpha = look.gold; }
-      drawFlow(t);
-      const season = seasonAt(phase);
-      const lod = lodLevel(view.scale / unit());
-      for (const a of actors) {
+      if (!L.growing) {
+        for (const p of L.paddies) { p.green.alpha = look.green; p.gold.alpha = look.gold; }
+        for (const f of L.fire) {
+          const w = 1 + 0.06 * Math.sin(t * 9 + f.ph) + 0.04 * Math.sin(t * 23 + f.ph * 2);
+          f.sp.scale.set(f.k * w * (f.flip ? -1 : 1), f.k * (2 - w));
+          f.sp.alpha = 0.85 + 0.15 * Math.sin(t * 13 + f.ph);
+        }
+        for (const c of L.cycles) {
+          const n = c.c.frames.length;
+          const i = Math.floor((((t / c.c.seconds + (c.c.ph ?? 0)) % 1) * n));
+          if (i !== c.cur) { c.cur = i; c.t0 = t; c.sp.texture = tex[c.c.frames[i]]; }
+          const u = clamp((t - c.t0) / 0.4, 0, 1);
+          const pop = u < 1 ? 0.7 + 0.3 * u + 0.15 * Math.sin(u * Math.PI) : 1;
+          c.sp.scale.set(c.k * pop);
+        }
+      }
+      L.drawFlow(t);
+      for (const a of L.actors) {
         const art = ACTOR_ART[a.def.kind];
         a.sp.visible = a.def.lod <= lod;
         if (!a.sp.visible) continue;
@@ -588,15 +644,16 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     async dispel(id) {
       const ch = CHAPTERS.find((c) => c.id === id);
       if (!ch) return;
-      const list = puffs.filter((p) => p.region === ch.region && !p.gone);
+      const list = fogOf(id);
       dispelling.push({ list, t0: t, cx: ch.rift.x, cy: ch.rift.y });
       openedSet.add(id);
       buildRelief();
       setTimeout(thinEdges, 1500);
-      if (id === 'ch5') {
-        for (const g of grow) g.sp.scale.set(0);
-        setLife(true);
-        growing = { t0: t + 0.9 };
+      const L = lives.get(id);
+      if (L) {
+        for (const g of L.grow) g.sp.scale.set(0);
+        setLife(id, true);
+        L.growing = { t0: t + 0.9 };
       }
       await new Promise((r) => setTimeout(r, 3200));
     },

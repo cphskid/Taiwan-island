@@ -976,8 +976,8 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .quest.floating.folded{left:12px;translate:none}
 
 /* 第一章煉鐵：樹種在真的山坡圖上 */
-.hill-wrap{padding:52px 10px 10px}
-.hill{position:relative;width:min(100%,calc((100dvh - 170px) * 1.79));aspect-ratio:1376/768;border-radius:20px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.hill-wrap{gap:10px;padding:52px 10px 8px}
+.hill{position:relative;flex:none;width:min(100%,calc((100dvh - 170px) * 1.79));aspect-ratio:1376/768;border-radius:20px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .hill-bg{position:absolute;inset:0;width:100%;height:100%}
 .hill-tree{position:absolute;width:calc(9% * var(--s));aspect-ratio:3/4;translate:-50% -100%;border:0;background:none;padding:0;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;z-index:1;transition:transform .15s}
 .hill-tree.steep{z-index:2}
@@ -988,23 +988,27 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .hill-tree:hover{transform:translateY(-4px)}
 .hill-tree:active{transform:scale(.92)}
 .hill-tree.slide{animation:shake .12s linear 8}
-.steps-badge{position:absolute;top:-4px;left:50%;translate:-50% 0;font-size:clamp(10px,1.4vw,15px);line-height:1;white-space:nowrap;background:rgba(255,250,235,.92);border:2px solid #b98a4e;border-radius:10px;padding:2px 4px;opacity:0;transition:opacity .15s;pointer-events:none}
+.steps-badge{position:absolute;top:-6px;left:50%;translate:-50% 0;display:flex;align-items:center;gap:2px;font-size:clamp(10px,1.4vw,15px);line-height:1;white-space:nowrap;background:rgba(255,250,235,.92);border:2px solid #b98a4e;border-radius:10px;padding:2px 4px;opacity:0;transition:opacity .15s;pointer-events:none}
 .hill-tree:hover .steps-badge,.hill-tree:focus-visible .steps-badge,.hill-tree.stump .steps-badge{opacity:1}
 .hill-tree.stump .steps-badge{top:auto;bottom:48%}
 @media (hover:none){.steps-badge{opacity:.95}}
+/* 體力豆：一顆＝一次行動 */
+.bean{display:inline-block;width:clamp(9px,1.2vw,14px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6c4 0 18%,#ffcf3a 40%,#e08a12 100%);box-shadow:0 1px 2px rgba(0,0,0,.35)}
 .slope-risk{position:absolute;top:40%;height:36%;width:13%;translate:-50% 0;border-radius:40%;background:radial-gradient(rgba(224,69,44,.45),transparent 70%);animation:blink .7s ease-in-out infinite alternate;pointer-events:none;z-index:1}
 .slope-risk b{position:absolute;left:50%;bottom:-6%;translate:-50% 0;font-size:clamp(16px,2.6vw,30px);text-shadow:0 2px 3px rgba(0,0,0,.4)}
 .mudslide{position:absolute;top:45%;width:14%;height:50%;translate:-50% 0;border-radius:40% 40% 50% 50%;background:linear-gradient(#8a5a2b,#6b4220 70%,rgba(107,66,32,.0));transform-origin:top;animation:mud 1.6s ease-in forwards;z-index:3;pointer-events:none}
 @keyframes mud{from{transform:scaleY(.05);opacity:.4}to{transform:scaleY(1);opacity:.95}}
 .hill-deer{position:absolute;left:60%;top:13%;width:7%;animation:bob 2s ease-in-out infinite;pointer-events:none}
 .hill-furnace{position:absolute;left:87%;top:88%;width:11%;translate:-50% -50%;filter:drop-shadow(0 0 24px rgba(255,140,40,.9));animation:pop .3s}
-.iron-hud{position:absolute;left:1.5%;top:3%;width:max(150px,21%);display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:8px;border-radius:16px;background:rgba(255,248,230,.88);border:3px solid var(--wood-2);text-align:center;z-index:4}
+.iron-hud{display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:8px;border-radius:16px;background:rgba(255,248,230,.9);border:3px solid var(--wood-2);text-align:center;z-index:4}
 .iron-hud p{margin:0;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px}
-.iron-hud .steps-left i{font-style:normal;font-size:clamp(14px,1.8vw,22px);opacity:.2;filter:grayscale(1)}
-.iron-hud .steps-left i.on{opacity:1;filter:none}
-.iron-hud .wood-n img{width:34px}
-.iron-hud .iron-n img{width:30px}
-.iron-hud .btn{min-width:0;width:100%;font-size:14px;min-height:36px;padding:4px 6px}
+.iron-hud .seasons{flex-wrap:wrap;justify-content:center}
+.iron-hud .steps-left small{font-size:13px;color:var(--wood-2);margin-right:2px}
+.iron-hud .steps-left .bean{width:clamp(14px,1.8vw,20px);opacity:.25;filter:grayscale(1)}
+.iron-hud .steps-left .bean.on{opacity:1;filter:none}
+.iron-hud .wood-n img{width:30px}
+.iron-hud .iron-n img{width:26px}
+.iron-hud .btn{min-width:0;width:100%;font-size:14px;min-height:34px;padding:3px 6px}
 .hill .rainfall{position:absolute;inset:0;z-index:5}
 .ch2-end{position:absolute;inset:0;pointer-events:none}
 .ch2-end img{position:absolute;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35));animation:pop .5s ease-out}
@@ -1013,3 +1017,20 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .ch2-end .e-seed{left:68%;top:34%;width:6%}
 .ch2-end .e-trader{left:84%;top:48%;width:9%;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35)) saturate(.8)}
 .ch2-end .e-ani{left:44%;top:50%;width:11%}
+
+/* 煉鐵引導：要留的樹、煉鐵鈕發亮、下雨前警告 */
+.keep-badge{position:absolute;top:-6px;left:50%;translate:-50% 0;white-space:nowrap;font-size:clamp(10px,1.4vw,14px);font-weight:900;line-height:1.2;background:#2e7d32;color:#fff;border:2px solid #fff;border-radius:10px;padding:1px 6px;pointer-events:none;animation:bob .6s ease-in-out infinite alternate}
+.iron-hud .btn.ready{box-shadow:0 0 0 3px #ffe066,0 0 16px #ffb02e;animation:pulse .6s ease-in-out infinite alternate}
+.rain-ask{max-width:460px;text-align:center;align-self:center}
+.rain-ask h3{margin:0 0 6px;color:#c0392b}
+.rain-ask p{margin:0 0 12px;line-height:1.6}
+.rain-ask .row{display:flex;gap:10px;justify-content:center}
+.hill-wrap .iron-hud{position:relative;left:auto;top:auto;width:160px;flex:none;align-self:center}
+.hill-wrap .hill{width:min(100% - 180px,calc((100dvh - 170px) * 1.79))}
+.ch1-iron .say{left:auto;right:12px}
+@media (max-height:560px){
+  .hill-wrap{padding:40px 8px 6px}
+  .hill-wrap .hill{width:min(100% - 180px,calc((100dvh - 92px) * 1.79))}
+  .iron-hud{gap:3px;padding:6px}
+  .iron-hud .btn{font-size:13px;min-height:30px}
+}

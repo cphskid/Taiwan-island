@@ -230,17 +230,18 @@ export const IRON_INTRO: Line[] = [
 ];
 export const IRON_TASK: Line[] = [
   { who: 'smith', text: '一爐要 3 份木材燒成木炭，木材要上山砍樹。' },
+  { who: 'yan', mood: 'thinking', text: '村子就在陡坡下面。陡坡上同一直排的兩棵樹，至少留一棵，或砍了馬上種樹苗，下雨土才不會沖下來。' },
 ];
 export const FOREST: ForestLevel = { cols: 6, farRows: 2, steepRows: 2, seasons: 4, actions: 4, woodPerIron: 3, iron: 3, rainAfter: [2, 4] };
 export const IRON_RULES = '近的陡坡砍一棵花 1 次行動，遠的緩坡要走遠路，花 2 次。在樹樁種樹苗花 1 次。第 2、4 季結束會下大雨。';
 export const IRON_SAY = {
   steep: { who: 'yan', mood: 'worried', text: '陡坡上的樹都砍光的話，下雨會不會把土沖下來？村子就在正下面耶……' } as Line,
   deer: { who: 'yan', mood: 'sad', text: '樹變好少……我一直想看鹿群，牠們沒地方住了。' } as Line,
-  slide: { who: 'smith', text: '糟了！大雨把光禿禿的山坡沖垮，土石流衝到村子邊了！' } as Line,
+  slide: { who: 'smith', text: '糟了！大雨把光禿禿的山坡沖垮，土石流衝到村子邊了！我們回到這一季開頭再試一次。' } as Line,
   hint: { who: 'yan', mood: 'thinking', text: '同一直排的陡坡，上下至少留一棵樹，或砍完馬上種樹苗，根就抓得住土。' } as Line,
   rain: { who: 'tick', mood: 'worried', text: '大雨來了！' } as Line,
   safe: { who: 'smith', text: '雨停了，山坡好好的。你們砍樹砍得很小心。' } as Line,
-  noWood: { who: 'smith', text: '木材不夠煉 3 爐鐵，時間也用完了。再想想先砍哪裡吧。' } as Line,
+  noWood: { who: 'smith', text: '木材不夠煉 3 爐鐵，時間也用完了。近的陡坡一棵只要 1 步，每一直排先砍一棵最划算，不夠再去遠的緩坡。' } as Line,
 };
 export const IRON_DONE: Line[] = [
   { who: 'smith', text: '三把鐵器！有了鐵，我們還能拿去跟從海上來的人交換琉璃珠和銅錢。' },

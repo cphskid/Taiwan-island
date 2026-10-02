@@ -8,7 +8,8 @@ import SEEDS from './world-seeds.json';
 import type { Pt } from '../core/world';
 
 const BASE = import.meta.env.BASE_URL;
-export const isl = (name: string) => `${BASE}img/island/${name}.webp`;
+// 名字有斜線的是關卡裡的圖（ch1/f-04a-idle → img/ch1/f-04a-idle.webp），其他在 img/island/
+export const isl = (name: string) => `${BASE}img/${name.includes('/') ? name : `island/${name}`}.webp`;
 
 export const MAP = {
   width: 2680,
@@ -73,7 +74,9 @@ export const CANAL: Pt[][] = [
 ];
 
 // 聚落：W-01 不帶底座的房子一棟一棟排成村子（漳州莊在左、泉州莊在右下），巴布薩族社還是 M-02 的圖
-export const BUILDINGS: { name: string; at: Pt; width: number; flip?: boolean }[] = [
+// 擺在地圖上的一張圖。flip＝左右翻過來；flicker＝火光一閃一閃
+export interface Placed { name: string; at: Pt; width: number; flip?: boolean; flicker?: boolean }
+export const BUILDINGS: Placed[] = [
   { name: 'm2-tribe', at: { x: 1087, y: 1353 }, width: 44 },
   { name: 'w1-7', at: { x: 1155, y: 1367 }, width: 30 },
   { name: 'w1-4', at: { x: 1124, y: 1374 }, width: 30 },
@@ -92,7 +95,9 @@ export const PADDIES: Pt[] = [
 ];
 
 // 會動的小人和動物。path 來回走；at 是站著做事的地方
-export type ActorKind = 'farmer' | 'carrier' | 'worker' | 'buffalo' | 'hen' | 'dog' | 'hoer' | 'porter' | 'woman' | 'lian' | 'magpie' | 'washer' | 'waterer' | 'kid' | 'duck' | 'swimmer';
+export type ActorKind = 'farmer' | 'carrier' | 'worker' | 'buffalo' | 'hen' | 'dog' | 'hoer' | 'porter' | 'woman' | 'lian' | 'magpie' | 'washer' | 'waterer' | 'kid' | 'duck' | 'swimmer'
+  | 'ayan' | 'knapper' | 'potter' | 'jadeworker' | 'smith' | 'deer' | 'grazer'
+  | 'ani' | 'sower' | 'elder' | 'hunter' | 'trader' | 'boar' | 'macaque';
 export interface ActorDef {
   kind: ActorKind;
   path?: Pt[];
@@ -143,10 +148,26 @@ export const ACTOR_ART: Record<ActorKind, { walk: string[]; idle: string; work?:
   kid: { walk: ['w4-2', 'w4-3'], idle: 'w4-10', height: 12 },
   duck: { walk: ['w5-2', 'w5-3'], idle: 'w5-1', height: 6 },
   swimmer: { walk: ['w5-4'], idle: 'w5-4', height: 5 },
+  // 第一章：阿岩和史前的人（關卡裡的圖）
+  ayan: { walk: ['ch1/f-04a-walk1', 'ch1/f-04a-walk2'], idle: 'ch1/f-04a-idle', height: 14 },
+  knapper: { walk: ['ch1/f-04a-walk1'], idle: 'ch1/f-04a-idle', loop: ['ch1/f-04a-knap', 'ch1/f-04a-knap', 'ch1/f-04a-idle'], height: 14 },
+  potter: { walk: ['ch1/p-15-potter'], idle: 'ch1/p-15-potter', height: 17 },
+  jadeworker: { walk: ['ch1/p-15-jade'], idle: 'ch1/p-15-jade', height: 17 },
+  smith: { walk: ['ch1/p-15-smith'], idle: 'ch1/p-15-smith', height: 17 },
+  deer: { walk: ['ch2/deer-run'], idle: 'ch2/deer', height: 12 },
+  grazer: { walk: ['ch2/deer-run'], idle: 'ch2/deer', loop: ['ch2/deer-eat', 'ch2/deer-eat', 'ch2/deer'], height: 12 },
+  // 第二章：阿妮和部落的人
+  ani: { walk: ['ch2/f-05a-walk1', 'ch2/f-05a-walk2'], idle: 'ch2/f-05a-idle', height: 14 },
+  sower: { walk: ['ch2/f-05a-walk1'], idle: 'ch2/f-05a-idle', loop: ['ch2/f-05a-sow', 'ch2/f-05a-sow', 'ch2/f-05a-idle'], height: 14 },
+  elder: { walk: ['ch2/p-16-elder'], idle: 'ch2/p-16-elder', height: 17 },
+  hunter: { walk: ['ch2/p-16-hunter'], idle: 'ch2/p-16-hunter', height: 17 },
+  trader: { walk: ['ch2/p-16-trader'], idle: 'ch2/p-16-trader', height: 17 },
+  boar: { walk: ['x2-7'], idle: 'x2-7', height: 9 },
+  macaque: { walk: ['x2-8'], idle: 'x2-8', height: 9 },
 };
 
 // 聚落周圍的樹、竹林、蘆葦，圳頭的攔水堰（O-04、O-02）。flip＝左右翻過來，看起來不會一模一樣
-export const SCENERY: { name: string; at: Pt; width: number; flip?: boolean }[] = [
+export const SCENERY: Placed[] = [
   { name: 'weir', at: { x: 1417, y: 1512 }, width: 26 },
   { name: 'tree', at: { x: 1129, y: 1362 }, width: 20 },
   { name: 'tree', at: { x: 1182, y: 1379 }, width: 17, flip: true },
@@ -179,6 +200,102 @@ export const ROADS: Pt[][] = [
   [{ x: 1156, y: 1400 }, { x: 1188, y: 1433 }, { x: 1229, y: 1462 }, { x: 1248, y: 1474 }],
   [{ x: 1272, y: 1483 }, { x: 1311, y: 1499 }, { x: 1353, y: 1495 }, { x: 1393, y: 1492 }],
 ];
+
+// ── 每章過關後，大地圖上那一區活起來 ──────────────────────
+// 每章一份：房子、景物、會換圖的東西、炊煙、小人和動物。之後的章節照這個格式補資料就會出現。
+
+// 會換圖的東西，一輪 seconds 秒，照順序換 frames：樹長大→被砍成樹樁→又冒出小樹；田燒墾、播種、收成、休耕。
+// 每一張都照第一張的比例縮放（同一張素材表畫的，大小本來就對得上）。ground＝貼在地上（人站在上面）
+export interface Cycle { frames: string[]; at: Pt; width: number; seconds: number; ph?: number; ground?: boolean }
+export interface ChapterLife {
+  canal?: Pt[][]; // 圳道（第五章）
+  roads?: Pt[][]; // 土路
+  paddies?: Pt[]; // 隨季節變色的稻田（第五章）
+  buildings: Placed[];
+  scenery?: Placed[];
+  cycles?: Cycle[];
+  smoke?: Pt[];
+  actors: ActorDef[];
+}
+
+const TREE = ['ch1/o-05-tree', 'ch1/o-05-tree', 'ch1/o-05-tree', 'ch1/o-05-stump', 'ch1/o-05-sapling'];
+const FIELD = ['ch2/o-06-forest', 'ch2/o-06-burnt', 'ch2/o-06-sprout', 'ch2/o-06-green', 'ch2/o-06-golden', 'ch2/o-06-fallow', 'ch2/o-06-fallow'];
+
+// 第一章：東海岸八仙洞（洞裡的火亮了、海邊敲石器）＋北海岸十三行（煉鐵爐冒煙）
+const LIFE_CH1: ChapterLife = {
+  buildings: [
+    { name: 'x1-1', at: { x: 2318, y: 2030 }, width: 46 },
+    { name: 'x1-2', at: { x: 2196, y: 1948 }, width: 30 },
+    { name: 'x1-2', at: { x: 2232, y: 2080 }, width: 26, flip: true },
+    { name: 'x1-3', at: { x: 2062, y: 238 }, width: 30 },
+    { name: 'x1-3', at: { x: 2030, y: 262 }, width: 24, flip: true },
+    { name: 'x1-4', at: { x: 2094, y: 266 }, width: 18, flicker: true },
+  ],
+  scenery: [
+    { name: 'ch1/o-05-fire', at: { x: 2262, y: 2004 }, width: 13, flicker: true },
+    { name: 'x1-5', at: { x: 2296, y: 2088 }, width: 20 },
+    { name: 'x1-6', at: { x: 2286, y: 2124 }, width: 24 },
+    { name: 'x1-7', at: { x: 2262, y: 2104 }, width: 17 },
+    { name: 'x1-8', at: { x: 2180, y: 2006 }, width: 20 },
+    { name: 'ch1/o-05-woodpile', at: { x: 2112, y: 278 }, width: 16 },
+  ],
+  cycles: [
+    { frames: TREE, at: { x: 2126, y: 1906 }, width: 20, seconds: 30 },
+    { frames: TREE, at: { x: 2100, y: 2060 }, width: 18, seconds: 30, ph: 0.4 },
+    { frames: TREE, at: { x: 2150, y: 2128 }, width: 20, seconds: 30, ph: 0.7 },
+    { frames: TREE, at: { x: 2010, y: 250 }, width: 18, seconds: 26, ph: 0.2 },
+    { frames: TREE, at: { x: 2128, y: 294 }, width: 18, seconds: 26, ph: 0.6 },
+  ],
+  smoke: [{ x: 2096, y: 252 }, { x: 2318, y: 2014 }],
+  actors: [
+    { kind: 'ayan', path: [{ x: 2190, y: 1966 }, { x: 2240, y: 2012 }, { x: 2296, y: 2050 }], speed: 8, who: '阿岩', says: '洞裡的火回來了！晚上不會冷，阿媽也不咳嗽了。', lod: 0 },
+    { kind: 'knapper', at: { x: 2196, y: 2016 }, who: '敲石器的阿岩', says: '從角落開始，沿著邊一片一片敲，石刀就做好了。', lod: 0 },
+    { kind: 'potter', at: { x: 2214, y: 2092 }, who: '做陶的婆婆', says: '罐子可以把東西煮熟，也可以把種子收好，明年再種。', lod: 1 },
+    { kind: 'jadeworker', at: { x: 2172, y: 1958 }, who: '磨玉的工匠', says: '玉很硬，要用砂和水慢慢磨，磨好幾天才有一個玉環。', lod: 1 },
+    { kind: 'smith', at: { x: 2080, y: 282 }, who: '十三行煉鐵的師傅', says: '煉一爐鐵要燒好多木炭。樹砍了，要記得讓小樹長回來。', lod: 0 },
+    { kind: 'grazer', at: { x: 2060, y: 1964 }, who: '梅花鹿', says: '呦～（阿岩一直想看到森林裡的鹿群。）', lod: 2 },
+    { kind: 'deer', path: [{ x: 2040, y: 2010 }, { x: 2080, y: 2040 }, { x: 2116, y: 2090 }], speed: 10, who: '梅花鹿', says: '呦呦！', lod: 3 },
+  ],
+};
+
+// 第二章：中央山脈上的部落（石板屋、穀倉、小米田輪流休耕、獵場裡的鹿）
+const LIFE_CH2: ChapterLife = {
+  buildings: [
+    { name: 'x2-1', at: { x: 1902, y: 1500 }, width: 32 },
+    { name: 'x2-1', at: { x: 1946, y: 1526 }, width: 28, flip: true },
+    { name: 'x2-2', at: { x: 1862, y: 1532 }, width: 28 },
+    { name: 'x2-3', at: { x: 1986, y: 1494 }, width: 17 },
+    { name: 'x2-4', at: { x: 1818, y: 1488 }, width: 26 },
+    { name: 'x2-5', at: { x: 1924, y: 1548 }, width: 7 },
+  ],
+  scenery: [
+    { name: 'x2-6', at: { x: 2012, y: 1522 }, width: 22 },
+  ],
+  cycles: [
+    { frames: FIELD, at: { x: 1866, y: 1600 }, width: 34, seconds: 70, ground: true },
+    { frames: FIELD, at: { x: 1946, y: 1610 }, width: 34, seconds: 70, ph: 0.3, ground: true },
+    { frames: FIELD, at: { x: 2026, y: 1584 }, width: 32, seconds: 70, ph: 0.6, ground: true },
+  ],
+  smoke: [{ x: 1898, y: 1486 }, { x: 1862, y: 1520 }],
+  actors: [
+    { kind: 'ani', path: [{ x: 1872, y: 1556 }, { x: 1940, y: 1580 }, { x: 2010, y: 1566 }], speed: 7, who: '阿妮', says: '小米田要輪流休息，種一年、歇一年，田才會一直有力氣。', lod: 0 },
+    { kind: 'sower', at: { x: 1950, y: 1614 }, who: '播種的阿妮', says: '春天播小米，播完同一季就要除草，不然草會長得比小米快。', lod: 0 },
+    { kind: 'elder', at: { x: 1918, y: 1522 }, who: '部落長老', says: '每個部落、每個家族的獵場都有範圍，這是祖先留下的規矩。', lod: 1 },
+    { kind: 'hunter', path: [{ x: 1826, y: 1504 }, { x: 1790, y: 1470 }, { x: 1756, y: 1440 }], speed: 5, who: '獵人叔叔', says: '春天讓鹿生小鹿，秋天、冬天再上山。每年打的，不要比生出來的多。', lod: 1 },
+    { kind: 'trader', path: [{ x: 1730, y: 1610 }, { x: 1790, y: 1580 }, { x: 1840, y: 1560 }], speed: 4, who: '外地來的商人', says: '我從海邊來，想用布和鐵器換你們的鹿皮。聽說海上還有大船要來……', lod: 2 },
+    { kind: 'grazer', at: { x: 1776, y: 1420 }, who: '梅花鹿', says: '呦～（鹿群一直都在，以後的孩子也看得到。）', lod: 1 },
+    { kind: 'grazer', at: { x: 1800, y: 1436 }, who: '小鹿', says: '呦呦～', lod: 2 },
+    { kind: 'deer', path: [{ x: 1740, y: 1400 }, { x: 1700, y: 1430 }, { x: 1680, y: 1470 }], speed: 12, who: '梅花鹿', says: '呦！', lod: 3 },
+    { kind: 'boar', path: [{ x: 2050, y: 1450 }, { x: 2076, y: 1470 }, { x: 2094, y: 1494 }], speed: 4, who: '山豬', says: '嚄嚄！（獵人說，山豬也是獵場裡的動物。）', lod: 2 },
+    { kind: 'macaque', at: { x: 1992, y: 1432 }, who: '臺灣獼猴', says: '吱吱！（小米快熟的時候，要小心猴子來偷吃。）', lod: 3 },
+  ],
+};
+
+export const LIFE: Partial<Record<ChapterId, ChapterLife>> = {
+  ch1: LIFE_CH1,
+  ch2: LIFE_CH2,
+  ch5: { canal: CANAL, roads: ROADS, paddies: PADDIES, buildings: BUILDINGS, scenery: SCENERY, smoke: SMOKE, actors: ACTORS },
+};
 
 // 季節：一輪 80 秒，秧苗 → 綠稻 → 金黃 → 收割
 export const SEASON_SECONDS = 80;

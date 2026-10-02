@@ -13,11 +13,11 @@ import { Prologue } from './Prologue';
 import { warm } from './warm';
 
 // 整個遊戲的兩層：全台大地圖（選章）⇄ 章節關卡；第一次進來先玩序章《認識臺灣》。
-// 網址加 ?step=3 直接進第五章的某一步、?ch1=2 直接進第一章的某一步、?ch2=2 直接進第二章的某一步；?prologue 直接玩序章；?world=fresh 大地圖從頭開始、?world=clear5 假裝剛過完第五章（測試用）。
+// 網址加 ?step=3 直接進第五章的某一步、?ch1=2 直接進第一章的某一步、?ch2=2 直接進第二章的某一步；?prologue 直接玩序章；?world=fresh 大地圖從頭開始、?world=clear5 假裝剛過完第五章、?world=clear1,2,5 假裝過了好幾章（測試用）。
 function initialWorld(): WorldSave {
   const q = new URLSearchParams(location.search).get('world');
   if (q === 'fresh') return freshWorld();
-  if (q === 'clear5') return { ...freshWorld(), greeted: true, cleared: ['ch5'] };
+  if (q?.startsWith('clear')) return { ...freshWorld(), greeted: true, cleared: q.slice(5).split(',').map((n) => `ch${n}`) as WorldSave['cleared'] };
   return syncChapters(loadWorld());
 }
 
