@@ -116,7 +116,8 @@ export const PLACES: Place[] = [
 // 夥伴的圖：F-01B、F-02B 表情表（public/img/story/），moods 是每個表情用哪一格。
 export type Who = 'tick' | 'shi' | 'lin' | 'babuza' | 'zhang' | 'quan' | 'lian' | 'mu' | 'traveler'
   | 'yan' | 'potter' | 'jade' | 'smith' | 'arch' // 第一章（data/ch1.ts）
-  | 'ani' | 'elder' | 'hunter' | 'trader'; // 第二章（data/ch2.ts）
+  | 'ani' | 'elder' | 'hunter' | 'trader' // 第二章（data/ch2.ts）
+  | 'afu' | 'uma' | 'clerk' | 'siraya' | 'friar'; // 第三章（data/ch3.ts）
 export type Mood = 'wave' | 'happy' | 'thinking' | 'worried' | 'scared' | 'sad' | 'determined' | 'frown' | 'angry' | 'thumbs' | 'listen' | 'laugh' | 'surprised' | 'shout' | 'me';
 export const TICK_MOODS: readonly Mood[] = ['wave', 'happy', 'thinking', 'worried'];
 export interface Line { who: Who; text: string; mood?: Mood }
@@ -149,6 +150,14 @@ export const PEOPLE: Record<Who, { name: string; img?: string; moods?: Partial<R
   elder: { name: '部落長老', img: 'ch2/p-16-elder.webp', color: '#7a5230' },
   hunter: { name: '獵人叔叔', img: 'ch2/p-16-hunter.webp', color: '#55703a' },
   trader: { name: '外地來的商人', img: 'ch2/p-16-trader.webp', color: '#34508a' },
+  // 第三章：阿福（虛構的福建漢人男孩，F-06B 表情）、烏瑪（虛構的新港社西拉雅族少女，名字與穿著待審）與 P-17 配角
+  afu: { name: '阿福', img: 'ch3/f-06b-happy.webp', color: '#3d5fa8', moods: {
+    happy: 'ch3/f-06b-happy.webp', worried: 'ch3/f-06b-worried.webp', scared: 'ch3/f-06b-scared.webp', sad: 'ch3/f-06b-sad.webp',
+    determined: 'ch3/f-06b-determined.webp', frown: 'ch3/f-06b-frown.webp', angry: 'ch3/f-06b-angry.webp', thumbs: 'ch3/f-06b-thumbs.webp' } },
+  uma: { name: '烏瑪', img: 'ch3/p-17-uma.webp', color: '#2f6f8f' },
+  clerk: { name: '商館員', img: 'ch3/p-17-clerk.webp', color: '#c0662b' },
+  siraya: { name: '新港社的長老', img: 'ch3/p-17-elder.webp', color: '#6b4f2a' },
+  friar: { name: '西班牙傳教士', img: 'ch3/p-17-friar.webp', color: '#7a4b2a' },
 };
 
 // 時間卡住：齒輪掉在哪個時代，那裡就一直重複同一天
