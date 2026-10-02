@@ -3,7 +3,7 @@ import { createWorldMap, type Hit, type RiftState, type WorldMap as Map } from '
 import { celebrate, opened, toCelebrate, type WorldSave } from '../core/world';
 import { ACTOR_ART, CHAPTERS, GEAR_SLOTS, HOOKS, LEGEND, TICK_LINES, chapterOf, isl, type ActorDef, type ChapterId } from '../data/world';
 import { Say, Talk } from './Talk';
-import { Album } from './Album';
+import { Album, BOOK1, BOOK5 } from './Album';
 import { CARD_ORDER } from '../data/babao-chapter';
 import { ambience, music, preload, sfx, type SeCode } from '../audio';
 import { SoundToggle } from './Sound';
@@ -17,7 +17,7 @@ interface Props {
   world: WorldSave;
   setWorld: (fn: (w: WorldSave) => WorldSave) => void;
   onEnter: (id: ChapterId) => void;
-  back: boolean; // 剛從關卡回來：鏡頭先停在彰化，再拉遠
+  back: ChapterId | null; // 剛從哪一章回來：鏡頭先停在那一章，再拉遠
   onPrologue: () => void; // 再玩一次序章
 }
 
@@ -66,11 +66,11 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
     music('MU-10');
     ambience('SE-30');
     preload(['SE-03', 'SE-31', 'SE-32', 'SE-33', 'SE-34', 'SE-38', 'SE-39']);
-    const ch5 = chapterOf('ch5');
+    const from = chapterOf(back ?? 'ch5');
     createWorldMap(host.current!, {
       opened: opened(world),
       onTap: (h) => onTapRef.current(h),
-      start: back ? { at: ch5.rift, zoom: 4 } : undefined,
+      start: back ? { at: from.rift, zoom: 4 } : undefined,
     }).then(async (m) => {
       if (!alive) { m.destroy(); return; }
       map.current = m;
@@ -82,7 +82,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
       if (back || todo.length) {
         setBusy(true);
         if (todo.length) await m.flyTo(chapterOf(todo[0] as ChapterId).rift, 2.6, 900);
-        else await m.flyTo(ch5.rift, 1, 1100);
+        else await m.flyTo(from.rift, 1, 1100);
         for (const id of todo) await celebrateOne(m, id as ChapterId);
         setBusy(false);
       }
@@ -108,7 +108,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
     }
     setWorld((w) => celebrate(w, id));
     m.setRifts(riftStates({ ...live.current.world, cleared: [...opened(live.current.world), id] }));
-    setSay(TICK_LINES.cleared);
+    setSay(id === 'ch1' ? TICK_LINES.clearedCh1 : TICK_LINES.cleared);
     if (HOOKS[id]) {
       await new Promise((r) => setTimeout(r, 6000));
       setSay(TICK_LINES.hook);
@@ -203,7 +203,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
       {actor && <ActorSay actor={actor} onClose={() => setActor(null)} />}
       {!actor && <Say line={say ? { who: 'tick', mood: 'happy', text: say } : null} />}
       {flash && <div className="warp" />}
-      {book && <Album have={world.cards} onClose={() => setBook(false)} />}
+      {book && <Album have={world.cards} books={[BOOK1, BOOK5]} onClose={() => setBook(false)} />}
       {intro && ready && (
         <Talk
           lines={[{ who: 'tick', mood: 'wave', text: TICK_LINES.welcome }]}

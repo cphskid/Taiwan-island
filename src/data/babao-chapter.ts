@@ -114,7 +114,8 @@ export const PLACES: Place[] = [
 // 阿蓮（漳州莊女孩）、阿穆（巴布薩族少年）是這一章的夥伴：一人知道一半線索、有心願也有怕的事，
 // 分水時會跟你意見不同，最後送你信物。兩人都是虛構角色；阿穆的名字、穿著和說法上正式站前要找人審。
 // 夥伴的圖：F-01B、F-02B 表情表（public/img/story/），moods 是每個表情用哪一格。
-export type Who = 'tick' | 'shi' | 'lin' | 'babuza' | 'zhang' | 'quan' | 'lian' | 'mu' | 'traveler';
+export type Who = 'tick' | 'shi' | 'lin' | 'babuza' | 'zhang' | 'quan' | 'lian' | 'mu' | 'traveler'
+  | 'yan' | 'potter' | 'jade' | 'smith' | 'arch'; // 第一章（data/ch1.ts）
 export type Mood = 'wave' | 'happy' | 'thinking' | 'worried' | 'scared' | 'sad' | 'determined' | 'frown' | 'angry' | 'thumbs' | 'listen' | 'laugh' | 'surprised' | 'shout' | 'me';
 export const TICK_MOODS: readonly Mood[] = ['wave', 'happy', 'thinking', 'worried'];
 export interface Line { who: Who; text: string; mood?: Mood }
@@ -132,6 +133,14 @@ export const PEOPLE: Record<Who, { name: string; img?: string; moods?: Partial<R
     happy: 'story/F-02B_1.webp', listen: 'story/F-02B_2.webp', frown: 'story/F-02B_3.webp', laugh: 'story/F-02B_4.webp',
     surprised: 'story/F-02B_6.webp', shout: 'story/F-02B_7.webp', me: 'story/F-02B_8.webp' } },
   traveler: { name: '？？？', img: 'story/F-03_1.webp', color: '#4a4f63' }, // 戴斗笠的神秘旅人，臉一直看不到
+  // 第一章：阿岩（虛構的長濱文化男孩，F-04B 表情）與各時代的人（P-15）
+  yan: { name: '阿岩', img: 'ch1/f-04b-happy.webp', color: '#b5652b', moods: {
+    happy: 'ch1/f-04b-happy.webp', worried: 'ch1/f-04b-worried.webp', scared: 'ch1/f-04b-scared.webp', sad: 'ch1/f-04b-sad.webp',
+    determined: 'ch1/f-04b-determined.webp', frown: 'ch1/f-04b-frown.webp', angry: 'ch1/f-04b-angry.webp', thumbs: 'ch1/f-04b-thumbs.webp' } },
+  potter: { name: '做陶的婆婆', img: 'ch1/p-15-potter.webp', color: '#a0522d' },
+  jade: { name: '磨玉的工匠', img: 'ch1/p-15-jade.webp', color: '#2e8b57' },
+  smith: { name: '煉鐵的師傅', img: 'ch1/p-15-smith.webp', color: '#3d5a80' },
+  arch: { name: '考古學家', img: 'ch1/p-15-arch.webp', color: '#6b8e23' },
 };
 
 // 時間卡住：齒輪掉在哪個時代，那裡就一直重複同一天

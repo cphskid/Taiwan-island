@@ -567,14 +567,14 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .island-map>img.relief{opacity:1}
 
 /* 任務引導（Guide.tsx）：目標條、目標標記、聚光、畫面外箭頭 */
-.goal{pointer-events:none;display:inline-flex;align-items:center;gap:6px;background:#2e7d32;color:#fff;border:3px solid #fff;border-radius:999px;padding:4px 14px 4px 8px;font-weight:900;font-size:17px;line-height:1.35;box-shadow:0 3px 10px rgba(0,0,0,.25);max-width:100%}
-.goal i{font-style:normal;font-size:20px}
-.goal span{animation:goalin .5s ease-out}
-@keyframes goalin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-.goal.floating{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:4;max-width:min(620px,calc(100% - 24px))}
+.quest{pointer-events:none;display:inline-flex;align-items:center;gap:6px;background:#2e7d32;color:#fff;border:3px solid #fff;border-radius:999px;padding:4px 14px 4px 8px;font-weight:900;font-size:17px;line-height:1.35;box-shadow:0 3px 10px rgba(0,0,0,.25);max-width:100%}
+.quest i{font-style:normal;font-size:20px}
+.quest span{animation:questin .5s ease-out}
+@keyframes questin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.quest.floating{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:4;max-width:min(620px,calc(100% - 24px))}
 .levels{flex-wrap:wrap}
-.levels .goal{align-self:center}
-.checklist .goal,.mats .goal{flex-basis:100%;justify-content:flex-start}
+.levels .quest{align-self:center}
+.checklist .quest,.mats .quest{flex-basis:100%;justify-content:flex-start}
 .land-scene .season-tag{top:62px}
 .beacon{position:absolute;z-index:3;pointer-events:none;width:0;height:0}
 .beacon.spotting{z-index:5}
@@ -595,13 +595,186 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .beacon-edge span{white-space:nowrap;background:#ffe066;color:#3a2412;border:2px solid #3a2412;border-radius:10px;padding:0 8px;font-weight:900;font-size:14px}
 .result .tip{color:var(--ink);font-size:17px;font-weight:700}
 @media (max-height:600px){
-  .goal{font-size:13px;padding:2px 10px 2px 6px;border-width:2px}
-  .goal i{font-size:15px}
-  .goal.floating{top:6px}
+  .quest{font-size:13px;padding:2px 10px 2px 6px;border-width:2px}
+  .quest i{font-size:15px}
+  .quest.floating{top:6px}
   .beacon-ring{width:46px;height:46px}
   .beacon-flag span{font-size:13px}
   .beacon-flag b{font-size:20px}
 }
 .sea-scene .levels{z-index:4}
-.checklist .goal span{background:none;color:inherit;padding:0;border-radius:0}
+.checklist .quest span{background:none;color:inherit;padding:0;border-radius:0}
 .result{z-index:5}
+/* ── 第一章《島嶼的第一道火光》 ── */
+.ch1 .stage{background:#1d2433}
+.ch1 .scene>.talk-cover,.ch1 .scene>.say{z-index:6}
+.task-chip{position:absolute;left:50%;top:10px;translate:-50% 0;z-index:3;max-width:calc(100% - 24px);background:rgba(255,244,220,.95);border:3px solid var(--wood-2);border-radius:18px;padding:6px 14px;font-weight:700;font-size:16px;line-height:1.4;text-align:center}
+.corner-btn{position:absolute;right:14px;bottom:14px;z-index:4}
+.loop-day.night{background:radial-gradient(circle,rgba(10,20,50,.35),rgba(5,10,30,.85))}
+.loop-day.night strong{font-size:52px}
+.ch1-night .scene-bg,.ch1-cave .scene-bg{filter:brightness(.75) saturate(.9);transition:filter 1.2s}
+.ch1-cave.lit .scene-bg{filter:brightness(1.1) saturate(1.1) sepia(.15)}
+.ch1-cave.dawn .scene-bg{filter:brightness(1.15) saturate(1.15) hue-rotate(-10deg)}
+.cave-fire{position:absolute;left:39%;top:72%;width:min(15%,150px);translate:-50% -50%;z-index:1;pointer-events:none;filter:drop-shadow(0 0 30px rgba(255,170,60,.0));transition:filter 1s}
+.ch1-cave.lit .cave-fire{filter:drop-shadow(0 0 40px rgba(255,170,60,.9))}
+.beach-stone{position:absolute;translate:-50% -50%;width:min(10%,110px);aspect-ratio:1;padding:0;border:0;background:none;cursor:pointer;z-index:2;transition:transform .2s,opacity .5s}
+.beach-stone img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 4px rgba(0,0,0,.4))}
+.beach-stone:active{transform:scale(.9)}
+.beach-stone.crumble{opacity:0;transform:scale(.4) rotate(20deg);pointer-events:none}
+.beach-stone.picked{opacity:0;transform:translateY(-60px) scale(1.3);pointer-events:none}
+
+.knap-wrap,.fire-wrap,.grind-wrap,.iron-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:14px;padding:58px 14px 14px;z-index:2}
+.knap-board{display:flex;flex-direction:column;align-items:center;padding:10px 16px;max-height:100%}
+.knap-svg{width:min(56vh,440px);height:auto;max-height:calc(100dvh - 230px);touch-action:manipulation}
+.knap-svg .rock{fill:#8f8a83;stroke:#5c5650;stroke-width:3;cursor:pointer;transition:fill .15s}
+.knap-svg .rock.keep{fill:#b9b3aa}
+.knap-svg .rock.sel{stroke:var(--gold);stroke-width:6}
+.knap-svg .rock.aim{fill:#ffd65a}
+.knap-svg .rock.bad{fill:#ff6b5a}
+.knap-svg .rock.hint{stroke:#3fbf5a;stroke-width:6;animation:pulse .6s ease-in-out infinite alternate}
+.knap-svg .target{fill:none;stroke:#fff;stroke-width:3;stroke-dasharray:8 6;pointer-events:none}
+.knap-svg .arrow{cursor:pointer}
+.knap-svg .arrow circle{fill:rgba(255,244,220,.95);stroke:var(--wood-2);stroke-width:4}
+.knap-svg .arrow text{font-size:34px;font-weight:900;fill:var(--wood-2);pointer-events:none}
+.knap-svg .arrow.on circle{fill:var(--gold)}
+.knap-svg .arrow.hint circle{stroke:#3fbf5a;stroke-width:7}
+.knap-board.shake{animation:shake .1s linear 4}
+.knap-board.done .knap-svg .rock{fill:#c9c2b6}
+.knap-tip{margin:6px 0 0;font-weight:700;font-size:17px;color:var(--wood-2)}
+.yan-side{height:min(46vh,300px);align-self:flex-end;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35))}
+.drill{position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:3;display:flex;flex-direction:column;align-items:center;gap:10px}
+.drill-img{width:120px}
+.drill-img.spin{animation:shake .15s linear infinite}
+.meter{width:36px;height:150px;border:4px solid var(--wood-2);border-radius:18px;background:#e9dcc0;position:relative;overflow:hidden}
+.meter i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(#ffb04a,#f07f1d);transition:height .15s}
+.meter i.hot{background:linear-gradient(#ff5a3a,#ff9b2f)}
+
+.clay,.cord{position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:3;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;width:min(480px,92%)}
+.clay h3,.cord h3{margin:0}
+.clay-mix{display:flex;align-items:center;gap:10px;font-size:30px;font-weight:900}
+.clay-mix img{width:90px}
+.sand-spoons{display:flex;min-width:180px;min-height:60px;align-items:center;justify-content:center}
+.sand-spoons img{width:52px;margin:0 -8px}
+.sand-spoons em{font-size:16px;color:#9c8466}
+.sand-n{font-size:24px;min-width:70px}
+.clay .row,.cord .row{display:flex;align-items:center;gap:10px}
+.clay .yes,.clay .no,.fire-board .yes{margin:0;font-weight:700}
+.yes{color:#2e7d22}.no{color:#c2410c}
+.cord-pot{border:0;background:none;cursor:pointer;padding:0}
+.cord-pot img{width:180px;transition:transform .1s}
+.cord-pot:active img{transform:scale(.93)}
+.cord-pot.cord-0 img{filter:saturate(.3) brightness(1.1)}
+.cord-pot.cord-1 img{filter:saturate(.55)}
+.cord-pot.cord-2 img{filter:saturate(.8)}
+
+.fire-board{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 18px}
+.fire-grid{display:grid;grid-template-columns:repeat(3,min(19vh,130px));grid-template-rows:repeat(3,min(19vh,130px));gap:6px}
+.fire-slot{position:relative;border:3px dashed #c9a46b;border-radius:16px;background:rgba(255,250,235,.8);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.fire-slot img{position:absolute;width:62%;bottom:16%}
+.fire-slot .flame{width:70%;bottom:30%;opacity:.9;animation:pulse .3s ease-in-out infinite alternate}
+.fire-slot.wet{background:#cfe6f2;border-color:#7fb6d6;cursor:not-allowed}
+.fire-slot .puddle{font-size:34px}
+.fire-slot.hint{border:4px solid #3fbf5a;animation:pulse .6s ease-in-out infinite alternate}
+.fire-pot{position:relative;display:flex;align-items:center;justify-content:center}
+.fire-pot img{width:78%}
+.burn-crack .fire-pot img{filter:sepia(.3) contrast(1.2);animation:shake .1s linear 5}
+.burn-ok .fire-pot img{filter:saturate(1.3) drop-shadow(0 0 16px rgba(255,140,40,.8))}
+.side-heat{position:absolute;padding:2px 8px;border-radius:12px;font-weight:900;font-size:15px;color:#fff;border:2px solid #fff;white-space:nowrap}
+.side-heat.ok{background:#3fae3a}.side-heat.cold{background:#4f8fd1}.side-heat.hot{background:#e0452c}
+.side-N{top:-4px;left:50%;translate:-50% 0}.side-S{bottom:-4px;left:50%;translate:-50% 0}
+.side-W{left:-8px;top:50%;translate:0 -50%}.side-E{right:-8px;top:50%;translate:0 -50%}
+.fire-foot{display:flex;align-items:center;gap:14px;font-weight:700;font-size:17px}
+.fire-foot .fire-legend{color:#9c8466;font-size:15px}
+.wind{position:absolute;z-index:2;background:#e6f4ff;border:3px solid #7fb6d6;border-radius:14px;padding:2px 10px;font-weight:900;color:#2b6a94;animation:windblow 1.2s ease-in-out infinite alternate}
+.wind-N{top:-16px;left:50%;translate:-50% 0}.wind-NE{top:-16px;right:-10px}.wind-NW{top:-16px;left:-10px}
+.wind-E{right:-20px;top:40%}.wind-W{left:-20px;top:40%}.wind-S{bottom:-16px;left:50%}.wind-SE{bottom:-16px;right:-10px}.wind-SW{bottom:-16px;left:-10px}
+.yes.big{font-size:19px}
+
+.grind-board{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 20px}
+.grind-goal{position:absolute;right:12px;top:10px;width:70px}
+.grind-cols{--u:min(4.6vh,34px);display:flex;align-items:flex-end;gap:6px;height:calc(var(--top) * var(--u) + 10px);padding-top:10px}
+.grind-col{position:relative;width:min(10vh,70px);display:flex;flex-direction:column-reverse;align-items:stretch;gap:0;border:0;background:none;padding:0;cursor:pointer;height:100%;justify-content:flex-start}
+.grind-col .layer{display:block;height:var(--u);background:linear-gradient(#a9b1a8,#7f8a80);border:2px solid #5d6a5f;border-radius:6px;margin-top:-2px}
+.grind-col.on .layer{border-color:var(--gold)}
+.grind-col .layer.aim{background:#ffd65a;opacity:.85}
+.grind-col .layer.bad{background:#ff6b5a}
+.grind-col.hint{outline:4px solid #3fbf5a;outline-offset:3px;border-radius:8px;animation:pulse .6s ease-in-out infinite alternate}
+.grind-col.snap{animation:shake .1s linear 5}
+.grind-line{position:absolute;left:-4px;right:-4px;height:0;border-top:4px dashed #fff;filter:drop-shadow(0 0 2px #000);pointer-events:none}
+.grind-board.done .layer{background:linear-gradient(#cfe0cf,#9db89f)}
+.whetstone{width:min(60vh,420px);height:34px;object-fit:fill;margin-top:-6px}
+
+.iron-wrap{gap:12px}
+.forest{position:relative;padding:10px 12px 8px;overflow:hidden}
+.forest-grid{display:grid;gap:4px;position:relative;padding-left:62px}
+.tree-cell{position:relative;width:min(10.5vh,78px);aspect-ratio:1;border:0;border-radius:12px;padding:2px;cursor:pointer;display:flex;align-items:flex-end;justify-content:center}
+.tree-cell.far{background:#cfe6b5}
+.tree-cell.steep{background:#c9a87a}
+.tree-cell.risk{background:#f2a37a;box-shadow:inset 0 0 0 3px #e0452c}
+.tree-cell img{width:88%;height:88%;object-fit:contain}
+.tree-cell.sapling img{width:60%;height:60%}
+.tree-cell small{position:absolute;right:4px;top:2px;font-weight:900;font-size:13px;color:var(--wood);background:rgba(255,255,255,.85);border-radius:8px;padding:0 5px}
+.tree-cell.slide{animation:shake .12s linear 8;background:#8a5a2b}
+.forest-label{position:absolute;left:0;width:56px;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;font-weight:900;font-size:15px;color:var(--wood-2);background:rgba(255,255,255,.6);border-radius:10px}
+.forest-label.far{top:0}
+.village-strip{margin-top:6px;text-align:center;font-weight:900;color:#fff;background:#8a5429;border-radius:10px;padding:4px}
+.forest .deer{position:absolute;right:14px;top:6px;font-size:26px;animation:bob 2s ease-in-out infinite}
+.forest .rainfall{position:absolute;inset:0;pointer-events:none}
+.iron-side{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px;width:220px;text-align:center}
+.iron-side p{margin:0;font-weight:700}
+.seasons{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.seasons span{font-size:13px;font-weight:900;padding:2px 6px;border-radius:10px;background:#efe4c8;color:#9c8466}
+.seasons span.on{background:var(--gold);color:var(--ink)}
+.seasons span.past{opacity:.5}
+.wood-n{display:flex;align-items:center;gap:6px}
+.wood-n img{width:38px}
+.iron-side .furnace{width:110px}
+.iron-n img{width:40px;opacity:.25;filter:grayscale(1)}
+.iron-n img.on{opacity:1;filter:none}
+.iron-side .btn{min-width:0;width:100%;font-size:16px;min-height:44px}
+
+.ch1-dig{display:flex;align-items:center;justify-content:center;background:#bfe6f5}
+.dig-frame{width:min(100%,calc((100dvh - 104px) * 1.7917))}
+.dig-spot{position:absolute;translate:-50% -50%;width:9%;aspect-ratio:1;border:0;padding:0;background:none;cursor:pointer}
+.dig-spot .dirt{position:absolute;inset:8%;border-radius:45%;background:radial-gradient(circle at 40% 35%,#8a6a46,#5a3f24);box-shadow:0 3px 6px rgba(0,0,0,.35);opacity:calc(1 - var(--b) * .28);transition:opacity .2s}
+.dig-spot:active .dirt{transform:scale(.92)}
+.dig-spot.open img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 8px #fff);animation:pop .4s ease-out}
+.ruler{position:absolute;left:50%;bottom:10px;translate:-50% 0;z-index:4;width:min(900px,calc(100% - 20px));padding:10px 14px;display:flex;flex-direction:column;gap:8px}
+.ruler-tray{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:76px;align-items:center}
+.ruler-item{display:flex;flex-direction:column;align-items:center;border:3px solid var(--gold);border-radius:14px;background:#fffaf0;padding:4px 8px;cursor:pointer;font:700 13px var(--f)}
+.ruler-item img{width:52px;height:52px;object-fit:contain}
+.ruler-item.on{background:var(--gold);transform:translateY(-4px)}
+.ruler-line{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ruler-slot{display:flex;flex-direction:column;align-items:center;gap:2px;border:3px dashed #c9a46b;border-radius:14px;background:#fffaf0;padding:6px;cursor:pointer;font:inherit;color:inherit;min-height:110px}
+.ruler-slot.ready{border-color:#3fbf5a;border-style:solid}
+.ruler-slot b{font-size:17px}
+.ruler-slot small{font-size:12px;color:#9c8466;font-weight:700}
+.ruler-got{display:flex;flex-wrap:wrap;justify-content:center}
+.ruler-got img{width:40px;height:40px;object-fit:contain}
+.ruler-arrow{display:flex;align-items:center;gap:8px;font-weight:900;color:var(--wood-2);font-size:14px}
+.ruler-arrow i{flex:1;height:4px;background:var(--wood-2);position:relative}
+.ruler-arrow i::after{content:'';position:absolute;right:-2px;top:-6px;border-left:12px solid var(--wood-2);border-top:8px solid transparent;border-bottom:8px solid transparent}
+.note .traveler{width:90px}
+.note .note-text{font-size:24px;font-weight:900;margin:6px 0 0}
+.note .note-map{width:90px}
+.album-tabs{display:flex;gap:6px;margin:0 0 6px}
+.album-tabs button{border:3px solid var(--gold);border-radius:14px;background:#fffaf0;font:700 15px var(--f);padding:4px 12px;cursor:pointer}
+.album-tabs button.on{background:var(--gold)}
+@media (max-height:600px){
+  .task-chip{font-size:13px;top:4px;padding:3px 10px}
+  .knap-wrap,.fire-wrap,.grind-wrap,.iron-wrap{padding-top:44px}
+  .ruler-slot{min-height:84px}.ruler-item img{width:40px;height:40px}
+  .iron-side{width:170px}
+}
+.forest-grid{padding-left:0}
+.forest-key{font-size:13px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center}
+.forest-key i{display:inline-block;width:14px;height:14px;border-radius:4px}
+.forest-key i.far{background:#cfe6b5}.forest-key i.steep{background:#c9a87a}
+@media (max-height:600px){
+  .iron-side{gap:3px;padding:8px}
+  .iron-side .furnace{width:62px}
+  .iron-n img{width:28px}
+  .iron-side .btn{min-height:36px;font-size:14px}
+  .seasons span{font-size:11px}
+  .tree-cell{width:min(10vh,60px)}
+}

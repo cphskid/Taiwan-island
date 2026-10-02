@@ -16,7 +16,7 @@ import type { Cell } from '../core/iso';
 
 export function Goal({ text, floating }: { text: string; floating?: boolean }) {
   return (
-    <div className={`goal ${floating ? 'floating' : ''}`}>
+    <div className={`quest ${floating ? 'floating' : ''}`}>
       <i>🎯</i><span key={text}>{text}</span>
     </div>
   );
