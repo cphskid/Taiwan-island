@@ -39,7 +39,7 @@ const rift = (i: number): Pt => ({ x: SEEDS[i].seeds[0][0], y: SEEDS[i].seeds[0]
 
 export const CHAPTERS: ChapterInfo[] = [
   { id: 'ch1', region: 1, no: '第一章', title: '島嶼的第一道火光', era: '史前', place: '東海岸八仙洞、北海岸十三行', grows: '洞穴與海邊的火光', rift: rift(0), playable: true, gear: 0, badge: 'fire' },
-  { id: 'ch2', region: 2, no: '第二章', title: '山林與部落', era: '原住民族', place: '中央山脈', grows: '山上部落、鹿群', rift: rift(1), playable: false, gear: 1, badge: 'blank' },
+  { id: 'ch2', region: 2, no: '第二章', title: '山林與部落', era: '原住民族', place: '中央山脈', grows: '山上部落、鹿群', rift: rift(1), playable: true, gear: 1, badge: 'blank' },
   { id: 'ch3', region: 3, no: '第三章', title: '大航海時代', era: '荷西', place: '台南大員、基隆和平島', grows: '熱蘭遮城、聖薩爾瓦多城', rift: rift(2), playable: false, gear: 2, badge: 'ship' },
   { id: 'ch4', region: 4, no: '第四章', title: '東寧屯田', era: '鄭氏', place: '台南平原', grows: '田園、營盤', rift: rift(3), playable: false, gear: 3, badge: 'rice' },
   { id: 'ch5', region: 5, no: '第五章', title: '八堡圳', era: '清領', place: '彰化平原', grows: '八堡圳與綠色稻田', rift: { x: 585, y: 598 }, playable: true, gear: 4, badge: 'canal' },
@@ -187,6 +187,7 @@ export const TICK_LINES = {
   building: (title: string) => `「${title}」這一章還在施工中，下次再來！`,
   cleared: '彰化平原的雲霧散開了！八堡圳的水一直流進田裡，大家在田裡忙著呢。點一下小人，聽聽他們說什麼。',
   clearedCh1: '海邊的雲霧散開了！八仙洞的火亮起來，十三行的煉鐵爐也冒煙了。阿岩的時代，終於等到天亮。',
+  clearedCh2: '山上的雲霧散開了！部落的小米田一塊種、一塊休息，森林裡的鹿也還在。可是海邊好像來了大船……',
   hook: '莊民說：「米多到吃不完，要怎麼運出去？」你看，北邊台北的裂縫開始發光了……',
   glasses: '戴上地形眼鏡：越褐的地方越高。只看得到撥開雲霧的地方喔。',
   fogged: '這裡還蓋著時光雲霧。',

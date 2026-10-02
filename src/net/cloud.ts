@@ -6,7 +6,7 @@
 
 import { db, FACILITY } from './park';
 
-export type Slot = 'world' | 'ch1' | 'ch5';
+export type Slot = 'world' | 'ch1' | 'ch2' | 'ch5';
 type Saved = Partial<Record<Slot, Record<string, unknown>>>;
 
 let enabled = false;

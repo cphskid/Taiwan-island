@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { CARDS, CARD_ORDER, type Card } from '../data/babao-chapter';
 import { CARDS1, CARD_ORDER1 } from '../data/ch1';
+import { CARDS2, CARD_ORDER2 } from '../data/ch2';
 
 const BASE = import.meta.env.BASE_URL;
 const KINDS = ['人物', '地點', '物品', '知識'] as const;
 
 export interface Book { title: string; cards: Record<string, Card>; order: string[] }
 export const BOOK1: Book = { title: '第一章 島嶼的第一道火光', cards: CARDS1, order: CARD_ORDER1 };
+export const BOOK2: Book = { title: '第二章 山林與部落', cards: CARDS2, order: CARD_ORDER2 };
 export const BOOK5: Book = { title: '第五章 八堡圳', cards: CARDS, order: CARD_ORDER };
 
 // 時光圖鑑：拿到的卡亮起來，沒拿到的只看得到影子，提醒還有沒找到的。一章一本，上面切換

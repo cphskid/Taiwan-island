@@ -115,7 +115,8 @@ export const PLACES: Place[] = [
 // 分水時會跟你意見不同，最後送你信物。兩人都是虛構角色；阿穆的名字、穿著和說法上正式站前要找人審。
 // 夥伴的圖：F-01B、F-02B 表情表（public/img/story/），moods 是每個表情用哪一格。
 export type Who = 'tick' | 'shi' | 'lin' | 'babuza' | 'zhang' | 'quan' | 'lian' | 'mu' | 'traveler'
-  | 'yan' | 'potter' | 'jade' | 'smith' | 'arch'; // 第一章（data/ch1.ts）
+  | 'yan' | 'potter' | 'jade' | 'smith' | 'arch' // 第一章（data/ch1.ts）
+  | 'ani' | 'elder' | 'hunter' | 'trader'; // 第二章（data/ch2.ts）
 export type Mood = 'wave' | 'happy' | 'thinking' | 'worried' | 'scared' | 'sad' | 'determined' | 'frown' | 'angry' | 'thumbs' | 'listen' | 'laugh' | 'surprised' | 'shout' | 'me';
 export const TICK_MOODS: readonly Mood[] = ['wave', 'happy', 'thinking', 'worried'];
 export interface Line { who: Who; text: string; mood?: Mood }
@@ -141,6 +142,13 @@ export const PEOPLE: Record<Who, { name: string; img?: string; moods?: Partial<R
   jade: { name: '磨玉的工匠', img: 'ch1/p-15-jade.webp', color: '#2e8b57' },
   smith: { name: '煉鐵的師傅', img: 'ch1/p-15-smith.webp', color: '#3d5a80' },
   arch: { name: '考古學家', img: 'ch1/p-15-arch.webp', color: '#6b8e23' },
+  // 第二章：阿妮（虛構的山上部落女孩，名字與穿著待審，F-05B 表情）與部落的人（P-16）
+  ani: { name: '阿妮', img: 'ch2/f-05b-happy.webp', color: '#a8452f', moods: {
+    happy: 'ch2/f-05b-happy.webp', worried: 'ch2/f-05b-worried.webp', scared: 'ch2/f-05b-scared.webp', sad: 'ch2/f-05b-sad.webp',
+    determined: 'ch2/f-05b-determined.webp', frown: 'ch2/f-05b-frown.webp', angry: 'ch2/f-05b-angry.webp', thumbs: 'ch2/f-05b-thumbs.webp' } },
+  elder: { name: '部落長老', img: 'ch2/p-16-elder.webp', color: '#7a5230' },
+  hunter: { name: '獵人叔叔', img: 'ch2/p-16-hunter.webp', color: '#55703a' },
+  trader: { name: '外地來的商人', img: 'ch2/p-16-trader.webp', color: '#34508a' },
 };
 
 // 時間卡住：齒輪掉在哪個時代，那裡就一直重複同一天

@@ -739,3 +739,96 @@ img.gear{width:110px;height:110px;object-fit:contain}
   .seasons span{font-size:11px}
   .tree-cell{width:min(10vh,60px)}
 }
+
+/* ── 第二章 山林與部落 ── */
+.ch2 .stage{background:#2b3a2a}
+.ch2-winter .scene-bg{filter:brightness(.85) saturate(.25) contrast(.9) hue-rotate(170deg)}
+.snowfall{position:absolute;inset:0;pointer-events:none;z-index:2;background-image:radial-gradient(3px 3px at 20px 30px,#fff,transparent),radial-gradient(2px 2px at 80px 120px,#fff,transparent),radial-gradient(4px 4px at 150px 60px,#fff,transparent),radial-gradient(2px 2px at 220px 160px,#fff,transparent),radial-gradient(3px 3px at 300px 90px,#fff,transparent);background-size:320px 200px;animation:snow 6s linear infinite;opacity:.85}
+@keyframes snow{from{background-position:0 0}to{background-position:-60px 200px}}
+.ch2-spring .scene-bg{filter:brightness(1.08) saturate(1.2)}
+.ch2-look{display:flex;align-items:center;justify-content:center;background:#9fc98a}
+.look-frame{aspect-ratio:1600/893;width:min(100%,calc((100dvh - 104px) * 1.7917))}
+.look-frame .art{transition:filter .4s}
+.look-frame.glasses .art{filter:sepia(.7) saturate(1.6) hue-rotate(-15deg) contrast(1.15)}
+.look-spot{position:absolute;translate:-50% -50%;aspect-ratio:1;border:0;padding:0;border-radius:50%;background:transparent;cursor:pointer}
+.look-spot:hover{box-shadow:0 0 0 4px rgba(255,255,255,.6)}
+.look-spot.got{box-shadow:0 0 0 4px var(--gold),0 0 18px rgba(255,194,61,.8)}
+.look-spot.steep:not(.got){box-shadow:0 0 0 5px rgba(230,60,40,.85),0 0 22px rgba(230,60,40,.8);animation:pulse .7s ease-in-out infinite alternate}
+.look-spot span{position:absolute;left:50%;bottom:-6px;translate:-50% 100%;white-space:nowrap;background:var(--cream);border:3px solid var(--wood-2);border-radius:12px;padding:2px 10px;font-weight:900;font-size:15px;animation:pop .3s ease-out}
+.task-chip small{font-size:13px;color:#9c8466}
+
+.rot-wrap,.hunt-wrap,.rules-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:56px 12px 12px}
+.rot-board{padding:14px 18px;display:flex;flex-direction:column;gap:10px;width:min(860px,100%)}
+.plots{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.plot{position:relative;border:4px solid #c9a46b;border-radius:16px;background:#fffaf0;padding:4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;font:inherit;color:inherit}
+.plot>img:first-child{width:100%;aspect-ratio:1;object-fit:contain}
+.plot.on{border-color:#3fbf5a;background:#e9fbe6;transform:translateY(-4px)}
+.plot.hint{box-shadow:0 0 0 4px var(--gold),0 0 16px rgba(255,194,61,.9)}
+.plot.steep{background:#fbeee4}
+.plot b{font-size:22px}
+.plot .fert{display:flex;gap:3px}
+.plot .fert i{width:12px;height:12px;border-radius:50%;background:#ddd}
+.plot .fert i.on{background:#6bbf3a}
+.plot .steep-tag{position:absolute;top:4px;left:4px;background:#d9534f;color:#fff;border-radius:8px;padding:0 6px;font-weight:900;font-size:12px}
+.plot .seed{position:absolute;top:6px;right:6px;width:34%;animation:pop .3s ease-out}
+.rot-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+.rot-foot .rot-sum{display:flex;align-items:center;gap:4px;font-weight:900;font-size:18px;color:#b33}
+.rot-foot .rot-sum.ok{color:#2e8b3a}
+.rot-foot .rot-sum img,.meat img,.deer-n img,.deer-end img,.sim-year img{width:30px;height:30px;object-fit:contain}
+.rot-log{display:flex;gap:6px}
+.rot-log em{font-style:normal;background:#e9fbe6;border-radius:10px;padding:2px 8px;font-weight:700;font-size:13px}
+.rot-rule{margin:0;text-align:center;font-size:14px;color:#7a5a3a;font-weight:700}
+
+.hunt-board{padding:12px 16px;display:flex;flex-direction:column;gap:10px;width:min(820px,100%)}
+.hunt-head{display:flex;align-items:center;gap:14px;margin-bottom:4px}
+.hunt-head b{font-size:18px}
+.deer-n,.meat,.deer-end{display:flex;align-items:center;gap:4px;font-weight:900}
+.meat{color:#b33}.meat.ok{color:#2e8b3a}
+.hunt-seasons{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.hunt-season{border:3px solid #c9a46b;border-radius:14px;background:#fffaf0;padding:4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.hunt-season.s0{background:#f0fbe8}
+.hunt-season.hint{box-shadow:0 0 0 4px var(--gold)}
+.hunt-season>b{font-size:16px}
+.hunt-season>b small{margin-left:4px;font-size:11px;color:#3a8a3a}
+.stepper{display:flex;align-items:center;gap:4px}
+.stepper button{width:34px;height:34px;border-radius:50%;border:3px solid var(--gold);background:var(--wood-2);color:#fff;font:900 18px var(--f);cursor:pointer}
+.stepper button:disabled{opacity:.35}
+.stepper span{min-width:76px;display:flex;flex-wrap:wrap;justify-content:center;font-size:13px;color:#9c8466;font-weight:700}
+.stepper span img{width:24px;height:24px;object-fit:contain}
+.births{font-style:normal;font-size:13px;font-weight:900;color:#2e8b3a;animation:pop .3s ease-out}
+.hunt-foot{display:flex;align-items:center;justify-content:center;gap:14px}
+.deer-end.no{color:#b33}.deer-end.yes{color:#2e8b3a}
+
+.cal-wrap{position:absolute;inset:0;display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:10px;padding:10px;align-items:start}
+.clues{padding:10px 12px;max-height:100%;overflow:auto}
+.clues h3{margin:0 0 6px}
+.clues .clue{display:flex;gap:6px;align-items:flex-start;margin:0 0 8px;font-size:14px;line-height:1.45}
+.cal{padding:10px 12px;display:flex;flex-direction:column;gap:8px;align-self:end}
+.cal-slot{min-height:150px;cursor:pointer}
+.cal-got{display:flex;flex-direction:column;gap:4px;width:100%}
+.cal-chip{display:flex;align-items:center;gap:4px;border:2px solid #3fbf5a;border-radius:10px;background:#f2fff0;padding:2px 6px;font:700 13px var(--f);cursor:pointer;color:inherit}
+.cal-chip img{width:28px;height:28px;object-fit:contain}
+.cal-chip.wrong{border-color:#d9534f;background:#ffe9e7;animation:shake .25s linear 2}
+.cal-tip{text-align:center;color:#9c8466;font-weight:700}
+
+.rules{padding:12px 16px;display:flex;flex-direction:column;gap:10px;align-items:center;width:min(820px,100%)}
+.rule-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.rule{display:flex;align-items:center;gap:8px;border:3px solid #c9a46b;border-radius:14px;background:#fffaf0;padding:8px 12px;font:700 17px var(--f);color:inherit;cursor:pointer;text-align:left}
+.rule i{width:26px;height:26px;border-radius:8px;border:3px solid var(--wood-2);display:inline-flex;align-items:center;justify-content:center;font-style:normal;color:#2e8b3a;flex:none}
+.rule.on{border-color:#3fbf5a;background:#e9fbe6}
+.rule.hint{box-shadow:0 0 0 4px var(--gold)}
+.sim{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%}
+.sim-year{border:2px dashed #c9a46b;border-radius:12px;padding:4px;display:flex;flex-direction:column;align-items:center;font-weight:900;font-size:14px;opacity:.6}
+.sim-year.shown{opacity:1;border-style:solid;animation:pop .3s ease-out}
+.sim-year span{display:flex;align-items:center;gap:2px;color:#2e8b3a}
+.sim-year span.no{color:#b33}
+@media (max-height:600px){
+  .rot-wrap,.hunt-wrap,.rules-wrap{padding-top:48px}
+  .plot b{font-size:18px}
+  .hunt-board{gap:4px;padding:8px 12px}
+  .hunt-season{padding:2px 4px}
+  .stepper button{width:28px;height:28px}
+  .cal-slot{min-height:110px}
+  .rule{padding:4px 10px;font-size:15px}
+}
+@media (max-width:760px){ .cal-wrap{grid-template-columns:1fr} .plots{grid-template-columns:repeat(3,1fr)} }
