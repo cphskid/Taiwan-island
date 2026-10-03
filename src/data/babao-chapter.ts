@@ -153,7 +153,8 @@ export const PEOPLE: Record<Who, { name: string; img?: string; moods?: Partial<R
   // 第三章：阿福（虛構的福建漢人男孩，F-06B 表情）、烏瑪（虛構的新港社西拉雅族少女，名字與穿著待審）與 P-17 配角
   afu: { name: '阿福', img: 'ch3/f-06b-happy.webp', color: '#3d5fa8', moods: {
     happy: 'ch3/f-06b-happy.webp', worried: 'ch3/f-06b-worried.webp', scared: 'ch3/f-06b-scared.webp', sad: 'ch3/f-06b-sad.webp',
-    determined: 'ch3/f-06b-determined.webp', frown: 'ch3/f-06b-frown.webp', angry: 'ch3/f-06b-angry.webp', thumbs: 'ch3/f-06b-thumbs.webp' } },
+    determined: 'ch3/f-06b-determined.webp', frown: 'ch3/f-06b-frown.webp', angry: 'ch3/f-06b-angry.webp', thumbs: 'ch3/f-06b-thumbs.webp',
+    thinking: 'ch3/f-06b-worried.webp', surprised: 'ch3/f-06b-scared.webp' } },
   uma: { name: '烏瑪', img: 'ch3/p-17-uma.webp', color: '#2f6f8f' },
   clerk: { name: '商館員', img: 'ch3/p-17-clerk.webp', color: '#c0662b' },
   siraya: { name: '新港社的長老', img: 'ch3/p-17-elder.webp', color: '#6b4f2a' },
