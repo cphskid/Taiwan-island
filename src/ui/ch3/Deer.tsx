@@ -75,7 +75,7 @@ function HerdPlan({ oops, onDone }: { oops: () => void; onDone: () => void }) {
       <div className="ch3-herd panel">
         <div className="ch3-years">
           {takes.map((t, y) => (
-            <div key={y} className={`ch3-year ${shown > y ? 'shown' : ''} ${fails >= 3 && y === 0 ? 'hint' : ''}`}>
+            <div key={y} className={`ch3-year ${shown > y ? 'shown' : ''} ${fails >= 3 && y === 0 ? 'ch3-hint' : ''}`}>
               <b>第 {y + 1} 年</b>
               <span className="herd-n"><img src={DEER_IMG} alt="" />年初 {shown > y || y === 0 ? startOf(y) : '?'} 群</span>
               <div className="stepper">
@@ -89,6 +89,7 @@ function HerdPlan({ oops, onDone }: { oops: () => void; onDone: () => void }) {
             </div>
           ))}
         </div>
+        <p className="ch3-rule">收完以後，剩下的鹿每 {HERD.birthDiv} 群會生 1 群小鹿（零頭不算）；草原最多養 {HERD.cap} 群。</p>
         <div className="ch3-herd-foot">
           <span className={`hides ${run.total >= HERD.need ? 'ok' : ''}`}><img src={art3('g-05-hides')} alt="" />鹿皮 {run.total} / {HERD.need} 群</span>
           {done && <span className={`herd-end ${run.fewer ? 'no' : 'yes'}`}><img src={DEER_IMG} alt="" />四年後 {run.end} 群</span>}

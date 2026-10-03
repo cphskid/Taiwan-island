@@ -130,7 +130,7 @@ function RouteSail({ info, oops, onDone }: { info: RouteInfo; oops: () => void; 
       <div className="ch3-helm panel">
         <div className="ch3-hud">
           <span className={ship.day > lv.days - 3 ? 'warn' : ''}>📅 第 {ship.day} 天<small>／最多 {lv.days} 天</small></span>
-          <span className={`wind ${ship.monsoon}`}>🌬️ {ship.monsoon === 'winter' ? '東北季風' : '西南季風'}<small>{ship.monsoon === 'winter' ? '風往西南吹 ↙' : '風往東北吹 ↗'}</small></span>
+          <span className={`ch3-wind ${ship.monsoon}`}>🌬️ {ship.monsoon === 'winter' ? '東北季風' : '西南季風'}<small>{ship.monsoon === 'winter' ? '風往西南吹 ↙' : '風往東北吹 ↗'}</small></span>
           <span className={high ? 'tide-hi' : 'tide-lo'}>{high ? '🌊 今天漲潮' : '🏖️ 今天退潮'}<small>水道{high ? '進得去' : '進不去'}</small></span>
         </div>
         <div className="ch3-compass">

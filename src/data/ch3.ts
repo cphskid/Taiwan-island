@@ -181,7 +181,7 @@ export const GOOD_INFO: Record<Good, { name: string; from: string; img: string }
 export const PORT_INFO: Record<PortId, { name: string; note: string; x: number; y: number }> = {
   tayouan: { name: '大員', note: '中國商人的船把生絲、瓷器運來這裡；臺灣的鹿皮、蔗糖也在這裡買得到', x: 0.42, y: 0.42 },
   japan: { name: '日本', note: '用白銀買生絲、鹿皮、蔗糖', x: 0.82, y: 0.14 },
-  batavia: { name: '巴達維亞', note: '荷蘭東印度公司在南洋的總部，有很多香料', x: 0.2, y: 0.88 },
+  batavia: { name: '巴達維亞', note: '荷蘭東印度公司在南洋的總部，有很多香料', x: 0.2, y: 0.76 },
 };
 export const TRADE: TradeLevel = {
   start: 'tayouan', money: 6, hold: 4, legs: 3, goal: 45, ports: [

@@ -54,7 +54,7 @@ function Decode({ oops, onDone }: { oops: () => void; onDone: () => void }) {
     <div className="ch3-deed-wrap">
       <Goal floating text="猜出三個不認得的方向字。查單字表，再讀讀下面的句子。" />
       <div className="ch3-deed panel">
-        <h3>📜 社裡的契約</h3>
+        <div className="ch3-deed-head"><h3>📜 社裡的契約</h3><button className="btn green" disabled={!all || won} onClick={() => check()}>讀讀看</button></div>
         <ol className="ch3-contract">
           {DEED.map((l, i) => (
             <li key={i}>{l.words.map((w, k) => (
@@ -69,19 +69,18 @@ function Decode({ oops, onDone }: { oops: () => void; onDone: () => void }) {
             <div key={w} className={`ch3-guess-row ${wrong.includes(w) ? 'wrong' : ''}`}>
               <b>{w}</b><span>是</span>
               {DIRS.map((d) => (
-                <button key={d} className={`${guess[w] === d ? 'on' : ''} ${fails >= 3 && SECRET[w] === d ? 'hint' : ''}`} onClick={() => pick(w, d)} disabled={won}>{DIR_NAME[d]}</button>
+                <button key={d} className={`${guess[w] === d ? 'on' : ''} ${fails >= 3 && SECRET[w] === d ? 'ch3-hint' : ''}`} onClick={() => pick(w, d)} disabled={won}>{DIR_NAME[d]}</button>
               ))}
             </div>
           ))}
         </div>
-        <button className="btn green" disabled={!all || won} onClick={() => check()}>讀讀看</button>
       </div>
       <div className="ch3-clues panel">
         <h3>單字表</h3>
         <div className="ch3-dict">{Object.entries(WORDS).map(([w, m]) => <span key={w}><b>{w}</b>{m}</span>)}</div>
         <h3>大家說的話</h3>
         {CLUE_SENTENCES.map((c) => (
-          <p key={c.text} className="ch3-clue"><Face who={c.who} small /><span><b style={{ color: PEOPLE[c.who].color }}>{PEOPLE[c.who].name}</b>{c.text}</span></p>
+          <div key={c.text} className="ch3-clue"><Face who={c.who} small /><span><b style={{ color: PEOPLE[c.who].color }}>{PEOPLE[c.who].name}</b>{c.text}</span></div>
         ))}
       </div>
       {fails >= 5 && !won && <button className="btn demo corner-btn" onClick={() => { const g = { ...SECRET }; setGuess(g); setTimeout(() => check(g), 600); }}>看示範</button>}
@@ -144,7 +143,7 @@ function Trace({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           const at = path[k].id === s.id;
           const passed = path.slice(0, k + 1).some((q) => q.id === s.id);
           return (
-            <button key={s.id} className={`ch3-spot ${s.kind} ${at ? 'at' : ''} ${passed ? 'passed' : ''} ${bad === s.id ? 'bad' : ''} ${fails >= 3 && !done && want.id === s.id ? 'hint' : ''}`}
+            <button key={s.id} className={`ch3-spot ${s.kind} ${at ? 'at' : ''} ${passed ? 'passed' : ''} ${bad === s.id ? 'bad' : ''} ${fails >= 3 && !done && want.id === s.id ? 'ch3-hint' : ''}`}
               style={{ left: `${x}%`, top: `${y}%` }} onClick={() => tap(s)} aria-label={WORDS[s.kind]}>
               {icon.startsWith('/') || icon.includes('.webp') ? <img src={icon} alt="" /> : <i>{icon || '💧'}</i>}
               <small>{s.kind}</small>

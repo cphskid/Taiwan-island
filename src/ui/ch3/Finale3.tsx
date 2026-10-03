@@ -49,7 +49,7 @@ export function Finale3({ p, set, exit }: Step3Props) {
           <img className="afu" src={art3('f-06a-cheer')} alt="" />
           <img className="coin" src={art3('g-05-coin')} alt="" />
           {k.deer === 1 ? <img className="deer" src={`${BASE}img/ch2/deer.webp`} alt="" /> : <img className="hides" src={art3('g-05-hides')} alt="" />}
-          {k.deed === 1 ? <img className="stone" src={art3('g-05-stone')} alt="" /> : <img className="quill" src={art3('g-05-quill')} alt="" />}
+          {k.deed === 1 ? <img className="bstone" src={art3('g-05-stone')} alt="" /> : <img className="quill" src={art3('g-05-quill')} alt="" />}
           <img className={`mom-ship ${k.mom === 1 ? 'with-afu' : ''}`} src={art3('g-05-junk')} alt="" />
           <img className="uma" src={art3('p-17-uma')} alt="" />
         </div>

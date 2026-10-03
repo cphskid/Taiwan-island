@@ -134,7 +134,7 @@ function HarborBoard({ li, oops, onDone }: { li: number; oops: () => void; onDon
             const off = drag?.id === b.id ? drag.by : 0;
             const col = b.col + (b.across ? off : 0), row = b.row + (b.across ? 0 : off);
             return (
-              <div key={b.id} className={`ch3-boat ${b.id === 'A' ? 'red' : ''} ${b.across ? 'across' : 'down'} ${drag?.id === b.id ? 'drag' : ''} ${nextMove?.id === b.id ? 'hint' : ''}`}
+              <div key={b.id} className={`ch3-boat ${b.id === 'A' ? 'red' : ''} ${b.across ? 'across' : 'down'} ${drag?.id === b.id ? 'drag' : ''} ${nextMove?.id === b.id ? 'ch3-hint' : ''}`}
                 style={{ left: `${(col / n) * 100}%`, top: `${(row / n) * 100}%`, width: `${((b.across ? b.len : 1) / n) * 100}%`, height: `${((b.across ? 1 : b.len) / n) * 100}%` }}
                 onPointerDown={(e) => down(e, b)} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
                 <span>{b.id === 'A' ? '⛵' : b.len === 3 ? '🚢' : '🛶'}</span>

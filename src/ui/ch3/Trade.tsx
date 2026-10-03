@@ -114,7 +114,7 @@ function TradeBoard({ oops, onDone }: { oops: () => void; onDone: () => void }) 
         <h3>{PORT_INFO[s.at].name}的市場</h3>
         <div className="ch3-goods">
           {GOODS.filter((g) => port.buy[g] !== undefined || port.sell[g] !== undefined).map((g) => (
-            <div key={g} className={`ch3-good ${fails >= 3 && hot(s.at, g) ? 'hint' : ''}`}>
+            <div key={g} className={`ch3-good ${fails >= 3 && hot(s.at, g) ? 'ch3-hint' : ''}`}>
               <img src={GOOD_INFO[g].img} alt="" />
               <b>{GOOD_INFO[g].name}<small>{GOOD_INFO[g].from}</small></b>
               {port.buy[g] !== undefined && <button className="buy" disabled={lock || buy(lv, s, g) === null} onClick={() => doBuy(g)}>買 {port.buy[g]} 兩</button>}
