@@ -100,7 +100,7 @@ export function Camps({ p, set, next, oops }: Step4Props) {
       )}
       {phase === 'done' && <Talk lines={CAMP_DONE} onDone={() => setPhase('names')} />}
       {phase === 'choice' && <Decide4 id="land" set={set} onDone={() => setPhase('cards')} />}
-      {phase === 'cards' && <NewCards ids={['tuntian', 'campnames', 'plains']} p={p} set={set} onDone={next} />}
+      {phase === 'cards' && <NewCards ids={['c4-tuntian', 'c4-campnames', 'c4-plains']} p={p} set={set} onDone={next} />}
       <Say line={phase === 'place' ? say : null} />
     </div>
   );

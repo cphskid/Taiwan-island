@@ -291,32 +291,32 @@ const SRC = {
   tainan: '臺南市政府文化局',
 };
 export const CARDS4: Record<string, Card> = {
-  koxinga: { id: 'koxinga', title: '鄭成功', kind: '人物', source: `${SRC.textbook}；${SRC.encyclo}「鄭成功」`,
+  'c4-koxinga': { id: 'c4-koxinga', title: '鄭成功', kind: '人物', source: `${SRC.textbook}；${SRC.encyclo}「鄭成功」`,
     text: '明朝末年的將領，大家叫他「國姓爺」。1661 年帶兵來臺灣，隔年趕走荷蘭人，在臺灣建立政權，不久後就過世了。' },
-  tungning: { id: 'tungning', title: '東寧', kind: '地點', source: `${SRC.encyclo}；${SRC.textbook}`,
+  'c4-tungning': { id: 'c4-tungning', title: '東寧', kind: '地點', img: 'ch4/g-06-flag.webp', source: `${SRC.encyclo}；${SRC.textbook}`,
     text: '鄭成功的兒子鄭經把臺灣改名叫「東寧」。鄭氏在臺灣一共大約 22 年。' },
-  tuntian: { id: 'tuntian', title: '屯田（寓兵於農）', kind: '知識', source: SRC.textbook,
+  'c4-tuntian': { id: 'c4-tuntian', title: '屯田（寓兵於農）', kind: '知識', img: 'ch4/g-06-hoe.webp', source: SRC.textbook,
     text: '軍隊平常分到各地開墾種田，自己生產糧食，要打仗時再上戰場，叫做「寓兵於農」。' },
-  campnames: { id: 'campnames', title: '營盤地名', kind: '地點', source: `${SRC.textbook}；${SRC.encyclo}`,
+  'c4-campnames': { id: 'c4-campnames', title: '營盤地名', kind: '地點', img: 'ch4/o-08-camp.webp', source: `${SRC.textbook}；${SRC.encyclo}`,
     text: '軍隊屯田紮營的地方，名字很多留到今天，例如新營、柳營、林鳳營、左營、前鎮。' },
-  plains: { id: 'plains', title: '平埔族村社', kind: '知識', source: `${SRC.nmth}；${SRC.textbook}`,
+  'c4-plains': { id: 'c4-plains', title: '平埔族村社', kind: '知識', img: 'ch4/o-08-village.webp', source: `${SRC.nmth}；${SRC.textbook}`,
     text: '住在平原的原住民族村子叫「社」。漢人越來越多、開墾越來越廣，平埔族的土地和獵場慢慢變少，生活也跟著改變。' },
-  pond: { id: 'pond', title: '水埤', kind: '物品', img: 'ch4/o-08-pond.webp', source: `${SRC.encyclo}；${SRC.textbook}`,
+  'c4-pond': { id: 'c4-pond', title: '水埤', kind: '物品', img: 'ch4/o-08-pond.webp', source: `${SRC.encyclo}；${SRC.textbook}`,
     text: '把雨水和溪水存起來的池塘，旱季時引水灌溉。臺南一帶有些埤，據說從鄭氏時期就開始挖了。' },
-  chen: { id: 'chen', title: '陳永華', kind: '人物', img: 'ch4/p-18-chen.webp', source: `${SRC.encyclo}「陳永華」；${SRC.textbook}`,
+  'c4-chen': { id: 'c4-chen', title: '陳永華', kind: '人物', img: 'ch4/p-18-chen.webp', source: `${SRC.encyclo}「陳永華」；${SRC.textbook}`,
     text: '鄭氏時期的參軍，幫鄭經治理臺灣：推動屯田、教人曬鹽、建孔廟、設學校。' },
-  salt: { id: 'salt', title: '曬鹽（瀨口鹽田）', kind: '知識', img: 'ch4/o-08-saltpan.webp', source: `${SRC.encyclo}；${SRC.textbook}`,
+  'c4-salt': { id: 'c4-salt', title: '曬鹽（瀨口鹽田）', kind: '知識', img: 'ch4/o-08-saltpan.webp', source: `${SRC.encyclo}；${SRC.textbook}`,
     text: '陳永華在瀨口一帶教人築鹽田，從煮海水的「煎鹽」改成用太陽曬的「曬鹽」，省下很多柴，鹽也做得更多。' },
-  temple: { id: 'temple', title: '孔廟（全臺首學）', kind: '地點', img: 'ch4/o-08-hall.webp', source: `${SRC.tainan}「臺南孔子廟」；${SRC.textbook}`,
+  'c4-temple': { id: 'c4-temple', title: '孔廟（全臺首學）', kind: '地點', img: 'ch4/o-08-hall.webp', source: `${SRC.tainan}「臺南孔子廟」；${SRC.textbook}`,
     text: '1666 年在臺南建成，是臺灣第一座孔廟，旁邊設學校讓孩子讀書，所以叫「全臺首學」。今天的建築多半是後來重修的。' },
-  chengtian: { id: 'chengtian', title: '承天府', kind: '地點', source: `${SRC.encyclo}；${SRC.textbook}`,
+  'c4-chengtian': { id: 'c4-chengtian', title: '承天府', kind: '地點', source: `${SRC.encyclo}；${SRC.textbook}`,
     text: '鄭成功在今天的臺南設立的行政中心，管理全臺灣的事情。' },
-  shilang: { id: 'shilang', title: '施琅', kind: '人物', source: `${SRC.encyclo}「施琅」；${SRC.textbook}`,
+  'c4-shilang': { id: 'c4-shilang', title: '施琅', kind: '人物', source: `${SRC.encyclo}「施琅」；${SRC.textbook}`,
     text: '清朝的水師將領。1683 年帶兵打下澎湖，鄭克塽投降，臺灣從此歸清朝統治。' },
-  migrants: { id: 'migrants', title: '渡海來開墾的人', kind: '知識', source: `${SRC.textbook}；${SRC.nmth}`,
+  'c4-migrants': { id: 'c4-migrants', title: '渡海來開墾的人', kind: '知識', img: 'ch4/g-06-rice.webp', source: `${SRC.textbook}；${SRC.nmth}`,
     text: '鄭氏時期和後來的清朝，很多人從福建、廣東渡過臺灣海峽來開墾，平原上的田越開越多。' },
 };
-export const CARD_ORDER4 = ['koxinga', 'chen', 'shilang', 'tungning', 'chengtian', 'campnames', 'temple', 'pond', 'tuntian', 'plains', 'salt', 'migrants'];
+export const CARD_ORDER4 = ['c4-koxinga', 'c4-chen', 'c4-shilang', 'c4-tungning', 'c4-chengtian', 'c4-campnames', 'c4-temple', 'c4-pond', 'c4-tuntian', 'c4-plains', 'c4-salt', 'c4-migrants'];
 
 // ── 反思題 ──
 export interface Question4 { who: Line['who']; q: string; options: string[]; answer: number; why: string }

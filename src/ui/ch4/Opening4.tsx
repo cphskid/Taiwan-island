@@ -24,7 +24,7 @@ export function Opening4({ p, set, next }: Step4Props) {
         </button>
       )}
       {phase === 'talk' && <Talk lines={OPENING4} onDone={() => setPhase('card')} />}
-      {phase === 'card' && <NewCards ids={['koxinga', 'tungning']} p={p} set={set} onDone={() => setPhase('friend')} />}
+      {phase === 'card' && <NewCards ids={['c4-koxinga', 'c4-tungning']} p={p} set={set} onDone={() => setPhase('friend')} />}
       {phase === 'friend' && (
         <div className="talk-cover">
           <div className="mission panel friends">
