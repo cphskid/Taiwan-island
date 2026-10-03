@@ -1006,3 +1006,196 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .iron-hud .iron-n img{width:30px}
 .iron-hud .btn{min-width:0;width:100%;font-size:14px;min-height:36px;padding:4px 6px}
 .hill .rainfall{position:absolute;inset:0;z-index:5}
+
+/* ── 第七章 ── 縱貫與大圳 */
+.ch7 .stage{background:#3a4a2a}
+.ch7-dry .scene-bg{filter:sepia(.75) saturate(.55) brightness(1.08) contrast(.95);transition:filter 1.5s}
+.ch7-open.wet .scene-bg{filter:brightness(1.05) saturate(1.2);transition:filter 1.5s}
+.ch7-heat{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 80% 8%,rgba(255,236,170,.75),rgba(255,180,80,.18) 30%,transparent 60%);animation:blink 2.4s ease-in-out infinite alternate}
+.ch7-kid{position:absolute;left:8%;bottom:4%;height:46%;z-index:2;animation:pop .5s;pointer-events:none}
+.ch7-kid.cheer{left:auto;right:8%;height:50%}
+.ch7-elder{position:absolute;right:6%;bottom:2%;height:62%;z-index:2;animation:pop .5s;pointer-events:none}
+.ch7-yard-wrap,.ch7-dam-wrap,.ch7-rota-wrap,.ch7-pipe-wrap,.ch7-gate-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:54px 12px 10px}
+
+/* 調車場 */
+.ch7-yard{padding:10px 14px;display:flex;flex-direction:column;gap:8px;width:min(940px,100%)}
+.ch7-order{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-weight:700}
+.ch7-order small{color:#7a5a3a}
+.ch7-order em{font-style:normal;background:#fffaf0;border:2px solid #e6cf9f;border-radius:10px;padding:0 8px;font-size:14px}
+.ch7-order em.on{border-color:#3fbf5a;background:#e9fbe6;box-shadow:0 0 0 3px rgba(63,191,90,.3)}
+.ch7-moves{margin-left:auto;background:#34508a;color:#fff;border-radius:12px;padding:2px 10px;font-size:14px}
+.ch7-moves.max{background:#c0392b}
+.ch7-main{display:flex;gap:10px;align-items:stretch}
+.ch7-train,.ch7-side,.ch7-track-in{position:relative;display:flex;align-items:flex-end;gap:2px;min-height:76px;padding:4px 8px 10px;border-radius:14px;border:3px solid #c9a46b;background:repeating-linear-gradient(90deg,#7a5a3a 0 4px,transparent 4px 16px) left bottom/100% 6px no-repeat,#f6ead0;font:inherit;color:inherit}
+.ch7-train{flex:1.3;cursor:pointer;justify-content:flex-start}
+.ch7-track-in{flex:1;justify-content:flex-start;background-color:#eef3e2}
+.ch7-track-in>small,.ch7-side>small{align-self:center;font-weight:900;color:#7a5a3a;font-size:13px;line-height:1.2;white-space:nowrap;margin-right:4px}
+.ch7-train.ready,.ch7-side.ready{border-color:#3fbf5a;background-color:#effbe8;cursor:pointer}
+.ch7-train.hint,.ch7-side.hint{box-shadow:0 0 0 4px var(--gold),0 0 14px rgba(255,194,61,.8)}
+.ch7-train.leave{animation:ch7-leave 2s ease-in forwards}
+@keyframes ch7-leave{30%{transform:translateX(10px)}to{transform:translateX(-120%);opacity:0}}
+.ch7-loco{height:62px;transform:scaleX(1);flex:none}
+.ch7-slot-tip{align-self:center;color:#9c8466;font-weight:700;font-size:13px;margin-left:6px}
+.ch7-car-btn{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer}
+.ch7-car-btn:disabled{cursor:default}
+.ch7-car{display:flex;flex-direction:column;align-items:center;width:64px;border-radius:10px;padding:1px;border:2px solid transparent;animation:pop .25s ease-out}
+.ch7-car img{width:56px;height:44px;object-fit:contain}
+.ch7-car b{font-size:13px;line-height:1.1;background:#fff;border-radius:6px;padding:0 4px;border:1px solid #c9a46b;white-space:nowrap}
+.ch7-car.on{border-color:#3fbf5a;background:#e9fbe6;transform:translateY(-6px)}
+.ch7-car.hint{border-color:var(--gold);box-shadow:0 0 12px rgba(255,194,61,.9);animation:pulse .6s ease-in-out infinite alternate}
+.ch7-car.ghost{opacity:.7}
+.ch7-sides{display:flex;flex-direction:column;gap:6px}
+.ch7-side{justify-content:flex-start;cursor:default}
+.ch7-side-end{align-self:stretch;display:flex;align-items:center;color:#6b3f1f;font-size:26px;margin-right:2px}
+.ch7-side-gap{width:64px;height:44px;border:2px dashed #d8c39a;border-radius:10px;margin:0 1px}
+.ch7-yard-foot,.ch7-dam-foot,.ch7-rota-foot{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.ch7-yard-foot small,.ch7-dam-foot small,.ch7-rota-foot small{color:#7a5a3a;font-weight:700}
+
+/* 烏山頭大壩 */
+.ch7-dam-board{padding:10px 14px;display:flex;flex-direction:column;gap:8px;width:min(860px,100%)}
+.ch7-mats,.ch7-crops{display:flex;gap:10px;justify-content:center}
+.ch7-mat,.ch7-crop{display:flex;align-items:center;gap:6px;border:3px solid #c9a46b;border-radius:14px;background:#fffaf0;padding:4px 12px;font:700 16px var(--f);color:inherit;cursor:pointer}
+.ch7-mat img,.ch7-crop img{width:40px;height:36px;object-fit:contain}
+.ch7-mat small,.ch7-crop small{color:#7a5a3a;font-size:13px}
+.ch7-mat.on,.ch7-crop.on{border-color:#3fbf5a;background:#e9fbe6;transform:translateY(-3px);box-shadow:0 3px 0 #3fbf5a}
+.ch7-dam-body{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:6px}
+.ch7-lake,.ch7-field{height:150px;border-radius:12px;display:flex;align-items:flex-end;justify-content:center;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);padding-bottom:6px;position:relative;overflow:hidden}
+.ch7-lake{background:linear-gradient(transparent 55%,#4a9fd8 55%);transition:background .8s}
+.ch7-field{background:linear-gradient(transparent 70%,#c9a46b 70%)}
+.water-full .ch7-lake{background:linear-gradient(transparent 10%,#2f86c8 10%)}
+.water-leak .ch7-field{background:linear-gradient(transparent 50%,#5aa7d8 50%,#c9a46b 85%)}
+.water-leak .ch7-field::after{content:'💦';position:absolute;top:20%;font-size:26px;animation:bob .4s ease-in-out infinite alternate}
+.water-full .ch7-field{background:linear-gradient(transparent 70%,#7fc85a 70%)}
+.ch7-layers{display:flex;flex-direction:column;gap:3px}
+.ch7-layer{display:grid;grid-template-columns:repeat(9,46px);gap:3px;border-radius:8px}
+.ch7-layer.bad{box-shadow:0 0 0 4px #e04a2c;animation:shake .25s linear 2}
+.ch7-cell{width:46px;height:46px;border-radius:8px;border:2px solid #b08a58;background:#f6ead0;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ch7-cell img{width:90%;height:90%;object-fit:contain}
+.ch7-cell.empty{border-style:dashed;background:rgba(255,250,235,.8)}
+.ch7-cell.clay{background:#e6c3a6}
+.ch7-cell.sand{background:#f7e7b0}
+.ch7-cell.rock{background:#d9d6cf}
+.ch7-cell.fixed{cursor:default;filter:brightness(.85);border-color:#7a6a58}
+.ch7-cell.ans{box-shadow:0 0 0 3px var(--gold)}
+.ch7-cell.ans-clay::after,.ch7-cell.ans-sand::after,.ch7-cell.ans-rock::after{position:absolute;font-size:11px;font-weight:900;color:#8a5429}
+.ch7-cell.ans{position:relative}
+.ch7-cell.ans-clay::after{content:'黏土'}
+.ch7-cell.ans-sand::after{content:'砂'}
+.ch7-cell.ans-rock::after{content:'石'}
+
+/* 三年輪作 */
+.ch7-rota-board{padding:8px 14px;display:flex;flex-direction:column;gap:6px;width:min(880px,100%)}
+.ch7-rota-grid{border-collapse:separate;border-spacing:6px 3px;margin:0 auto}
+.ch7-rota-grid th{font-size:15px;white-space:nowrap}
+.ch7-rota-grid thead th{vertical-align:bottom;line-height:1.2}
+.ch7-rota-grid thead th small{display:block;color:#7a5a3a;font-size:12px}
+.ch7-rota-grid thead th em{display:block;font-style:normal;font-size:12px;background:#2f6fa8;color:#fff;border-radius:8px;padding:0 6px;width:fit-content;margin:0 auto 2px}
+.ch7-rota-grid th.bad{color:#c0392b}
+.ch7-plots{display:flex;gap:2px;justify-content:center;margin-top:2px}
+.ch7-plots i{width:14px;height:14px;border-radius:3px;background:#c9a46b;border:1px solid #8a6b45}
+.ch7-plots i.wet{background:#4a9fd8}
+.ch7-plots.big i{width:20px;height:20px}
+.ch7-rcell{width:132px;height:58px;display:flex;align-items:center;justify-content:center;gap:4px;border-radius:12px;border:3px solid #c9a46b;background:#fffaf0;font:700 14px var(--f);color:inherit;cursor:pointer;padding:2px}
+.ch7-rcell img{width:42px;height:42px;object-fit:contain}
+.ch7-rcell.empty{border-style:dashed;color:#b9a27e}
+.ch7-rcell.rice{background:#e9fbe6}
+.ch7-rcell.cane{background:#f3e6f7}
+.ch7-rcell.misc{background:#fbefe0}
+.ch7-rcell.hint{box-shadow:0 0 0 4px var(--gold);color:#8a5429}
+.ch7-rcell.bad,tr.bad .ch7-rcell{border-color:#e04a2c;animation:shake .25s linear 2}
+.ch7-water{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:120px}
+.ch7-water-bar{width:100%;height:12px;border-radius:6px;background:#e6dcc5;overflow:hidden}
+.ch7-water-bar i{display:block;height:100%;background:#4a9fd8;transition:width .3s}
+.ch7-water b{font-size:15px}
+.ch7-water.just b{color:#2e8b3a}
+.ch7-water.over b{color:#c0392b}
+.ch7-water.over .ch7-water-bar i{background:#e04a2c}
+
+/* 日月潭水管 */
+.ch7-pipe-board{padding:10px 14px;display:flex;gap:14px;align-items:center;width:min(820px,100%)}
+.ch7-pipes{display:grid;gap:3px;flex:1;max-width:520px}
+.ch7-height{display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#6b3f1f;padding-right:4px}
+.ch7-height small{font-size:11px;color:#9c8466}
+.ch7-tile{position:relative;aspect-ratio:1;max-height:84px;border-radius:10px;border:2px solid #b08a58;background:#e7f0d8;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ch7-tile svg{width:100%;height:100%}
+.ch7-tile:disabled{cursor:default}
+.ch7-tile.rock{background:#cfc8b8}
+.ch7-tile.lake{background:#cfe8f7}
+.ch7-tile.plant{background:#f6ead0}
+.ch7-tile.plant small{position:absolute;bottom:-1px;left:50%;translate:-50% 0;font-size:10px;font-weight:900;white-space:nowrap;background:#fff;border-radius:6px;padding:0 3px}
+.ch7-tile.wet{background:#d8eefb}
+.ch7-tile.leak{box-shadow:0 0 0 3px #e04a2c}
+.ch7-tile.hint{box-shadow:0 0 0 4px var(--gold);animation:pulse .6s ease-in-out infinite alternate}
+.ch7-tile:not(:disabled):active svg{transform:rotate(30deg)}
+.ch7-tile .pipe{stroke:#8a8f99;stroke-width:22;stroke-linecap:butt}
+.ch7-tile .pipe.wet{stroke:#2f86c8}
+.ch7-tile .pipe-joint{fill:#6f747d}
+.ch7-tile .pipe-joint.wet{fill:#1f6aa8}
+.ch7-power{display:flex;flex-direction:column;align-items:center;gap:6px;width:170px;text-align:center}
+.ch7-power>b{font-size:17px}
+.ch7-power small{color:#7a5a3a;font-weight:700;font-size:13px;line-height:1.4}
+.ch7-city{display:flex;align-items:center;gap:6px;font-weight:900;padding:2px 10px;border-radius:12px;background:#4a4f5a;color:#ddd;width:120px}
+.ch7-city img{width:26px;height:30px;object-fit:contain;filter:grayscale(1) brightness(.6)}
+.ch7-city.on{background:#ffe9a8;color:var(--ink);box-shadow:0 0 14px rgba(255,214,90,.9)}
+.ch7-city.on img{filter:none}
+
+/* 通水那天：分水門 */
+.ch7-gate-board{padding:10px 14px;display:flex;flex-direction:column;gap:8px;width:min(860px,100%)}
+.ch7-supply{display:flex;align-items:center;gap:10px;justify-content:center;font-size:17px}
+.ch7-supply img{width:38px;height:42px;object-fit:contain}
+.ch7-supply span{font-weight:900;background:#fffaf0;border:2px solid #e6cf9f;border-radius:10px;padding:0 8px}
+.ch7-supply span.over{color:#c0392b;border-color:#e04a2c}
+.ch7-supply span.just{color:#2e8b3a;border-color:#3fbf5a}
+.ch7-gates{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ch7-gate{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;border:3px solid #c9a46b;border-radius:14px;background:#fffaf0;padding:6px}
+.ch7-gate>b{font-size:17px;display:flex;gap:4px;align-items:center}
+.ch7-gate>b em{font-style:normal;font-size:12px;background:#2f6fa8;color:#fff;border-radius:8px;padding:0 6px}
+.ch7-gate>small{color:#7a5a3a;font-weight:700;font-size:12px}
+.ch7-gate-crop{display:flex;align-items:center;gap:4px;font-weight:900}
+.ch7-gate-crop img{width:40px;height:40px;object-fit:contain}
+.ch7-gate-crop small{display:block;font-size:12px;color:#7a5a3a}
+.ch7-open-n{font-size:18px!important;color:#1f6aa8!important;font-weight:900}
+.ch7-gate.dry{border-color:#d9a03a;background:#fbf0d8}
+.ch7-gate.flood{border-color:#2f86c8;background:#e2f1fb}
+.ch7-gate.good{border-color:#3fbf5a;background:#e9fbe6}
+.ch7-need{background:#fff3c4;border-radius:8px;padding:0 6px;color:#8a5429!important;font-size:14px!important}
+.ch7-tag{position:absolute;top:4px;right:4px;font-style:normal;font-size:12px;font-weight:900;color:#fff;background:#c0392b;border-radius:8px;padding:0 6px}
+.ch7-gate-foot{display:flex;align-items:center;justify-content:center;gap:12px}
+.ch7-gate-kid{height:62px}
+
+/* 結算：從時光鐘看阿雄的田 */
+.ch7-home .scene-bg{filter:brightness(1.05) saturate(1.15)}
+.ch7-home-kid{position:absolute;left:58%;bottom:24%;height:40%;transform:translateX(-50%);animation:pop .5s}
+.ch7-home-rice{position:absolute;left:44%;bottom:26%;height:16%}
+.ch7-home-cane{position:absolute;left:70%;bottom:26%;height:20%}
+.ch7-home-cane.dry{filter:sepia(1) saturate(.4) brightness(.9);transform:rotate(14deg);transform-origin:bottom}
+.ch7-home-book{position:absolute;left:33%;bottom:28%;height:12%;transform:rotate(-8deg)}
+.ch7-home-bulb{position:absolute;left:34%;bottom:30%;height:14%;filter:drop-shadow(0 0 12px #ffe27a)}
+.ch7-home-bubble{position:absolute;left:62%;bottom:66%;background:#fff;border:3px solid var(--wood-2);border-radius:16px;padding:4px 12px;font-weight:900;font-size:17px;white-space:nowrap;animation:pop .5s}
+
+@media (max-height:600px){
+  .ch7-yard-wrap,.ch7-dam-wrap,.ch7-rota-wrap,.ch7-pipe-wrap,.ch7-gate-wrap{padding-top:48px}
+  .ch7-yard{gap:5px;padding:6px 12px}
+  .ch7-train,.ch7-side,.ch7-track-in{min-height:64px;padding:2px 6px 8px}
+  .ch7-car{width:56px}
+  .ch7-car img{width:48px;height:34px}
+  .ch7-side-gap{width:56px;height:34px}
+  .ch7-loco{height:50px}
+  .ch7-layer{grid-template-columns:repeat(9,40px)}
+  .ch7-cell{width:40px;height:40px}
+  .ch7-lake,.ch7-field{height:130px}
+  .ch7-mat,.ch7-crop{padding:2px 10px}
+  .ch7-mat img,.ch7-crop img{width:32px;height:28px}
+  .ch7-rcell{height:48px;width:118px}
+  .ch7-rcell img{width:34px;height:34px}
+  .ch7-tile{max-height:70px}
+  .ch7-gate-crop img{width:32px;height:32px}
+  .ch7-gate-kid{height:50px}
+}
+@media (max-width:760px){
+  .ch7-main{flex-direction:column}
+  .ch7-layer{grid-template-columns:repeat(9,30px)}
+  .ch7-cell{width:30px;height:30px}
+  .ch7-rcell{width:88px}
+  .ch7-pipe-board{flex-direction:column}
+}
