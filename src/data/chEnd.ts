@@ -12,7 +12,7 @@ const BASE = import.meta.env.BASE_URL;
 export const artE = (name: string) => `${BASE}img/end/${name}.webp`;
 export const islE = (name: string) => `${BASE}img/island/${name}.webp`;
 
-export const STEPS_END = ['開場', '十大建設', '高鐵連起全島', '一起做決定', '時光博物館', '旅人的真面目', '結算'] as const;
+export const STEPS_END = ['開場', '十大建設', '高鐵全島', '做決定', '博物館', '旅人是誰', '結算'] as const;
 
 // ── 時代轉場（終章只在今天附近跳）──
 export const JUMPS_END: Record<number, { stop: number; far: string; title: string; sub: string; react: Line }> = {
@@ -289,7 +289,7 @@ export const FRIENDS_END: FriendE[] = [
   { name: '阿蓮', era: '清領', ch: 'ch5', ids: ['lian'] },
   { name: '阿穆', era: '清領', ch: 'ch5', ids: ['mu'] },
   { name: '阿春', era: '清末', ch: 'ch6', ids: ['chun', 'achun'] },
-  { name: '阿雄', era: '日治', ch: 'ch7', ids: ['xiong', 'axiong'] },
+  { name: '阿雄', era: '日治', ch: 'ch7', ids: ['xiong', 'axiong', 'hsiung'] },
 ];
 
 // 鐘塔前的結局：照你的選擇變

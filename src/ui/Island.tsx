@@ -28,7 +28,7 @@ import { mapImageUrls } from '../render/worldmap';
 function initialWorld(): WorldSave {
   const q = new URLSearchParams(location.search).get('world');
   if (q === 'fresh') return freshWorld();
-  if (q?.startsWith('clear')) return { ...freshWorld(), greeted: true, cleared: q.slice(5).split(',').map((n) => `ch${n}`) as WorldSave['cleared'] };
+  if (q?.startsWith('clear')) return { ...freshWorld(), greeted: true, cleared: q.slice(5).split(',').map((n) => (n === 'End' ? 'end' : `ch${n}`)) as WorldSave['cleared'] };
   return syncChapters(loadWorld());
 }
 

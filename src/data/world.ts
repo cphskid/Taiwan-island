@@ -101,7 +101,8 @@ export type ActorKind = 'farmer' | 'carrier' | 'worker' | 'buffalo' | 'hen' | 'd
   | 'xlian' | 'xlianCarry' | 'chen' | 'veteran' | 'villager4'
   | 'chun' | 'chunCarry' | 'mackay' | 'liu' | 'merchant6' | 'loco' | 'railcar'
   | 'hsiung' | 'hsiungGate' | 'hatta' | 'shaoElder' | 'sugarTrain'
-  | 'afu' | 'afuCarry' | 'uma' | 'clerk3' | 'friar3' | 'vocShip' | 'junkShip';
+  | 'afu' | 'afuCarry' | 'uma' | 'clerk3' | 'friar3' | 'vocShip' | 'junkShip'
+  | 'an' | 'anMic' | 'agong' | 'engineer' | 'hsr';
 export interface ActorDef {
   kind: ActorKind;
   path?: Pt[];
@@ -192,6 +193,11 @@ export const ACTOR_ART: Record<ActorKind, { walk: string[]; idle: string; work?:
   friar3: { walk: ['ch3/p-17-friar'], idle: 'ch3/p-17-friar', height: 17 },
   vocShip: { walk: ['x3-2'], idle: 'x3-2', height: 30 },
   junkShip: { walk: ['x3-7'], idle: 'x3-7', height: 22 },
+  an: { walk: ['end/f-10a-walk1', 'end/f-10a-walk2'], idle: 'end/f-10a-idle', height: 14 },
+  anMic: { walk: ['end/f-10a-mic'], idle: 'end/f-10a-mic', loop: ['end/f-10a-mic', 'end/f-10a-cheer'], height: 14 },
+  agong: { walk: ['end/p-21-grandpa'], idle: 'end/p-21-grandpa', height: 17 },
+  engineer: { walk: ['end/p-21-engineer'], idle: 'end/p-21-engineer', height: 17 },
+  hsr: { walk: ['x9-1'], idle: 'x9-1', height: 16 },
 };
 
 // 聚落周圍的樹、竹林、蘆葦，圳頭的攔水堰（O-04、O-02）。flip＝左右翻過來，看起來不會一模一樣
@@ -437,6 +443,35 @@ const LIFE_CH3: ChapterLife = {
   ],
 };
 
+// 終章過關：高鐵從臺北一路開到高雄，鐘塔、臺北 101、桃園機場、高速公路、高鐵站、社區公園和新大樓
+const HSR_LINE: Pt[] = [
+  { x: 2190, y: 370 }, { x: 1980, y: 450 }, { x: 1720, y: 600 }, { x: 1540, y: 830 }, { x: 1400, y: 1150 },
+  { x: 1300, y: 1500 }, { x: 1190, y: 1850 }, { x: 1110, y: 2200 }, { x: 1080, y: 2520 }, { x: 1160, y: 2830 },
+];
+const LIFE_END: ChapterLife = {
+  roads: [HSR_LINE],
+  buildings: [
+    { name: 'x9-2', at: { x: 1663, y: 560 }, width: 26 },
+    { name: 'x9-3', at: { x: 2252, y: 396 }, width: 20 },
+    { name: 'x9-6', at: { x: 1940, y: 410 }, width: 38 },
+    { name: 'x9-4', at: { x: 1420, y: 1170 }, width: 34 },
+    { name: 'x9-7', at: { x: 1500, y: 790 }, width: 34 },
+    { name: 'x9-8', at: { x: 1250, y: 2850 }, width: 24 },
+    { name: 'x9-8', at: { x: 1284, y: 2870 }, width: 22 },
+  ],
+  scenery: [
+    { name: 'x9-5', at: { x: 1630, y: 590 }, width: 26 },
+    { name: 'x9-5', at: { x: 1230, y: 2890 }, width: 24 },
+  ],
+  actors: [
+    { kind: 'hsr', path: HSR_LINE, speed: 40, who: '高鐵', says: '臺北到高雄，現在最快大約一個半小時就到了！', lod: 0 },
+    { kind: 'an', path: [{ x: 1640, y: 580 }, { x: 1660, y: 600 }, { x: 1690, y: 590 }], speed: 6, who: '小安', says: '鐘塔又轉起來了！每個時代都有人一起解決難題，現在換我們了。', lod: 0 },
+    { kind: 'anMic', at: { x: 1250, y: 2910 }, who: '開會的小安', says: '公園要怎麼用？大家輪流說，再一起決定。', lod: 1 },
+    { kind: 'agong', at: { x: 1214, y: 2900 }, who: '阿公', says: '我年輕的時候，高速公路才剛蓋好呢。', lod: 0 },
+    { kind: 'engineer', at: { x: 1444, y: 1196 }, who: '高鐵工程師', says: '高鐵把西部的大城市連起來，一日生活圈就是這樣來的。', lod: 0 },
+  ],
+};
+
 export const LIFE: Partial<Record<ChapterId, ChapterLife>> = {
   ch1: LIFE_CH1,
   ch2: LIFE_CH2,
@@ -444,6 +479,7 @@ export const LIFE: Partial<Record<ChapterId, ChapterLife>> = {
   ch4: LIFE_CH4,
   ch6: LIFE_CH6,
   ch7: LIFE_CH7,
+  end: LIFE_END,
   ch5: { canal: CANAL, roads: ROADS, paddies: PADDIES, buildings: BUILDINGS, scenery: SCENERY, smoke: SMOKE, actors: ACTORS },
 };
 
