@@ -201,8 +201,8 @@ export const TEMPLE_CLUES: { who: Line['who']; text: string }[] = [
   { who: 'chen', text: '泮池是半月形的水池，在中軸線最南邊（最下面）。' },
   { who: 'veteran', text: '大成門在泮池的正北邊，進了門才看得到庭院。' },
   { who: 'chen', text: '大成殿前面空一格當庭院，東廡、西廡在庭院的兩邊。' },
-  { who: 'xlian', text: '東邊是右手邊、西邊是左手邊。' },
-  { who: 'chen', text: '明倫堂是上課的地方，在大成殿的東邊。這叫「左學右廟」。' },
+  { who: 'xlian', text: '地圖上北邊在上面，所以東邊是右手邊、西邊是左手邊。' },
+  { who: 'chen', text: '明倫堂是上課的地方，就在大成殿的東邊，緊緊挨著。' },
 ];
 export const TEMPLE_INTRO: Line[] = [
   { who: 'chen', text: '有田、有水、有鹽，大家吃得飽了。可是孩子要讀書，東寧才會有明天。' },
