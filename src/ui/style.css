@@ -1232,3 +1232,166 @@ img.flip{transform:scaleX(-1)}
 .ch4-end .stars{font-size:44px;line-height:1.1}
 .ch4-end .star-why{font-size:15px;line-height:1.5;margin:4px 0}
 .ch4-end .cards-got{font-size:14px;margin:4px 0}
+
+/* ── 第六章 開港與鐵路 ── */
+.ch6 .stage{background:#2a3a4a}
+.ch6-rain .scene-bg{filter:brightness(.82) saturate(.8)}
+.ch6-rainfall{position:absolute;inset:0;pointer-events:none;z-index:2;opacity:.55;background-image:linear-gradient(105deg,transparent 48%,rgba(220,235,255,.8) 50%,transparent 52%),linear-gradient(105deg,transparent 48%,rgba(220,235,255,.6) 50%,transparent 52%);background-size:26px 60px,41px 90px;animation:ch6-rain .45s linear infinite}
+@keyframes ch6-rain{to{background-position:-12px 60px,-18px 90px}}
+.ch6-chun-stand{position:absolute;left:8%;bottom:4%;height:46%;z-index:3;animation:pop .4s ease-out;pointer-events:none}
+.ch6-sunny .scene-bg{filter:brightness(1.05) saturate(1.15)}
+.ch6-port-wrap,.ch6-tea-wrap,.ch6-rail-wrap,.ch6-clinic-wrap,.ch6-train-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:52px 10px 10px}
+.ch6 .panel{padding:10px 14px}
+.ch6-seg{display:flex;align-items:center;gap:4px;font-weight:700}
+.ch6-seg>span{color:var(--wood-2);font-size:14px;margin-right:2px}
+.ch6-seg button{display:flex;align-items:center;gap:4px;min-height:40px;padding:0 12px;border-radius:20px;border:3px solid #c9a46b;background:#fff8e6;font:700 15px var(--f);color:var(--ink);cursor:pointer}
+.ch6-seg button img{width:34px;height:26px;object-fit:contain}
+.ch6-seg button.on{background:linear-gradient(#7fd85a,#4aa834);border-color:var(--gold);color:#fff}
+.ch6-legend{font-size:13px;font-weight:700;color:#7a5a3a;display:flex;align-items:center;flex-wrap:wrap;gap:2px 4px;flex:1}
+.ch6-legend i{display:inline-block;width:16px;height:16px;border-radius:4px;border:1px solid rgba(0,0,0,.2);margin-left:6px}
+
+/* 河運 */
+.ch6-port-board{display:flex;flex-direction:column;gap:8px;width:min(860px,100%)}
+.ch6-port-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ch6-boat-info{display:flex;align-items:center;gap:4px}
+.ch6-boat-info img{width:44px;height:34px;object-fit:contain}
+.ch6-boat-rule{font-weight:700;color:#7a5a3a}
+.ch6-river{position:relative;display:grid;gap:2px;width:min(100%,calc((100dvh - 250px) * 1.8));margin:0 auto;background:#7fae5a;border-radius:12px;padding:2px}
+.rv{position:relative;border:0;border-radius:6px;padding:0;cursor:pointer;font:inherit;color:inherit;min-width:0}
+.rv-land{background:#8fc46a}
+.rv-w,.rv-A,.rv-T,.rv-B{background:#3c8fd0}
+.rv-n{background:#7cc0ee;margin:14%}
+.rv-r{background:repeating-radial-gradient(circle at 30% 40%,#9a9a8a 0 4px,#7cc0ee 4px 9px);margin:14%}
+.rv-s{background:repeating-linear-gradient(135deg,#e6cf8f 0 6px,#5aa5dd 6px 12px)}
+.rv-h{background:repeating-linear-gradient(135deg,#8a6a45 0 6px,#7cc0ee 6px 12px);margin:14%}
+.rv-m{background:repeating-linear-gradient(135deg,#9a7a55 0 6px,#5aa5dd 6px 12px)}
+.rv-B{background:#1f5f9e}
+.rv.on{box-shadow:inset 0 0 0 4px var(--gold)}
+.rv.hint:not(.on){box-shadow:inset 0 0 0 4px #fff;animation:blink .7s ease-in-out infinite alternate}
+.rv.bad{box-shadow:inset 0 0 0 5px #e04040}
+.rv-depth{position:absolute;right:3px;bottom:1px;font-style:normal;font-size:12px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.rv-tag{position:absolute;left:50%;top:50%;translate:-50% -50%;white-space:nowrap;background:rgba(255,248,230,.95);border:2px solid var(--wood-2);border-radius:8px;padding:0 4px;font-size:12px;z-index:1;pointer-events:none}
+.rv-dot{position:absolute;left:50%;top:50%;translate:-50% -50%;width:22px;height:22px;border-radius:50%;background:var(--gold);color:var(--ink);font-style:normal;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center}
+.ch6-boat{position:absolute;width:11%;translate:-50% -60%;transition:left .35s linear,top .35s linear;pointer-events:none;z-index:2;filter:drop-shadow(0 3px 2px rgba(0,0,0,.4))}
+.ch6-port-foot,.ch6-rail-foot,.ch6-tea-foot,.ch6-train-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.ch6-port-foot .btn,.ch6-rail-foot .btn,.ch6-tea-foot .btn,.ch6-train-foot .btn{min-width:110px;min-height:44px}
+.lg-w{background:#3c8fd0}.lg-n{background:#7cc0ee}.lg-r{background:#9a9a8a}.lg-s{background:#e6cf8f}
+
+/* 烘茶排程 */
+.ch6-tea-board{display:flex;flex-direction:column;gap:8px;width:min(880px,100%)}
+.ch6-tea-top{display:flex;gap:10px;align-items:stretch}
+.ch6-batches{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ch6-batch{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;border:4px solid var(--tint);border-radius:14px;background:#fffaf0;padding:4px;font:700 13px var(--f);color:inherit;cursor:pointer}
+.ch6-batch img{width:44px;height:36px;object-fit:contain}
+.ch6-batch b{font-size:14px}
+.ch6-batch.on{opacity:.55}
+.ch6-batch.hint{box-shadow:0 0 0 4px var(--gold),0 0 14px rgba(255,194,61,.9)}
+.ch6-batch-n{position:absolute;left:4px;top:4px;width:26px;height:26px;border-radius:50%;background:var(--gold);font-style:normal;font-weight:900;display:flex;align-items:center;justify-content:center}
+.ch6-order{display:flex;flex-direction:column;gap:2px;min-width:120px;background:#fffaf0;border:3px solid #e6cf9f;border-radius:12px;padding:4px 8px;font-weight:700;font-size:14px}
+.ch6-order small{color:var(--wood-2)}
+.ch6-order span{color:#b9a27e}.ch6-order span.on{color:var(--ink)}
+.ch6-gantt{--lab:96px;position:relative;display:flex;flex-direction:column;gap:4px;background:#fffaf0;border:3px solid #e6cf9f;border-radius:12px;padding:4px 6px}
+.ch6-g-row{display:flex;align-items:center}
+.ch6-g-row>b{flex:none;width:calc(var(--lab) - 6px);font-size:14px}
+.ch6-g-row>span{position:relative;flex:1;height:34px;background:repeating-linear-gradient(90deg,#f1e4c6 0 1px,transparent 1px calc(100% / var(--h)))}
+.ch6-g-hours>span{height:auto;display:flex;background:none}
+.ch6-g-hours>span i{flex:1;font-style:normal;font-size:11px;color:#9c8466;font-weight:700}
+.ch6-g-row em{position:absolute;top:3px;bottom:3px;border-radius:8px;color:#fff;font-style:normal;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;border:2px solid rgba(0,0,0,.15);transform-origin:left;animation:ch6-grow .4s ease-out both;overflow:hidden;white-space:nowrap}
+.ch6-g-row em.moldy{background:repeating-linear-gradient(45deg,#7d8a5a 0 6px,#5a6640 6px 12px)!important;border-color:#d9534f}
+.ch6-g-row em.late{border-color:#d9534f;box-shadow:0 0 0 2px #d9534f}
+.ch6-g-row u{position:absolute;top:10px;bottom:10px;border-radius:6px;background:rgba(255,194,61,.35);border:2px dashed #e0a020;text-decoration:none;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;color:#8a5a00}
+.ch6-g-row u.moldy{background:rgba(217,83,79,.25);border-color:#d9534f;color:#a02020}
+@keyframes ch6-grow{from{transform:scaleX(0)}}
+.ch6-night{position:absolute;top:2px;bottom:2px;border-left:3px dashed #3a3f6a;font-style:normal;font-size:12px;font-weight:900;color:#3a3f6a;padding-left:3px;white-space:nowrap;pointer-events:none}
+.ch6-tea-foot small,.ch6-train-foot small{flex:1;font-weight:700;color:#7a5a3a;font-size:14px}
+
+/* 鋪鐵路 */
+.ch6-rail-board{display:flex;flex-direction:column;gap:6px;width:min(820px,100%)}
+.ch6-rail-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-weight:900}
+.ch6-rail-bar span{display:flex;align-items:center;gap:4px}
+.ch6-rail-bar span.out{color:#b33}
+.ch6-rail-bar img{width:36px;height:28px;object-fit:contain}
+.ch6-rail-bar small{margin-left:auto;color:#7a5a3a}
+.ch6-rail-grid{position:relative;display:grid;gap:2px;width:min(100%,calc((100dvh - 240px) * 1.5));margin:0 auto;border-radius:12px;padding:2px;background:#5d7a3a}
+.rl{position:relative;border:0;border-radius:6px;padding:0;cursor:pointer;font:inherit;color:inherit;min-width:0}
+.rl-h0,.rl-h1{background:#b9e08a}.rl-h2{background:#e6d27a}.rl-h3{background:#c99a5a}.rl-h4{background:#8a5a32}
+.rl-river{background:#4a9ad8}
+.rl-stn{background:#f3e2bd}
+.lg-h1{background:#b9e08a}.lg-h2{background:#e6d27a}.lg-h3{background:#c99a5a}.lg-h4{background:#8a5a32}.lg-rv{background:#4a9ad8}
+.rl.near{box-shadow:inset 0 0 0 3px rgba(255,255,255,.85)}
+.rl.on{box-shadow:inset 0 0 0 4px var(--gold)}
+.rl.hint{box-shadow:inset 0 0 0 4px #fff;animation:blink .7s ease-in-out infinite alternate}
+.rl.bad{box-shadow:inset 0 0 0 5px #e04040;animation:shake .25s linear 2}
+.rl-h{position:absolute;left:4px;top:2px;font-style:normal;font-weight:900;font-size:13px;color:rgba(40,25,10,.75)}
+.rl-h4 .rl-h{color:#fff}
+.rl-tag{position:absolute;inset:8%;display:flex;align-items:center;justify-content:center;background:#fff;border:3px solid var(--wood-2);border-radius:8px;font-size:14px}
+.rl-icon{position:absolute;inset:12%;width:76%;height:76%;object-fit:contain;pointer-events:none;animation:pop .25s ease-out}
+.rl-icon.track{inset:6%;width:88%;height:88%}
+.ch6-loco{position:absolute;width:10%;translate:-50% -60%;transition:left .2s linear,top .2s linear;z-index:2;pointer-events:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))}
+
+/* 馬偕的醫館 */
+.ch6-clinic-board{display:flex;flex-direction:column;gap:8px;width:min(900px,100%)}
+.ch6-queue small{font-weight:700;color:var(--wood-2)}
+.ch6-queue-row{display:flex;gap:6px;flex-wrap:wrap;min-height:64px;align-items:center}
+.ch6-patient{display:flex;flex-direction:column;align-items:flex-start;gap:0;max-width:200px;border:3px solid #c9a46b;border-radius:12px;background:#fffaf0;padding:4px 8px;font:700 13px var(--f);color:inherit;cursor:pointer;text-align:left}
+.ch6-patient b{font-size:15px}
+.ch6-patient span{color:#3b6fd1}
+.ch6-patient small{font-weight:400;color:#7a5a3a;line-height:1.3}
+.ch6-patient.on{border-color:#3fbf5a;background:#e9fbe6;transform:translateY(-3px)}
+.ch6-healers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ch6-healer{border:3px solid #c9a46b;border-radius:14px;background:#fffaf0;padding:6px;display:flex;flex-direction:column;gap:6px;cursor:pointer}
+.ch6-healer.ready{border-style:dashed;border-color:#3fbf5a}
+.ch6-healer.full{border-color:#d9534f;background:#ffe9e7}
+.ch6-healer.hint{box-shadow:0 0 0 4px var(--gold),0 0 16px rgba(255,194,61,.9)}
+.ch6-healer-head{display:flex;gap:6px;align-items:center}
+.ch6-healer-head img,.ch6-healer-ico{width:48px;height:56px;object-fit:contain;flex:none;font-size:36px;display:flex;align-items:center;justify-content:center}
+.ch6-healer-head div{display:flex;flex-direction:column;font-size:13px;font-weight:700;line-height:1.35}
+.ch6-healer-head b{font-size:15px}
+.ch6-seats{display:flex;flex-direction:column;gap:4px}
+.ch6-seat{min-height:32px;display:flex;align-items:center;justify-content:center;border:2px dashed #e6cf9f;border-radius:10px;font:700 13px var(--f);color:#b9a27e;background:transparent}
+.ch6-seat.on{border:2px solid #3fbf5a;background:#f2fff0;color:var(--ink);cursor:pointer}
+.ch6-seat.wrong{border-color:#d9534f;background:#ffe9e7;animation:shake .25s linear 2}
+.ch6-clinic-tip{text-align:center;color:#9c8466;font-weight:700}
+
+/* 會車時刻表 */
+.ch6-train-board{display:flex;flex-direction:column;gap:6px;width:min(900px,100%)}
+.ch6-train-plan{display:flex;flex-direction:column;gap:4px}
+.ch6-train-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-left:6px solid var(--c);padding-left:8px}
+.ch6-train-row>b{display:flex;align-items:center;gap:4px;color:var(--c);min-width:190px}
+.ch6-train-row>b img{width:44px;height:30px;object-fit:contain}
+.ch6-train-row>small{font-weight:700;color:#7a5a3a;min-width:120px}
+.ch6-train-row>small.late{color:#b33}
+.ch6-waits{display:flex;gap:6px;flex-wrap:wrap}
+.ch6-wait{display:flex;flex-direction:column;align-items:center;border:2px solid #e6cf9f;border-radius:10px;padding:0 4px;font-weight:700;font-size:13px}
+.ch6-wait.hint{box-shadow:0 0 0 3px var(--gold),0 0 12px rgba(255,194,61,.9)}
+.ch6-wait .stepper em{font-style:normal;min-width:52px;text-align:center}
+.ch6-wait .stepper button{width:30px;height:30px;font-size:16px}
+.ch6-diagram{width:100%;max-height:calc(100dvh - 340px);min-height:150px;background:#fffaf0;border:3px solid #e6cf9f;border-radius:12px}
+.ch6-d-stn{stroke:#e6cf9f;stroke-width:2}
+.ch6-d-name{font:700 14px var(--f);fill:#7a5a3a}
+.ch6-d-tick{font:700 11px var(--f);fill:#9c8466}
+.ch6-d-dead{stroke-width:3;stroke-dasharray:6 5;opacity:.7}
+.ch6-d-boom{font-size:30px;animation:pop .3s ease-out}
+
+/* 結局 */
+.ch6-end-props{position:absolute;inset:0;z-index:2;pointer-events:none}
+.ch6-end-props img{position:absolute;filter:drop-shadow(0 4px 4px rgba(0,0,0,.35));animation:pop .6s ease-out both}
+.ch6-end-chun{left:60%;bottom:24%;height:38%}
+.ch6-end-train{left:30%;bottom:30%;height:22%}
+.ch6-end-way{left:12%;bottom:32%;height:16%}
+.ch6-end-ship{left:20%;top:24%;height:18%}
+.ch6-end-chest{left:50%;bottom:26%;height:12%}
+.ch6-end-thing{left:73%;bottom:26%;height:12%}
+.ch6-end-boss{left:80%;bottom:24%;height:34%}
+@media (max-height:640px){
+  .ch6-port-wrap,.ch6-tea-wrap,.ch6-rail-wrap,.ch6-clinic-wrap,.ch6-train-wrap{padding-top:46px;padding-bottom:6px}
+  .ch6 .panel{padding:6px 10px}
+  .ch6-batch img{width:34px;height:26px}
+  .ch6-patient small{display:none}
+  .ch6-healer-head img,.ch6-healer-ico{width:36px;height:42px;font-size:28px}
+}
+@media (max-width:760px){ .ch6-batches{grid-template-columns:repeat(2,1fr)} .ch6-healers{grid-template-columns:1fr} }
+.ch6 .talk-cover>.mission{max-height:100%;overflow:auto}
+.ch6 .mission img.badge{width:84px;height:84px}
+.ch6 .mission .cards-got{font-size:14px;line-height:1.5;margin:4px 0}
+@media (max-height:640px){ .ch6 .mission h2{margin:0 0 4px} .ch6 .mission .stars{margin:0} .ch6 .mission img.badge{width:60px;height:60px} .ch6 .star-why{margin:4px 0} }

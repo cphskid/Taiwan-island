@@ -9,6 +9,8 @@ import { Ch2 } from './Ch2';
 import { load2 } from '../core/save2';
 import { Ch4 } from './Ch4';
 import { load4 } from '../core/save4';
+import { Ch6 } from './Ch6';
+import { load6 } from '../core/save6';
 import { pushCloud } from '../net/cloud';
 import { WorldMap } from './WorldMap';
 import { Prologue } from './Prologue';
@@ -26,12 +28,14 @@ function initialWorld(): WorldSave {
 
 // 章節過關了就記到大地圖上（章節「從頭再玩」也不會把雲霧蓋回去）
 function syncChapters(w: WorldSave): WorldSave {
-  const p = load(), p1 = load1(), p2 = load2(), p4 = load4();
-  let got = addCards(addCards(addCards(addCards(w, p.cards), p1.cards), p2.cards), p4.cards);
+  const p = load(), p1 = load1(), p2 = load2(), p4 = load4(), p6 = load6();
+  let got = w;
+  for (const x of [p, p1, p2, p4, p6]) got = addCards(got, x.cards);
   if (p.done) got = markCleared(got, 'ch5');
   if (p1.done) got = markCleared(got, 'ch1');
   if (p2.done) got = markCleared(got, 'ch2');
   if (p4.done) got = markCleared(got, 'ch4');
+  if (p6.done) got = markCleared(got, 'ch6');
   return got;
 }
 
@@ -41,6 +45,7 @@ function initialMode(world: WorldSave): Mode {
     : location.search.includes('ch1=') ? { at: 'chapter', id: 'ch1' }
     : location.search.includes('ch2=') ? { at: 'chapter', id: 'ch2' }
     : location.search.includes('ch4=') ? { at: 'chapter', id: 'ch4' }
+    : location.search.includes('ch6=') ? { at: 'chapter', id: 'ch6' }
     : location.search.includes('prologue') || (!world.prologue && !world.greeted) ? { at: 'prologue' }
     : { at: 'map', back: null };
 }
@@ -74,6 +79,7 @@ export function Island() {
     return mode.id === 'ch1' ? <Ch1 album={world.cards} onExit={exit} />
       : mode.id === 'ch2' ? <Ch2 album={world.cards} onExit={exit} />
       : mode.id === 'ch4' ? <Ch4 album={world.cards} onExit={exit} />
+      : mode.id === 'ch6' ? <Ch6 album={world.cards} onExit={exit} />
       : <Chapter album={world.cards} onExit={exit} />;
   }
   return <WorldMap world={world} setWorld={(fn) => setWorld((w) => fn(w))} back={mode.back} onEnter={(id) => setMode({ at: 'chapter', id })} onPrologue={() => setMode({ at: 'prologue' })} />;

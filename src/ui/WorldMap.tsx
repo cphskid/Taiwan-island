@@ -3,7 +3,7 @@ import { createWorldMap, type Hit, type RiftState, type WorldMap as Map } from '
 import { celebrate, opened, toCelebrate, type WorldSave } from '../core/world';
 import { ACTOR_ART, CHAPTERS, GEAR_SLOTS, HOOKS, LEGEND, TICK_LINES, chapterOf, isl, type ActorDef, type ChapterId } from '../data/world';
 import { Say, Talk } from './Talk';
-import { Album, BOOK1, BOOK2, BOOK4, BOOK5 } from './Album';
+import { Album, BOOK1, BOOK2, BOOK4, BOOK5, BOOK6 } from './Album';
 import { CARD_ORDER } from '../data/babao-chapter';
 import { ambience, music, preload, sfx, type SeCode } from '../audio';
 import { SoundToggle } from './Sound';
@@ -108,7 +108,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
     }
     setWorld((w) => celebrate(w, id));
     m.setRifts(riftStates({ ...live.current.world, cleared: [...opened(live.current.world), id] }));
-    setSay(id === 'ch1' ? TICK_LINES.clearedCh1 : id === 'ch2' ? TICK_LINES.clearedCh2 : id === 'ch4' ? TICK_LINES.clearedCh4 : TICK_LINES.cleared);
+    setSay((TICK_LINES as Record<string, unknown>)[id === 'end' ? 'clearedEnd' : `clearedCh${id.slice(2)}`] as string | undefined ?? TICK_LINES.cleared);
     if (HOOKS[id]) {
       await new Promise((r) => setTimeout(r, 6000));
       setSay(TICK_LINES.hook);
@@ -203,7 +203,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
       {actor && <ActorSay actor={actor} onClose={() => setActor(null)} />}
       {!actor && <Say line={say ? { who: 'tick', mood: 'happy', text: say } : null} />}
       {flash && <div className="warp" />}
-      {book && <Album have={world.cards} books={[BOOK1, BOOK2, BOOK4, BOOK5]} onClose={() => setBook(false)} />}
+      {book && <Album have={world.cards} books={[BOOK1, BOOK2, BOOK4, BOOK5, BOOK6]} onClose={() => setBook(false)} />}
       {intro && ready && (
         <Talk
           lines={[{ who: 'tick', mood: 'wave', text: TICK_LINES.welcome }]}
