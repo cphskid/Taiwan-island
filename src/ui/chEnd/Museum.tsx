@@ -68,7 +68,7 @@ export function Museum({ p, set, next, oops }: StepEndProps) {
       {phase !== 'intro' && (
         <div className="end-museum-wrap">
           {phase === 'sort' && <Goal floating text={left.length ? `把展品放到對的年代：還有 ${left.length} 樣` : '都放好了，按「這樣對嗎？」'} />}
-          <div className="end-museum-tray panel">
+          {!passed && <div className="end-museum-tray panel">
             {left.map((id) => {
               const e = exOf(id);
               return (
@@ -79,8 +79,8 @@ export function Museum({ p, set, next, oops }: StepEndProps) {
             })}
             {pick && <p className="end-museum-text">{exOf(pick).text}</p>}
             {!pick && left.length > 0 && <p className="end-museum-text dim">點一樣展品，讀它的說明</p>}
-            {done && !passed && <button className="btn green" onClick={check}>這樣對嗎？</button>}
-          </div>
+            {done && <button className="btn green" onClick={check}>這樣對嗎？</button>}
+          </div>}
           <div className="end-museum-line">
             {EXHIBITS.map((slotEx, i) => {
               const id = atSlot(i);
