@@ -101,6 +101,7 @@ export interface BuildingDef {
   home?: number; // 房子：住幾個人
   appeal: number; // 對村子評價的貢獻
   does: string; // 卡片上的一句話（玩法＋知識）
+  tag?: string; // 清單上的一行「它是做什麼的」（由 TAGS 補上）
 }
 
 export const BUILDINGS: Record<Kind, BuildingDef> = {
@@ -139,6 +140,22 @@ export const BUILDINGS: Record<Kind, BuildingDef> = {
   trees: { name: '防風林', art: 'v3-8', width: 130, cost: 15, stars: 1, zones: ['land', 'beach', 'hill'], appeal: 2,
     does: '木麻黃防風林，擋住季風和颱風。旁邊的房子、菜園比較不會壞。' },
 };
+
+// 建築清單、卡片上一眼看懂「它是做什麼的」
+export const TAGS: Record<Kind, string> = {
+  stilt: '🏠 住 2 人', brick: '🏠 住 3 人', shophouse: '🏠 住 3 人',
+  pier: '捕魚 → 🐟', rack: '🐟 曬成 💰', salt: '曬鹽 → 🧂', pond: '養魚 → 🐟', garden: '種菜 → 🥬', divehut: '採 → 🌿',
+  market: '把貨賣成 💰', stall: '🐟🥬 煮成 💰', store: '賺 💰', guesthouse: '遊客 → 💰',
+  temple: '⭐ 評價＋廟會', netshed: '可以牽罟', shelter: '颱風躲這裡', trees: '擋風、防颱',
+};
+
+// 新手教學：照順序蓋這三棟（時間先停著），每一棟都有「點蓋 → 選它 → 點發亮的地方 → 按蓋在這裡」四小步
+export const TUTORIAL: { kind: Kind; at: Pt; say: string }[] = [
+  { kind: 'brick', at: { x: 700, y: 560 }, say: '阿海伯家太擠了（上面的 👥 3/2 是紅的），先蓋一間紅磚厝。' },
+  { kind: 'pier', at: { x: 1060, y: 660 }, say: '有地方住了，接著要賺錢：在海灣邊蓋漁港碼頭，派人出海捕魚。' },
+  { kind: 'market', at: { x: 890, y: 545 }, say: '魚要賣掉才有錢。在碼頭旁邊蓋市場，擺在一起有加成。' },
+];
+export const TUTORIAL_END = '太棒了，村子開張了！時間會自己走，每個月底結算一次：碼頭捕魚、市場把魚賣成錢。點任何建築，可以看它在做什麼、誰在工作。右上角可以暫停或快轉。接下來照上面的 🎯 目標玩下去！';
 
 export const BUILD_ORDER: Kind[] = ['stilt', 'brick', 'pier', 'market', 'garden', 'trees', 'rack', 'stall', 'netshed', 'salt', 'pond', 'shelter', 'store', 'divehut', 'temple', 'guesthouse', 'shophouse'];
 
@@ -186,7 +203,7 @@ export const VILLAGE_LINES = {
   intro: [
     '這裡是東北角的一個小漁村。年輕人都去城市工作了，只剩阿海伯和春花姨，還有放暑假回來的小孫子。',
     '我們來幫忙：蓋房子、分配工作、躲颱風，讓村子重新熱鬧起來！',
-    '點下面的「🔨 蓋」選一棟建築，在地圖上拖到想要的位置。綠色可以蓋、紅色不行。',
+    '地圖可以用兩根手指放大縮小、一根手指拖著移動。第一次來，我一步一步教你！',
   ],
 };
 

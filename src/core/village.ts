@@ -40,15 +40,16 @@ export interface Village {
   tyYear: number; // 今年有沒有來過颱風（最後一次颱風的年）
   scared: number; // 沒避難所，颱風後大家很怕（扣評價的月數）
   intro: boolean; // 看過開場說明
+  tut: number; // 新手教學做到第幾棟（TUTORIAL.length 以上＝教完）
   done: boolean; // 五顆星
 }
 
 export const freshVillage = (): Village => ({
-  v: 1, year: 1, month: 4, weather: 'sun', prepared: false, coins: 120,
+  v: 1, year: 1, month: 4, weather: 'sun', prepared: false, coins: 160,
   goods: { fish: 0, veg: 0, salt: 0, weed: 0 },
   b: [{ id: 1, kind: 'stilt', at: { x: 760, y: 440 }, worker: null }],
   people: [{ id: 2, name: '阿海伯' }, { id: 3, name: '春花姨' }, { id: 4, name: '小孫子', kid: true }],
-  next: 5, quests: [], seineAt: -1, seines: 0, typhoons: 0, festivals: 0, tyYear: 0, scared: 0, intro: false, done: false,
+  next: 5, quests: [], seineAt: -1, seines: 0, typhoons: 0, festivals: 0, tyYear: 0, scared: 0, intro: false, tut: 0, done: false,
 });
 
 export const monthIndex = (s: Village) => s.year * 12 + s.month;
@@ -263,10 +264,18 @@ export function loadVillage(store: Pick<Storage, 'getItem'> | undefined = global
     const raw = store?.getItem(keyFor(KEY));
     if (!raw) return freshVillage();
     const p = JSON.parse(raw) as Partial<Village>;
-    return p.v === 1 ? { ...freshVillage(), ...p } : freshVillage();
+    // 教學是後來加的：之前玩過的人不用再教一次
+    return p.v === 1 ? { ...freshVillage(), ...(p.intro && p.tut === undefined ? { tut: 99 } : {}), ...p } : freshVillage();
   } catch {
     return freshVillage();
   }
+}
+// 換平板登入：本機和雲端兩份，留玩得比較久的那份
+export function pickVillage(local: Village, cloud: Partial<Village> | null | undefined): Village {
+  if (!cloud || cloud.v !== 1) return local;
+  const c = { ...freshVillage(), ...cloud } as Village;
+  const score = (x: Village) => monthIndex(x) * 100 + x.b.length;
+  return score(c) > score(local) ? c : local;
 }
 export function saveVillage(s: Village, store: Pick<Storage, 'setItem'> | undefined = globalThis.localStorage) {
   try { store?.setItem(keyFor(KEY), JSON.stringify(s)); } catch { /* 存不了就算了 */ }

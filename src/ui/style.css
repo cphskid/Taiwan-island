@@ -2045,33 +2045,37 @@ img.flip{transform:scaleX(-1)}
 
 /* ── 現在篇：風與海的漁村 ── */
 .village{flex:1;position:relative;min-height:0;background:#5cc3d6;overflow:hidden;font-family:var(--f);user-select:none;-webkit-user-select:none}
-.village .btn{background:linear-gradient(#a8703d,#6b3f1f);min-width:96px;min-height:44px;font-size:16px}
+.village .btn{background:linear-gradient(#a8703d,#6b3f1f);min-width:88px;min-height:44px;font-size:16px}
 .village .btn.green{background:linear-gradient(#7fd85a,#4aa834)}
 .village .btn.red{background:linear-gradient(#f2785c,#c9442b)}
 .village .btn.big{min-width:200px;min-height:72px;font-size:28px}
-.v-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-.v-stage{container-type:size;z-index:0}
-.v-map{position:relative;width:min(100cqw,calc(100cqh*2000/1116));aspect-ratio:2000/1116;touch-action:none}
+.village .talk-cover{z-index:20}
+.v-stage{position:absolute;inset:0;overflow:hidden;touch-action:none;z-index:0;cursor:grab}
+.v-map{position:absolute}
+.v-map.fly{transition:left .6s ease,top .6s ease,width .6s ease,height .6s ease}
 .v-bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.v-bld{position:absolute;translate:-50% -78%;padding:0;border:0;background:none;cursor:pointer;touch-action:manipulation}
-.v-bld img{width:100%;display:block;filter:drop-shadow(0 4px 3px rgba(0,0,0,.25));transition:filter .2s}
+.v-bld{position:absolute;translate:-50% -78%;padding:0;border:0;background:none;cursor:pointer;touch-action:none}
+.v-bld img{width:100%;display:block;filter:drop-shadow(0 4px 3px rgba(0,0,0,.25));transition:filter .2s;pointer-events:none}
 .v-bld.on img{filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 10px #ffd84a)}
 .v-bld.broken img{filter:grayscale(.8) brightness(.8)}
-.v-flag{position:absolute;top:-6px;left:50%;translate:-50% 0;font-style:normal;font-size:clamp(14px,2vw,24px);animation:vbob 1.2s ease-in-out infinite}
-@keyframes vbob{50%{translate:-50% -6px}}
+.v-flag{position:absolute;top:-4px;left:50%;translate:-50% 0;font:800 .8em var(--f);font-style:normal;white-space:nowrap;background:#fff;color:#c9442b;border:2px solid #c9442b;border-radius:10px;padding:0 6px;animation:vbob 1.2s ease-in-out infinite}
+.v-flag.lack{color:#6b3f1f;border-color:#6b3f1f;background:#ffe9a8}
+.v-name{position:absolute;left:50%;bottom:-2px;translate:-50% 100%;font:700 .75em var(--f);font-style:normal;white-space:nowrap;color:#fff;background:rgba(40,30,20,.6);border-radius:8px;padding:0 6px;pointer-events:none}
+@keyframes vbob{50%{translate:-50% -5px}}
 .v-person{position:absolute;width:2.2%;translate:-50% -90%;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
 .v-person.flip{scale:-1 1}
 .v-fog{position:absolute;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(255,255,255,.75),rgba(240,246,255,.6) 60%,rgba(240,246,255,.35));backdrop-filter:blur(2px);pointer-events:none}
-.v-fog span{font:700 clamp(12px,1.6vw,20px) var(--f);color:#6b7c93;text-align:center;background:rgba(255,255,255,.7);padding:6px 12px;border-radius:14px}
-.v-ghost{position:absolute;translate:-50% -78%;pointer-events:none;opacity:.85}
+.v-fog span{font:700 1em var(--f);color:#6b7c93;text-align:center;background:rgba(255,255,255,.75);padding:4px 10px;border-radius:12px}
+.v-ghost{position:absolute;translate:-50% -78%;pointer-events:none;opacity:.88}
 .v-ghost img{width:100%;display:block}
 .v-ghost.ok img{filter:drop-shadow(0 0 6px #4aa834) drop-shadow(0 0 3px #4aa834)}
 .v-ghost.bad img{filter:sepia(1) saturate(4) hue-rotate(-40deg) drop-shadow(0 0 6px #e0402a)}
 .v-ring{position:absolute;left:50%;bottom:8%;width:80%;aspect-ratio:2/1;translate:-50% 50%;border-radius:50%;border:3px dashed #fff;z-index:-1}
 .v-ghost.ok .v-ring{background:rgba(74,168,52,.35)}.v-ghost.bad .v-ring{background:rgba(224,64,42,.35)}
-.v-pop{position:absolute;translate:-50% -120%;font:800 clamp(14px,1.8vw,22px) var(--f);color:#fff;text-shadow:0 2px 3px rgba(0,0,0,.6);pointer-events:none;animation:vpop 2.4s ease-out forwards;white-space:nowrap}
+.v-beacon{position:absolute;inset:0;z-index:4500;pointer-events:none}
+.v-pop{position:absolute;translate:-50% -120%;font:800 1.2em var(--f);color:#fff;text-shadow:0 2px 3px rgba(0,0,0,.6);pointer-events:none;animation:vpop 2.4s ease-out forwards;white-space:nowrap}
 @keyframes vpop{0%{opacity:0;transform:translateY(10px)}15%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translateY(-40px)}}
-.v-weather{position:absolute;inset:0;pointer-events:none;z-index:4500}
+.v-weather{position:absolute;inset:0;pointer-events:none;z-index:1}
 .w-rain .v-weather,.w-typhoon .v-weather{background:repeating-linear-gradient(105deg,transparent 0 18px,rgba(255,255,255,.35) 18px 19px);background-size:200px 200px;animation:vrain .4s linear infinite}
 .w-typhoon .v-weather{background-color:rgba(30,40,70,.35);animation-duration:.2s}
 .w-wind .v-weather{background:repeating-linear-gradient(170deg,transparent 0 60px,rgba(255,255,255,.25) 60px 62px);background-size:400px 400px;animation:vwind 1s linear infinite}
@@ -2081,46 +2085,66 @@ img.flip{transform:scaleX(-1)}
 .season-summer .v-bg{filter:saturate(1.15)}
 @keyframes vrain{to{background-position:-60px 200px}}
 @keyframes vwind{to{background-position:-400px 60px}}
-.v-hud{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:8px;align-items:stretch;z-index:10;flex-wrap:wrap;pointer-events:none}
+/* 上面一條細細的資訊列：不擋地圖 */
+.v-hud{position:absolute;top:6px;left:6px;right:6px;display:flex;gap:6px;align-items:center;z-index:10;flex-wrap:wrap;pointer-events:none}
 .v-hud>*{pointer-events:auto}
-.v-hud .tool{width:auto;min-height:0;padding:6px 12px;flex-direction:row}
-.v-hud .panel{padding:4px 12px;border-width:4px;border-radius:16px;display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px}
-.v-date{flex-direction:column;gap:0!important;align-items:flex-start!important;min-width:120px}
-.v-date span{font-size:13px}
-.v-month{display:block;width:100%;height:6px;background:#e5d6b8;border-radius:3px;overflow:hidden}
+.v-chip{display:flex;align-items:center;gap:8px;background:rgba(255,248,232,.92);border:2px solid var(--wood-2);border-radius:14px;padding:3px 10px;font:700 14px var(--f);color:#3a2412;box-shadow:0 2px 6px rgba(0,0,0,.2);min-height:34px}
+button.v-chip{cursor:pointer}
+.v-back{background:linear-gradient(#a8703d,#6b3f1f);color:#fff;border-color:var(--gold)}
+.v-sound{width:auto;flex-direction:row;font-size:13px}.v-sound .tool-icon{font-size:15px}
+.v-date{flex-direction:column;align-items:stretch;gap:2px}
+.v-month{display:block;width:100%;height:5px;background:#e5d6b8;border-radius:3px;overflow:hidden}
 .v-month i{display:block;height:100%;background:#4aa834}
-.v-res .warn{color:#d0391f}
-.v-stars{flex-direction:column;gap:2px!important;min-width:110px}
+.v-res .warn{color:#d0391f;animation:vblink 1s steps(2) infinite}
+@keyframes vblink{50%{opacity:.4}}
+.v-stars{flex-direction:column;align-items:stretch;gap:2px}
 .v-stars em{opacity:.35;font-style:normal}
-.v-speed button{border:0;background:none;font-size:20px;cursor:pointer;opacity:.45;padding:2px 4px}
+.v-speed{gap:2px;padding:0 6px}
+.v-speed button{border:0;background:none;font-size:18px;cursor:pointer;opacity:.4;padding:2px 4px}
 .v-speed button.on{opacity:1}
-.village .quest.floating{top:76px}
-.village .quest.floating.folded{top:76px}
-.v-bar{position:absolute;left:50%;bottom:10px;translate:-50% 0;display:flex;gap:10px;align-items:center;z-index:10}
-.v-idle{padding:6px 12px!important;border-width:4px!important;font-size:14px;max-width:40vw}
-.v-menu{position:absolute;left:8px;right:8px;bottom:70px;z-index:11;display:flex;gap:8px;overflow-x:auto;padding:10px!important}
-.v-item{flex:0 0 96px;display:flex;flex-direction:column;align-items:center;gap:2px;border:3px solid var(--wood-2);border-radius:14px;background:#fffaf0;padding:6px 4px;cursor:pointer;font:inherit}
-.v-item img{width:72px;height:60px;object-fit:contain}
-.v-item b{font-size:14px}.v-item small{font-size:12px}
+.village .quest.floating,.village .quest.floating.folded{top:52px}
+/* 教學氣泡：在資訊列底下，不蓋住地圖中間 */
+.v-coach{position:absolute;top:50px;left:50%;translate:-50% 0;z-index:12;display:flex;align-items:center;gap:8px;max-width:min(620px,calc(100% - 16px));background:#fff8e6;border:3px solid #ffc23d;border-radius:18px;padding:6px 12px;box-shadow:0 4px 12px rgba(0,0,0,.25);pointer-events:none}
+.v-coach img{width:44px;height:44px;border-radius:50%;flex:none}
+.v-coach p{margin:0;font-size:16px;font-weight:700;color:#3a2412}
+.v-coach b{display:block;font-size:12px;color:#b06d00}
+.v-zoom{position:absolute;right:8px;bottom:70px;z-index:10;display:flex;flex-direction:column;gap:6px}
+.v-zoom button{width:42px;height:42px;border-radius:50%;border:2px solid var(--wood-2);background:rgba(255,248,232,.92);font:800 22px var(--f);color:#3a2412;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.v-bar{position:absolute;right:8px;bottom:10px;display:flex;gap:10px;align-items:center;z-index:10}
+.v-build{min-width:110px!important;min-height:52px!important;font-size:20px!important}
+.v-point-wrap{position:relative;display:inline-flex}
+.v-point{position:absolute;left:50%;top:-6px;translate:-50% -100%;font-size:34px;font-style:normal;pointer-events:none;animation:vpoint .6s ease-in-out infinite alternate;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));z-index:2}
+@keyframes vpoint{to{transform:translateY(-10px)}}
+.v-point-wrap:has(.v-point)>button{box-shadow:0 0 0 4px #ffe066,0 0 18px 6px #ffe066}
+.v-menu{position:absolute;left:8px;right:8px;bottom:70px;z-index:11;display:flex;align-items:flex-start;gap:8px;overflow-x:auto;scrollbar-width:thin;padding:10px!important;border-width:4px!important}
+.v-menu .v-point{display:none}
+.v-menu .v-point-wrap:has(.v-point)>button{box-shadow:inset 0 0 0 3px #ffc23d;background:#fff3c4;animation:vglow .8s ease-in-out infinite alternate}
+@keyframes vglow{to{background:#ffe27a}}
+.v-item{flex:0 0 100px;display:flex;flex-direction:column;align-items:center;gap:1px;border:3px solid var(--wood-2);border-radius:14px;background:#fffaf0;padding:6px 4px;cursor:pointer;font:inherit}
+.v-item img{width:72px;height:56px;object-fit:contain}
+.v-item b{font-size:14px}.v-item em{font-style:normal;font-size:12px;color:#6b3f1f}.v-item small{font-size:12px}
 .v-item.lock img{filter:grayscale(1) brightness(1.2);opacity:.5}
 .v-item.poor small{color:#d0391f}
-.v-place{position:absolute;left:50%;bottom:10px;translate:-50% 0;z-index:11;padding:10px 16px!important;text-align:center;max-width:min(560px,94vw)}
-.v-place p{margin:4px 0;font-size:15px}.v-place .ok{color:#3b8c27;font-weight:700}.v-place .bad{color:#c9442b;font-weight:700}
-.v-place>div{display:flex;gap:10px;justify-content:center}
-.village .talk-cover{z-index:20}
+.v-item.dim{opacity:.4}
+.v-place{position:absolute;left:50%;bottom:8px;translate:-50% 0;z-index:11;padding:6px 14px!important;text-align:center;max-width:min(560px,94vw);border-width:4px!important}
+.v-place p{margin:2px 0;font-size:15px}.v-place .ok{color:#3b8c27;font-weight:700}.v-place .bad{color:#c9442b;font-weight:700}
+.v-place>div{display:flex;gap:10px;justify-content:center;margin-top:4px}
 .village .combo{color:#b06d00;font-weight:700}
 .village .v-hint{color:#7a6a55;font-size:14px}
-.v-card{position:absolute;right:10px;top:84px;bottom:76px;width:min(340px,46vw);z-index:12;overflow:auto;padding:14px!important}
-.v-card>img{width:120px;display:block;margin:0 auto}
-.v-card h2{margin:4px 0;text-align:center}
+/* 建築卡：左下角的小卡，不擋整個畫面 */
+.v-card{position:absolute;left:8px;bottom:8px;width:min(360px,calc(100% - 16px));max-height:calc(100% - 64px);z-index:12;overflow:auto;padding:10px 14px!important;border-width:4px!important}
+.v-card-head{display:flex;align-items:center;gap:10px}
+.v-card-head img{width:84px;flex:none}
+.v-card-head h2{margin:0;font-size:20px}.v-card-head em{font-style:normal;font-weight:700;color:#6b3f1f}
 .v-card p{margin:6px 0;font-size:15px}
-.v-card .x{position:absolute;right:8px;top:8px;border:0;background:none;font-size:22px;cursor:pointer}
+.v-card .x{position:absolute;right:8px;top:6px;border:0;background:none;font-size:22px;cursor:pointer}
 .v-worker img{width:26px;vertical-align:middle}
-.v-card .btn{min-width:0;min-height:36px;font-size:14px;padding:0 12px}
-.v-card-btns{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.v-card .btn{min-width:0;min-height:34px;font-size:14px;padding:0 12px;margin-left:4px}
+.v-card-btns{display:flex;gap:8px;justify-content:center;margin-top:6px}
 .v-card .bad{color:#c9442b}
-.v-toast{position:absolute;top:84px;left:50%;translate:-50% 0;z-index:13;pointer-events:none}
+.v-toast{position:absolute;top:96px;left:50%;translate:-50% 0;z-index:13;pointer-events:none}
 .v-toast p{margin:4px 0;background:rgba(40,30,20,.85);color:#fff;font-weight:700;padding:8px 16px;border-radius:16px;animation:vpop 4s ease-out forwards;text-align:center}
+.v-paused{position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:14;display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 24px!important}
 .v-alert,.v-seine{max-width:min(560px,92vw);text-align:center}
 .v-alert>div,.v-seine>div:last-child{display:flex;gap:12px;justify-content:center;margin-top:10px}
 .v-crew{display:flex;justify-content:center;gap:2px;height:70px}
@@ -2138,25 +2162,16 @@ img.flip{transform:scaleX(-1)}
 .v-gauge .cursor{position:absolute;top:-6px;bottom:-6px;width:8px;margin-left:-4px;background:#c9442b;border-radius:4px}
 .v-seine .v-gauge+.btn{margin:0 auto;display:flex}
 @media (max-height:600px){
-  .v-hud .panel{font-size:13px;padding:2px 8px}
-  .v-card{top:64px;bottom:64px}
-  .v-menu{bottom:62px}
-  .v-item{flex-basis:80px}.v-item img{width:56px;height:46px}
+  .v-chip{font-size:12px;padding:2px 8px;min-height:28px;gap:6px}
+  .v-coach{top:40px}.v-coach img{width:34px;height:34px}.v-coach p{font-size:13px}
+  .village .quest.floating,.village .quest.floating.folded{top:40px}
+  .village .btn{min-height:36px;font-size:14px;min-width:70px}
+  .v-build{min-height:44px!important;font-size:17px!important}
+  .v-zoom{bottom:58px}.v-zoom button{width:34px;height:34px;font-size:18px}
+  .v-menu{bottom:58px;padding:6px!important}
+  .v-item{flex-basis:84px}.v-item img{width:56px;height:42px}
+  .v-place p{font-size:12px}
+  .v-card{max-height:calc(100% - 50px)}.v-card p{font-size:13px}.v-card-head img{width:60px}
+  .v-toast{top:76px}
   .village .btn.big{min-height:56px}
-}
-@media (max-height:600px){
-  .v-hud{top:4px;left:4px;right:4px;gap:4px}
-  .v-hud .tool{padding:2px 8px;font-size:13px;border-width:3px}
-  .v-hud .panel{border-width:3px;gap:6px;font-size:12px}
-  .v-date{min-width:90px}.v-date span{font-size:11px}
-  .v-stars{min-width:80px}
-  .village .quest.floating,.village .quest.floating.folded{top:52px}
-  .v-place{padding:4px 10px!important;bottom:4px;border-width:4px}
-  .v-place b{font-size:13px}
-  .v-place p{font-size:12px;margin:2px 0}
-  .v-place .combo,.v-place .v-hint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80vw}
-  .village .btn{min-height:34px;font-size:14px;min-width:72px}
-  .v-bar{bottom:4px}
-  .v-card{top:52px;bottom:6px}
-  .v-toast{top:52px}
 }

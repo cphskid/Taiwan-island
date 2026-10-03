@@ -17,7 +17,7 @@
 -- -----------------------------------------------------------------------------
 create table if not exists public.island_saves (
   student_id uuid not null references public.students(id) on delete cascade,
-  slot       text not null check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end')),
+  slot       text not null check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village')),
   data       jsonb not null default '{}'::jsonb check (pg_column_size(data) < 32768),
   step       smallint not null default 0,
   stars      smallint not null default 0 check (stars between 0 and 3),
@@ -26,6 +26,11 @@ create table if not exists public.island_saves (
   updated_at timestamptz not null default now(),
   primary key (student_id, slot)
 );
+
+-- 現在篇的漁村（'village'）是後來加的格子：舊表的檢查條件換成新的
+alter table public.island_saves drop constraint if exists island_saves_slot_check;
+alter table public.island_saves add constraint island_saves_slot_check
+  check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village'));
 
 alter table public.island_saves enable row level security;
 revoke all on public.island_saves from anon, authenticated;
@@ -163,7 +168,7 @@ grant execute on function public.island_class_detail(text) to authenticated;
 create or replace function public.island_earned_stamps(p_student uuid)
 returns setof text language sql stable security definer set search_path = public, pg_temp as $$
   select s.slot from public.island_saves s
-   where s.student_id = p_student and s.done and s.slot <> 'world';
+   where s.student_id = p_student and s.done and s.slot not in ('world', 'village');
 $$;
 revoke all on function public.island_earned_stamps(uuid) from public, anon, authenticated;
 

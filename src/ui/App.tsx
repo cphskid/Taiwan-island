@@ -13,6 +13,7 @@ import { load7, pickProgress7, save7 } from '../core/save7';
 import { load3, pickProgress3, save3 } from '../core/save3';
 import { loadEnd, pickProgressEnd, saveEnd } from '../core/saveEnd';
 import { loadCloud } from '../net/cloud';
+import { loadVillage, pickVillage, saveVillage } from '../core/village';
 import { Gate } from './Gate';
 
 const BASE = import.meta.env.BASE_URL;
@@ -116,6 +117,7 @@ async function syncSaves(who: Who) {
   save3(pickProgress3(load3(), cloud.ch3 as never));
   saveEnd(pickProgressEnd(loadEnd(), cloud.end as never));
   saveWorld(mergeWorld(loadWorld(), cloud.world as never));
+  saveVillage(pickVillage(loadVillage(), cloud.village as never));
 }
 
 function WhoBadge({ who }: { who: Who }) {

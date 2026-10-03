@@ -121,3 +121,27 @@ describe('過一個月', () => {
     expect(loadVillage({ getItem: () => '{bad' }).month).toBe(4);
   });
 });
+
+describe('新手教學', () => {
+  it('教學的三個位置照順序都蓋得下去，錢也夠', async () => {
+    const { TUTORIAL } = await import('../data/village');
+    let s = freshVillage();
+    for (const t of TUTORIAL) {
+      expect(canPlace(s, t.kind, t.at).ok).toBe(true);
+      const n = build(s, t.kind, t.at);
+      expect(n.b.length).toBe(s.b.length + 1);
+      s = n;
+    }
+  });
+  it('之前玩過的存檔不用再教一次', () => {
+    expect(loadVillage({ getItem: () => JSON.stringify({ v: 1, intro: true }) }).tut).toBeGreaterThan(3);
+    expect(loadVillage({ getItem: () => JSON.stringify({ v: 1, intro: false }) }).tut).toBe(0);
+  });
+  it('換平板：留玩得比較久的那份', async () => {
+    const { pickVillage } = await import('./village');
+    const a = freshVillage(), b = { ...freshVillage(), month: 9 };
+    expect(pickVillage(a, b).month).toBe(9);
+    expect(pickVillage(b, a).month).toBe(9);
+    expect(pickVillage(a, null)).toBe(a);
+  });
+});
