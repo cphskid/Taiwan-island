@@ -46,7 +46,7 @@ export const CHAPTERS: ChapterInfo[] = [
   { id: 'ch4', region: 4, no: '第四章', title: '東寧屯田', era: '鄭氏', place: '台南平原', grows: '田園、營盤', rift: rift(3), playable: true, gear: 3, badge: 'rice' },
   { id: 'ch5', region: 5, no: '第五章', title: '八堡圳', era: '清領', place: '彰化平原', grows: '八堡圳與綠色稻田', rift: { x: 1327, y: 1443 }, playable: true, gear: 4, badge: 'canal' },
   { id: 'ch6', region: 6, no: '第六章', title: '開港與鐵路', era: '清末', place: '台北到基隆', grows: '鐵路、淡水與基隆港', rift: rift(5), playable: true, gear: 5, badge: 'train' },
-  { id: 'ch7', region: 7, no: '第七章', title: '縱貫與大圳', era: '日治', place: '嘉南平原、日月潭', grows: '嘉南大圳、發電廠', rift: rift(6), playable: false, gear: 6, badge: 'dam' },
+  { id: 'ch7', region: 7, no: '第七章', title: '縱貫與大圳', era: '日治', place: '嘉南平原、日月潭', grows: '嘉南大圳、發電廠', rift: rift(6), playable: true, gear: 6, badge: 'dam' },
   { id: 'end', region: 8, no: '終章', title: '今天的島嶼', era: '戰後', place: '剩下的雲霧全部散開', grows: '高鐵穿過全島', rift: { x: 1140, y: 2862 }, playable: false, gear: null, badge: 'hsr' },
 ];
 
@@ -384,6 +384,7 @@ export const TICK_LINES = {
   clearedCh2: '山上的雲霧散開了！部落的小米田一塊種、一塊休息，森林裡的鹿也還在。可是海邊好像來了大船……',
   clearedCh4: '台南平原的雲霧散開了！營盤旁邊的官田長出稻子，水埤存滿了水，海邊的鹽田白亮亮，孔廟裡傳來讀書聲。',
   clearedCh6: '北邊的雲霧散開了！火車冒著白煙從基隆開到臺北，淡水港的帆船載著茶葉出海。阿春的雨天，終於放晴了。',
+  clearedCh7: '嘉南平原的雲霧散開了！嘉南大圳的水流進田裡，縱貫線的火車也開過去了。戰爭結束以後，島上的人要自己決定未來……最後一章快到了。',
   hook: '莊民說：「米多到吃不完，要怎麼運出去？」你看，北邊台北的裂縫開始發光了……',
   glasses: '戴上地形眼鏡：越褐的地方越高。只看得到撥開雲霧的地方喔。',
   fogged: '這裡還蓋著時光雲霧。',
