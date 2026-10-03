@@ -3,7 +3,7 @@ import { cellKey, findCell, isCity, neighbors, passable, railAt, railRun, railSo
 import { RAIL, RAIL_DONE, RAIL_INTRO, RAIL_NAMES, RAIL_SAY, artE } from '../../data/chEnd';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Beacon, Goal } from '../Guide';
 import { NewCardsEnd, type StepEndProps } from '../ChEnd';
 import { DecideEnd, EraJumpEnd } from './StoryEnd';
 import { jingle, sfx } from '../../audio';
@@ -106,6 +106,10 @@ function Track({ oops, riding, onPass, onRode }: { oops: () => void; riding: boo
             </button>
           );
         }))}
+        {!reached && !riding && (() => {
+          const k = RAIL.rows.findIndex((l) => l.includes('K'));
+          return k >= 0 && <Beacon style={{ left: `${((RAIL.rows[k].indexOf('K') + 0.5) / COLS) * 100}%`, top: `${((k + 0.5) / ROWS) * 100}%` }} label="高雄：接到這裡" spot />;
+        })()}
         <svg className="end-rail-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden><polyline points={pts} /></svg>
         {riding && <RailTrain path={path} />}
       </div>

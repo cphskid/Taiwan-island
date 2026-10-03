@@ -3,7 +3,7 @@ import { BOATS, depthAt, rcell, rch, riverSolve, riverStart, sail, type Boat, ty
 import { BOAT_IMG, BOAT_NAME, PORT_DONE, PORT_INTRO, PORT_SAY, RIVERS, art6 } from '../../data/ch6';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Beacon, Goal } from '../Guide';
 import { NewCards6, type Step6Props } from '../Ch6';
 import { Jump6 } from './Story6';
 import { jingle, sfx } from '../../audio';
@@ -47,6 +47,10 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
   const sol = fails >= 3 ? riverSolve(lv) : null;
   const H = lv.map.length, W = lv.map[0].length;
   const last = path[path.length - 1];
+  const dest = (() => { for (let y = 0; y < H; y++) { const x = lv.map[y].indexOf('B'); if (x >= 0) return { x, y }; } return null; })();
+  const reached = !!dest && same(last, dest);
+  // 下一步可以點的格子（接在路線最後一格旁邊、不是陸地）
+  const nextOk = (c: Pt) => !reached && !going && Math.abs(c.x - last.x) + Math.abs(c.y - last.y) === 1 && !rcell(lv, c).land && !path.some((q) => same(q, c));
 
   const tap = (c: Pt) => {
     if (going) return;
@@ -92,7 +96,7 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
   const b = BOATS[boat];
   return (
     <div className="ch6-port-wrap">
-      <Goal floating text={`第 ${stage + 1} / ${RIVERS.length} 關：${st.goal}。從出發的碼頭一格一格點，畫出船走的路。`} />
+      <Goal floating text={reached ? '路線接到了！按「開船！」' : `第 ${stage + 1} / ${RIVERS.length} 關：把路線一格一格接到${st.to}。${st.goal}。從出發的碼頭開始點，發亮的格子是下一步可以走的。`} />
       <div className="ch6-port-board panel">
         <div className="ch6-port-bar">
           <div className="ch6-seg">
@@ -122,7 +126,7 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
             const d = depthAt(lv, c, tide);
             const hint = sol?.path.some((q) => same(q, c));
             return (
-              <button key={`${x},${y}`} className={`rv rv-${ch === '.' ? 'land' : ch} ${cell.wide ? 'wide' : 'narrow'} ${k >= 0 ? 'on' : ''} ${hint ? 'hint' : ''} ${stuck !== null && k === stuck ? 'bad' : ''}`}
+              <button key={`${x},${y}`} className={`rv rv-${ch === '.' ? 'land' : ch} ${cell.wide ? 'wide' : 'narrow'} ${k >= 0 ? 'on' : ''} ${hint ? 'hint' : ''} ${stuck !== null && k === stuck ? 'bad' : ''} ${nextOk(c) ? 'next' : ''}`}
                 onClick={() => tap(c)} aria-label={CELL_NAME[ch] ?? '陸地'}>
                 {!cell.land && <i className="rv-depth">{d}</i>}
                 {ch === 'A' && <b className="rv-tag">{st.from}</b>}
@@ -133,6 +137,7 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
               </button>
             );
           }))}
+          {dest && !going && <Beacon style={{ left: `${((dest.x + 0.5) / W) * 100}%`, top: `${((dest.y + 0.5) / H) * 100}%` }} label={`${st.to}：船開到這裡`} spot />}
           {shown && (
             <img className={`ch6-boat ${boatNow}`} src={BOAT_IMG[boatNow]} alt=""
               style={{ left: `${((shown.x + 0.5) / W) * 100}%`, top: `${((shown.y + 0.5) / H) * 100}%` }} />
@@ -141,7 +146,7 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
         <div className="ch6-port-foot">
           <span className="ch6-legend"><i className="lg-w" />寬河道 <i className="lg-n" />窄河道 <i className="lg-r" />石頭灘 <i className="lg-s" />沙洲／泥灘（漲潮會變深）　數字＝水深</span>
           <button className="btn orange" disabled={going || path.length < 2} onClick={() => { sfx('SE-02'); setPath([start]); setStuck(null); setBoatAt(null); }}>重畫</button>
-          <button className="btn green" disabled={going || path.length < 2} onClick={go}>開船！</button>
+          <button className={`btn green ${reached && !going ? 'ready' : ''}`} disabled={going || path.length < 2} onClick={go}>開船！</button>
         </div>
       </div>
       {fails >= 5 && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}

@@ -78,8 +78,11 @@ function Marker({ label, small, spotting }: { label?: string; small?: boolean; s
 
 export function Beacon({ style, label, spot, small }: { style: CSSProperties; label?: string; spot?: boolean; small?: boolean }) {
   const spotting = useSpot(spot);
+  // 目標靠近左右邊緣時，旗子往內側偏，才不會被容器切掉
+  const x = parseFloat(String(style.left ?? '50'));
+  const edge = String(style.left ?? '').endsWith('%') ? (x > 70 ? 'to-left' : x < 30 ? 'to-right' : '') : '';
   return (
-    <div className={`beacon ${small ? 'small' : ''} ${spotting ? 'spotting' : ''}`} style={style}>
+    <div className={`beacon ${small ? 'small' : ''} ${spotting ? 'spotting' : ''} ${edge}`} style={style}>
       <Marker label={label} small={small} spotting={spotting} />
     </div>
   );

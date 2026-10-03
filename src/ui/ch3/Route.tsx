@@ -3,7 +3,7 @@ import { HEADINGS, SEASON_WAIT, cellAt, harborOf, highTide, routeSolve, routeSte
 import { ROUTES, ROUTE_OUTCOME, art3, type RouteInfo } from '../../data/ch3';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Beacon, Goal, compass } from '../Guide';
 import { NewCards3, type Step3Props } from '../Ch3';
 import { EraJump3 } from './Story3';
 import { jingle, sfx } from '../../audio';
@@ -60,14 +60,16 @@ function RouteSail({ info, oops, onDone }: { info: RouteInfo; oops: () => void; 
     setShip(r.ship);
     return r;
   };
-  const finish = async (o: string) => {
+  const finish = async (o: string, pos: Pos) => {
     if (o === 'arrived') { sfx('SE-101'); jingle('MU-13'); setWon(true); setSay(info.good[0]); await sleep(1500); if (alive.current) onDone(); return; }
     if (o === 'sailing') return;
     sfx('SE-71'); oops();
     const f = fails + 1;
     setFails(f);
     setBang(ROUTE_OUTCOME[o]);
-    setSay(f >= 2 ? info.hint : { who: 'afu', mood: 'worried', text: '再試一次！先想好：什麼時候要換季風？什麼時候水道會漲潮？' });
+    const h = harborOf(lv);
+    const dir = compass(h.col - pos.col, h.row - pos.row);
+    setSay(f >= 2 ? { ...info.hint, text: `${info.hint.text}（港口在船的${dir}）` } : { who: 'afu', mood: 'worried', text: `${info.to}的港口在船的${dir}。先想好：什麼時候要換季風？什麼時候水道會漲潮？` });
     await sleep(1600);
     if (!alive.current) return;
     setBang(null);
@@ -78,7 +80,7 @@ function RouteSail({ info, oops, onDone }: { info: RouteInfo; oops: () => void; 
     if (busy || won) return;
     setBusy(true);
     const r = await play(ship, a);
-    if (r) await finish(r.outcome);
+    if (r) await finish(r.outcome, r.ship.pos);
     if (alive.current) setBusy(false);
   };
   const demo = async () => {
@@ -92,7 +94,7 @@ function RouteSail({ info, oops, onDone }: { info: RouteInfo; oops: () => void; 
       if (!r) return;
       s = r.ship;
       await sleep(350);
-      if (r.outcome !== 'sailing') { await finish(r.outcome); break; }
+      if (r.outcome !== 'sailing') { await finish(r.outcome, r.ship.pos); break; }
     }
     if (alive.current) setBusy(false);
   };
@@ -104,7 +106,7 @@ function RouteSail({ info, oops, onDone }: { info: RouteInfo; oops: () => void; 
   const startPos = startShip(lv).pos;
   return (
     <div className="ch3-route">
-      <Goal floating text={`把船從${info.from}帶進${info.to}的港口，${lv.days} 天內要到。帆船只能順著季風走，黑水溝會把船往北推。`} />
+      <Goal floating text={`把船開進${info.to}的港口（${lv.days} 天內）。從${info.from}出發，帆船只能順著季風走，黑水溝會把船往北推，水道要漲潮才進得去。`} />
       <div className="ch3-chart" style={{ aspectRatio: `${cols} / ${rows}` }}>
         <div className="ch3-cells" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
           {lv.rows.flatMap((line, row) => [...line].map((_, col) => {
@@ -123,6 +125,7 @@ function RouteSail({ info, oops, onDone }: { info: RouteInfo; oops: () => void; 
         {info.labels.map((l) => <span key={l.text} className="ch3-label" style={pct(l)}>{l.text}</span>)}
         <span className="ch3-port from" style={pct(startPos)}>{info.from}</span>
         <span className="ch3-port to" style={pct(harborOf(lv))}>{info.to}</span>
+        {!won && <Beacon style={pct(harborOf(lv))} label={`${info.to}：船開到這裡`} spot />}
         <img className={`ch3-ship ${won ? 'won' : ''} ${bang ? 'hit' : ''}`} src={info.ship} alt="船" style={pct(at)} />
         <div className="ch3-chart-fog" />
         {bang && <div className="ch3-bang">{bang}</div>}

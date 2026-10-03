@@ -3,7 +3,7 @@ import { railBegin, railCh, railDone, railGoal, railH, railSolve, railStep, rail
 import { RAIL_DONE, RAIL_INTRO, RAIL_RULE, RAIL_SAY, RAILS, art6 } from '../../data/ch6';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Beacon, Goal } from '../Guide';
 import { NewCards6, type Step6Props } from '../Ch6';
 import { Decide6, Jump6 } from './Story6';
 import { jingle, sfx } from '../../audio';
@@ -106,6 +106,7 @@ function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: ()
               </button>
             );
           }))}
+          {!done && (() => { const g = railGoal(lv); return <Beacon style={{ left: `${((g.x + 0.5) / W) * 100}%`, top: `${((g.y + 0.5) / H) * 100}%` }} label="臺北：鋪到這裡" spot />; })()}
           {pos && <img className="ch6-loco" src={art6('o-09-loco')} alt="" style={{ left: `${((pos.x + 0.5) / W) * 100}%`, top: `${((pos.y + 0.5) / H) * 100}%` }} />}
         </div>
         <div className="ch6-rail-foot">

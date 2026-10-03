@@ -3,7 +3,7 @@ import { GOODS, buy, canSail, freshTrade, loaded, portOf, sail, sell, tradeWon, 
 import { GOOD_INFO, PORT_INFO, TRADE, TRADE_DEMO, TRADE_INTRO, TRADE_SAY, art3 } from '../../data/ch3';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Beacon, Goal } from '../Guide';
 import { NewCards3, type Step3Props } from '../Ch3';
 import { Decide3 } from './Story3';
 import { jingle, sfx } from '../../audio';
@@ -76,11 +76,22 @@ function TradeBoard({ oops, onDone }: { oops: () => void; onDone: () => void }) 
     }
   };
 
+  // 每樣貨在哪個港口賣最貴（轉口貿易：便宜買、運到貴的地方賣）
+  const best = (g: Good) => PORTS.map((id) => ({ id, price: portOf(lv, id).sell[g] ?? 0 })).sort((a, b) => b.price - a.price)[0];
+  // 船上載的貨，運到哪個港口最值錢（要開得過去）
+  const target = (() => {
+    if (!loaded(s) || legsLeft <= 0) return null;
+    const worth = PORTS.filter((id) => id !== s.at && canSail(s.at, id))
+      .map((id) => ({ id, v: GOODS.reduce((a, g) => a + (s.cargo[g] ?? 0) * (portOf(lv, id).sell[g] ?? 0), 0) }))
+      .sort((a, b) => b.v - a.v)[0];
+    return worth && worth.v > 0 ? worth.id : null;
+  })();
+  const sellHere = GOODS.some((g) => (s.cargo[g] ?? 0) > 0 && port.sell[g] !== undefined);
   const cargo = GOODS.flatMap((g) => Array.from({ length: s.cargo[g] ?? 0 }, () => g));
   const lock = busy || won;
   return (
     <div className="ch3-trade">
-      <Goal floating text={`用 ${lv.legs} 趟船賺到 ${lv.goal} 兩銀。每一趟都要從大員出發，或回到大員。`} />
+      <Goal floating text={sellHere ? '船上的貨這裡收，先賣掉換銀子' : loaded(s) ? '貨裝好了，開船去標著 ⭐ 的港口賣' : `賺到 ${lv.goal} 兩銀：便宜買、運到貴的港口賣。${lv.legs} 趟船，每一趟都要從大員出發或回到大員。`} />
       <div className="ch3-seamap panel">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="ch3-lanes">
           {PORTS.filter((id) => id !== 'tayouan').map((id) => (
@@ -97,6 +108,7 @@ function TradeBoard({ oops, onDone }: { oops: () => void; onDone: () => void }) 
             </button>
           );
         })}
+        {target && !lock && <Beacon style={{ left: `${PORT_INFO[target].x * 100}%`, top: `${PORT_INFO[target].y * 100}%` }} label={`⭐ 載的貨在${PORT_INFO[target].name}最值錢`} />}
         <img className="ch3-tradeship" src={art3('g-05-ship')} alt="" style={{ left: `${PORT_INFO[s.at].x * 100}%`, top: `${PORT_INFO[s.at].y * 100}%` }} />
         <p className="ch3-note">{PORT_INFO[s.at].note}</p>
       </div>
@@ -118,7 +130,8 @@ function TradeBoard({ oops, onDone }: { oops: () => void; onDone: () => void }) 
               <img src={GOOD_INFO[g].img} alt="" />
               <b>{GOOD_INFO[g].name}<small>{GOOD_INFO[g].from}</small></b>
               {port.buy[g] !== undefined && <button className="buy" disabled={lock || buy(lv, s, g) === null} onClick={() => doBuy(g)}>買 {port.buy[g]} 兩</button>}
-              {port.sell[g] !== undefined && <button className="sell" disabled={lock || !s.cargo[g]} onClick={() => doSell(g)}>賣 {port.sell[g]} 兩</button>}
+              {port.sell[g] !== undefined && <button className={`sell ${s.cargo[g] && !lock ? 'ready' : ''}`} disabled={lock || !s.cargo[g]} onClick={() => doSell(g)}>賣 {port.sell[g]} 兩</button>}
+              {port.buy[g] !== undefined && best(g).price > port.buy[g]! && <em className="ch3-where">到{PORT_INFO[best(g).id].name}賣 {best(g).price} 兩</em>}
             </div>
           ))}
         </div>
