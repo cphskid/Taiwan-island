@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { addCards, freshWorld, loadWorld, markCleared, saveWorld, type WorldSave } from '../core/world';
+import { addCards, freshWorld, loadWorld, markCleared, opened, saveWorld, type WorldSave } from '../core/world';
 import { load } from '../core/save';
 import type { ChapterId } from '../data/world';
 import { Chapter } from './Chapter';
@@ -66,13 +66,14 @@ function initialMode(world: WorldSave): Mode {
     : { at: 'map', back: null };
 }
 
-// 進場進度條要先讀好的圖：一進來第一個畫面會用到的（序章開場、或大地圖整張），讀完才登島，不會一塊塊冒出來
+// 進場進度條要先讀好的圖：一進來第一個畫面會用到的（序章開場、或大地圖的底圖和已撥開那幾章），讀完才登島
 const IMG = `${import.meta.env.BASE_URL}img/`;
-export function firstScreenImages(): string[] {
-  const m = initialMode(initialWorld());
-  if (m.at === 'prologue') return ['story/K-01', 'story/K-02', 'story/K-03', 'tick/happy'].map((n) => `${IMG}${n}.webp`);
-  if (m.at === 'map') return mapImageUrls();
-  return [];
+export function firstScreenImages(): { urls: string[]; map: boolean } {
+  const w = initialWorld();
+  const m = initialMode(w);
+  if (m.at === 'prologue') return { urls: ['story/K-01', 'story/K-02', 'story/K-03', 'tick/happy'].map((n) => `${IMG}${n}.webp`), map: false };
+  if (m.at === 'map') return { urls: mapImageUrls(opened(w)), map: true };
+  return { urls: [], map: false };
 }
 
 export function Island() {

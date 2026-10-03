@@ -98,25 +98,30 @@ function rng(seed: number) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
 }
 
-// 大地圖一打開就要用的圖（進場進度條也照這份先讀好，見 ui/Island.tsx firstScreenImages）
-function mapImageNames(): Set<string> {
+// 大地圖的圖分兩批：一打開就要的（底圖、海、裂縫、徽章、已經撥開雲霧那幾章的人和房子），
+// 和還沒撥開的章的人和房子（看不到，地圖打開後才在背景慢慢讀，讀好才放上去）。
+// 進場進度條只等第一批（ui/Island.tsx firstScreenImages），不然一次要讀兩百多張圖。
+function lifeNames(L: ChapterLife): string[] {
+  const names = [...L.buildings, ...(L.scenery ?? [])].map((d) => d.name);
+  for (const c of L.cycles ?? []) names.push(...c.frames);
+  for (const def of L.actors) {
+    const a = ACTOR_ART[def.kind];
+    names.push(...a.walk, a.idle, ...Object.values(a.work ?? {}), ...(a.loop ?? []));
+  }
+  return names;
+}
+function baseImageNames(opened: readonly string[]): Set<string> {
   const names = new Set<string>(['m01', 'm01-relief', 'rift', 'badge-canal', 't2-water', 't2-dirt', 'smoke', 'm2-paddy-green', 'm2-paddy-gold']);
   for (const ch of CHAPTERS) names.add(`badge-${ch.badge}`);
-  for (const L of Object.values(LIFE)) {
-    for (const d of [...L!.buildings, ...(L!.scenery ?? [])]) names.add(d.name);
-    for (const c of L!.cycles ?? []) for (const f of c.frames) names.add(f);
-  }
-  for (const a of Object.values(ACTOR_ART)) {
-    for (const f of [...a.walk, a.idle, ...Object.values(a.work ?? {}), ...(a.loop ?? [])]) names.add(f);
-  }
+  for (const id of opened) { const L = LIFE[id as keyof typeof LIFE]; if (L) for (const n of lifeNames(L)) names.add(n); }
   if (NOW_ON) {
-    for (const L of Object.values(NOW_LIFE)) for (const d of [...L!.buildings, ...(L!.scenery ?? [])]) names.add(d.name);
+    for (const L of Object.values(NOW_LIFE)) if (L) for (const n of lifeNames(L)) names.add(n);
     for (const p of NOW_PLACES) names.add(p.art);
     names.add('y3-6');
   }
   return names;
 }
-export const mapImageUrls = () => [...[...mapImageNames()].map(isl), MAP.regions];
+export const mapImageUrls = (opened: readonly string[]) => [...[...baseImageNames(opened)].map(isl), MAP.regions];
 
 export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): Promise<WorldMap> {
   const app = new Application();
@@ -129,12 +134,11 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   });
   host.appendChild(app.canvas);
 
-  const names = mapImageNames();
   const tex: Record<string, Texture> = {};
-  const [regions] = await Promise.all([
-    loadRegions(),
-    ...[...names].map(async (n) => { tex[n] = await Assets.load<Texture>(isl(n)); }),
-  ]);
+  const loadTex = (names: Iterable<string>) =>
+    Promise.all([...names].filter((n) => !tex[n]).map(async (n) => { tex[n] = await Assets.load<Texture>(isl(n)); }));
+  const [regions] = await Promise.all([loadRegions(), loadTex(baseImageNames(opt.opened))]);
+  let destroyed = false;
   const puff = puffTexture();
 
   const world = new Container();
@@ -381,8 +385,21 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     return { box, grow, fire, cycles, paddies, actors, drawFlow, growing: null as { t0: number } | null };
   };
   const lives = new Map<string, ReturnType<typeof makeLife>>();
-  for (const [id, L] of Object.entries(LIFE)) if (L) lives.set(id, makeLife(L));
+  for (const id of opt.opened) { const L = LIFE[id as keyof typeof LIFE]; if (L) lives.set(id, makeLife(L)); }
   const setLife = (id: string, on: boolean) => { const l = lives.get(id); if (l) l.box.visible = on; };
+  // 還沒撥開的章：圖讀好才做出來（先藏著，過關撥雲時才出現）
+  const pending = new Map<string, Promise<ReturnType<typeof makeLife> | undefined>>();
+  const ensureLife = (id: string) => {
+    if (lives.has(id)) return Promise.resolve(lives.get(id));
+    const L = LIFE[id as keyof typeof LIFE];
+    if (!L) return Promise.resolve(undefined);
+    if (!pending.has(id)) pending.set(id, loadTex(lifeNames(L)).then(() => {
+      if (destroyed) return undefined;
+      if (!lives.has(id)) { const l = makeLife(L); l.box.visible = openedSet.has(id); lives.set(id, l); }
+      return lives.get(id);
+    }));
+    return pending.get(id)!;
+  };
 
   // ── 現在：今天的臺灣（base 一直在，過去打完的章多出新舊對照）、現在篇的地點 ──
   const nowLives = new Map<string, ReturnType<typeof makeLife>>();
@@ -610,6 +627,8 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   for (const id of opt.opened) clearFog(id);
   thinEdges();
   for (const id of lives.keys()) setLife(id, openedSet.has(id));
+  // 地圖出來以後，一章一章在背景讀其他章的圖
+  void (async () => { for (const id of Object.keys(LIFE)) { if (destroyed) return; await ensureLife(id).catch(() => {}); } })();
   setNowOpened(opt.opened);
   buildRelief();
   const showEra = () => {
@@ -765,7 +784,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       openedSet.add(id);
       buildRelief();
       setTimeout(thinEdges, 1500);
-      const L = lives.get(id);
+      const L = await ensureLife(id);
       if (L) {
         for (const g of L.grow) g.sp.scale.set(0);
         setLife(id, true);
@@ -787,6 +806,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       el.removeEventListener('pointerup', up);
       el.removeEventListener('pointercancel', up);
       el.removeEventListener('wheel', wheel);
+      destroyed = true;
       app.destroy(true, { children: true });
     },
   };
