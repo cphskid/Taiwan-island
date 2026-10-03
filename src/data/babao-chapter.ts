@@ -119,7 +119,8 @@ export type Who = 'tick' | 'shi' | 'lin' | 'babuza' | 'zhang' | 'quan' | 'lian' 
   | 'ani' | 'elder' | 'hunter' | 'trader' // 第二章（data/ch2.ts）
   | 'xlian' | 'chen' | 'veteran' | 'villager' // 第四章（data/ch4.ts）
   | 'chun' | 'teaboss' | 'merchant' | 'liu' | 'mackay' // 第六章（data/ch6.ts）
-  | 'hsiung' | 'hatta' | 'kumiai' | 'shao'; // 第七章（data/ch7.ts）
+  | 'hsiung' | 'hatta' | 'kumiai' | 'shao' // 第七章（data/ch7.ts）
+  | 'afu' | 'uma' | 'clerk' | 'siraya' | 'friar'; // 第三章（data/ch3.ts）
 export type Mood = 'wave' | 'happy' | 'thinking' | 'worried' | 'scared' | 'sad' | 'determined' | 'frown' | 'angry' | 'thumbs' | 'listen' | 'laugh' | 'surprised' | 'shout' | 'me';
 export const TICK_MOODS: readonly Mood[] = ['wave', 'happy', 'thinking', 'worried'];
 export interface Line { who: Who; text: string; mood?: Mood }
@@ -175,6 +176,15 @@ export const PEOPLE: Record<Who, { name: string; img?: string; moods?: Partial<R
   hatta: { name: '八田與一', img: 'ch7/p-20-hatta.webp', color: '#8a6d3b' },
   kumiai: { name: '水利組合的陳先生', img: 'ch7/p-20-chen.webp', color: '#3d6b4a' },
   shao: { name: '邵族的長者', img: 'ch7/p-20-elder.webp', color: '#3a4f8a' },
+  // 第三章：阿福（虛構的福建漢人男孩，F-06B 表情）、烏瑪（虛構的新港社西拉雅族少女，名字與穿著待審）與 P-17 配角
+  afu: { name: '阿福', img: 'ch3/f-06b-happy.webp', color: '#3d5fa8', moods: {
+    happy: 'ch3/f-06b-happy.webp', worried: 'ch3/f-06b-worried.webp', scared: 'ch3/f-06b-scared.webp', sad: 'ch3/f-06b-sad.webp',
+    determined: 'ch3/f-06b-determined.webp', frown: 'ch3/f-06b-frown.webp', angry: 'ch3/f-06b-angry.webp', thumbs: 'ch3/f-06b-thumbs.webp',
+    thinking: 'ch3/f-06b-worried.webp', surprised: 'ch3/f-06b-scared.webp' } },
+  uma: { name: '烏瑪', img: 'ch3/p-17-uma.webp', color: '#2f6f8f' },
+  clerk: { name: '商館員', img: 'ch3/p-17-clerk.webp', color: '#c0662b' },
+  siraya: { name: '新港社的長老', img: 'ch3/p-17-elder.webp', color: '#6b4f2a' },
+  friar: { name: '西班牙傳教士', img: 'ch3/p-17-friar.webp', color: '#7a4b2a' },
 };
 
 // 時間卡住：齒輪掉在哪個時代，那裡就一直重複同一天

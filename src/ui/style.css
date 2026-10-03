@@ -1592,3 +1592,215 @@ img.flip{transform:scaleX(-1)}
 .ch7-home .mission .badge{width:72px;height:72px;object-fit:contain}
 @media (max-height:600px){ .ch7-home .mission .badge{width:52px;height:52px} .ch7-home .mission h2{margin:2px 0} }
 .ch7-pipe-wrap{align-items:flex-start}
+
+/* ── 第三章 大航海時代 ── */
+.ch3 .stage{background:#1e4a66}
+.ch3-fogbank,.ch3-chart-fog{position:absolute;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at 30% 40%,rgba(235,240,245,.85),transparent 60%),radial-gradient(ellipse at 75% 30%,rgba(235,240,245,.8),transparent 55%),radial-gradient(ellipse at 55% 80%,rgba(235,240,245,.75),transparent 60%);animation:ch3drift 9s ease-in-out infinite alternate}
+@keyframes ch3drift{from{transform:translateX(-3%)}to{transform:translateX(3%)}}
+.ch3-loop{background:radial-gradient(circle,rgba(200,210,220,.35),rgba(40,55,75,.8))}
+.ch3-sea{background:linear-gradient(#2c6e91,#1e4a66)}
+.ch3-dock .scene-bg,.ch3-plain .scene-bg{filter:blur(2px) brightness(.85)}
+.ch3-north .scene-bg{filter:brightness(.85) saturate(.8)}
+.ch3-rain{position:absolute;inset:0;pointer-events:none;z-index:1;background-image:linear-gradient(105deg,transparent 48%,rgba(255,255,255,.35) 50%,transparent 52%);background-size:40px 60px;animation:rain .8s linear infinite;opacity:.6}
+
+/* 航線 */
+.ch3-route{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;padding:56px 12px 12px}
+.ch3-chart{position:relative;height:min(100%,calc((100vw - 290px) * 7 / 10));max-width:calc(100% - 250px);border:6px solid var(--wood-2);border-radius:18px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.35);background:#3d8fb8}
+.ch3-cells{position:absolute;inset:0;display:grid}
+.ch3-cell{position:relative;border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center}
+.ch3-cell.sea,.ch3-cell.start{background:#4aa3cf}
+.ch3-cell.land{background:linear-gradient(#8fcf6a,#6fb04e);border-color:rgba(60,90,30,.3)}
+.ch3-cell.current{background:#1d4f7a}
+.ch3-cell.current i{font-style:normal;color:#9fd9ff;font-weight:900;font-size:clamp(14px,2.4vw,26px);animation:flowup 1.2s ease-in-out infinite}
+.ch3-cell.shoal{background:#7fc4dd}
+.ch3-cell.channel{background:#6cc3e6;box-shadow:inset 0 0 0 3px rgba(255,255,255,.7)}
+.ch3-cell.channel.low{background:#e7d39b}
+.ch3-cell.harbor{background:#5fb8dc}
+.ch3-cell img{width:86%;height:86%;object-fit:contain}
+.ch3-label{position:absolute;translate:-50% -50%;z-index:1;font-weight:900;font-size:clamp(12px,1.6vw,17px);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);pointer-events:none;white-space:nowrap}
+.ch3-port{position:absolute;translate:-50% 90%;z-index:3;background:var(--cream);border:2px solid var(--wood-2);border-radius:10px;padding:0 6px;font-weight:900;font-size:13px;pointer-events:none;white-space:nowrap}
+.ch3-port.to{background:#ffe9a8;border-color:var(--gold)}
+.ch3-trail{position:absolute;translate:-50% -50%;width:12px;height:12px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);z-index:2;opacity:.85;pointer-events:none}
+.ch3-ship{position:absolute;translate:-50% -60%;width:calc(100% / 10 * 1.15);z-index:4;transition:left .4s ease-in-out,top .4s ease-in-out;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35));pointer-events:none}
+.ch3-ship.hit{animation:shake .25s linear 3}
+.ch3-ship.won{animation:pop .5s}
+.ch3-chart-fog{opacity:.45}
+.ch3-bang{position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:5;background:#d9534f;color:#fff;font-weight:900;font-size:clamp(16px,2.4vw,24px);border:4px solid #fff;border-radius:18px;padding:10px 18px;text-align:center;animation:pop .3s;max-width:80%}
+.ch3-helm{width:230px;flex:none;padding:10px 12px;display:flex;flex-direction:column;gap:8px;align-items:stretch}
+.ch3-hud{display:flex;flex-direction:column;gap:4px}
+.ch3-hud span{display:flex;flex-direction:column;font-weight:900;font-size:16px;line-height:1.25;background:#fffaf0;border:2px solid #e6cf9f;border-radius:12px;padding:3px 8px}
+.ch3-hud small{font-size:12px;color:#9c8466;font-weight:700}
+.ch3-hud .warn{border-color:#d9534f;color:#b33}
+.ch3-hud .ch3-wind.summer{background:#fff1e0}
+.ch3-hud .ch3-wind.winter{background:#e8f4ff}
+.ch3-hud .tide-hi{background:#e3f6ff}
+.ch3-hud .tide-lo{background:#fbf0d4}
+.ch3-compass{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:150px;align-self:center}
+.ch3-compass button{aspect-ratio:1;border-radius:50%;border:3px solid #ccc;background:#eee;color:#bbb;font:900 22px var(--f);cursor:pointer;padding:0}
+.ch3-compass button.ok{border-color:var(--gold);background:linear-gradient(#5fb8dc,#2c7ea8);color:#fff}
+.ch3-compass button.ok:active{transform:scale(.92)}
+.ch3-compass b{display:flex;align-items:center;justify-content:center;font-size:24px}
+.ch3-waits{display:flex;gap:6px}
+.ch3-waits .btn{min-width:0;flex:1;min-height:46px;padding:0 6px;font-size:15px;flex-direction:column;line-height:1.1}
+.ch3-waits .btn small{font-size:11px}
+.ch3-reset{border:0;background:none;color:var(--wood-2);font:700 15px var(--f);cursor:pointer;min-height:36px}
+.ch3-reset:disabled{opacity:.4}
+
+/* 轉口貿易 */
+.ch3-trade{position:absolute;inset:0;display:grid;grid-template-columns:1fr minmax(300px,380px);gap:12px;padding:56px 12px 12px}
+.ch3-seamap{position:relative;padding:0;overflow:hidden;background:radial-gradient(circle at 42% 42%,#7cc6e4,#3b8fbd)}
+.ch3-lanes{position:absolute;inset:0;width:100%;height:100%}
+.ch3-lanes line{stroke:#fff;stroke-width:.8;stroke-dasharray:2 2;opacity:.8;vector-effect:non-scaling-stroke}
+.ch3-lanes line{stroke-width:3}
+.ch3-portnode{position:absolute;translate:-50% -50%;z-index:2;display:flex;flex-direction:column;align-items:center;gap:2px;border:4px solid var(--wood-2);border-radius:16px;background:var(--cream);padding:6px 12px;font:900 18px var(--f);color:var(--ink);cursor:pointer;min-width:96px}
+.ch3-portnode small{font-size:12px;color:#2e7d32}
+.ch3-portnode.here{border-color:var(--gold);box-shadow:0 0 0 4px rgba(255,194,61,.45)}
+.ch3-portnode.go{animation:pulse .8s ease-in-out infinite alternate}
+.ch3-portnode:disabled{cursor:default;opacity:1}
+.ch3-portnode:disabled:not(.here){opacity:.75}
+.ch3-tradeship{position:absolute;width:72px;translate:-50% -115%;z-index:3;transition:left .6s,top .6s;pointer-events:none;filter:drop-shadow(0 3px 2px rgba(0,0,0,.3))}
+.ch3-note{position:absolute;left:10px;right:10px;bottom:8px;margin:0;z-index:2;background:rgba(255,244,220,.92);border-radius:12px;padding:4px 10px;font-size:14px;font-weight:700;text-align:center}
+.ch3-market{padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-height:0;overflow:auto}
+.ch3-market h3{margin:2px 0 0;font-size:17px}
+.ch3-purse{display:flex;align-items:center;justify-content:space-between;gap:6px;font-weight:900}
+.ch3-purse .silver{display:flex;align-items:center;gap:4px;font-size:24px;color:#b33}
+.ch3-purse .silver.ok{color:#2e8b3a}
+.ch3-purse .silver img{width:36px}
+.ch3-purse .silver small{font-size:14px;color:#9c8466}
+.ch3-purse .legs{font-size:15px}
+.ch3-hold{display:flex;align-items:center;gap:6px}
+.ch3-hold .slot{width:48px;height:48px;border:3px dashed #c9a46b;border-radius:10px;background:#fffaf0;display:flex;align-items:center;justify-content:center}
+.ch3-hold .slot img{width:40px;height:40px;object-fit:contain;animation:pop .25s}
+.ch3-hold small{font-size:13px;color:#9c8466;font-weight:700}
+.ch3-goods{display:flex;flex-direction:column;gap:5px}
+.ch3-good{display:flex;align-items:center;gap:6px;border:3px solid #e6cf9f;border-radius:12px;background:#fffaf0;padding:3px 6px}
+.ch3-good.ch3-hint{box-shadow:0 0 0 4px var(--gold)}
+.ch3-good img{width:38px;height:38px;object-fit:contain}
+.ch3-good b{flex:1;display:flex;flex-direction:column;font-size:16px;line-height:1.1}
+.ch3-good b small{font-size:11px;color:#9c8466}
+.ch3-good button{border:3px solid var(--gold);border-radius:14px;font:900 14px var(--f);color:#fff;padding:6px 8px;cursor:pointer;min-height:40px}
+.ch3-good .buy{background:linear-gradient(#ffb04a,#f07f1d)}
+.ch3-good .sell{background:linear-gradient(#7fd85a,#4aa834)}
+.ch3-good button:disabled{opacity:.35;cursor:default}
+
+/* 鹿皮的代價 */
+.ch3-herd-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:56px 12px 12px}
+.ch3-herd{width:min(900px,100%);padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.ch3-years{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ch3-year{border:3px solid #c9a46b;border-radius:14px;background:#fffaf0;padding:6px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.ch3-year.shown{border-color:#3fbf5a;background:#f2fff0}
+.ch3-year.ch3-hint{box-shadow:0 0 0 4px var(--gold)}
+.ch3-year>b{font-size:18px}
+.herd-n,.ch3-herd-foot .hides,.herd-end{display:flex;align-items:center;gap:4px;font-weight:900}
+.herd-n img,.hides img,.herd-end img,.ch3-year .take img{width:30px;height:30px;object-fit:contain}
+.ch3-year .take{min-width:90px;display:flex;align-items:center;justify-content:center;gap:2px;font-weight:900;font-size:15px;color:var(--ink)}
+.herd-calc{font-size:13px;font-weight:700;animation:pop .3s}
+.herd-calc em{font-style:normal;color:#2e8b3a}
+.ch3-herd-foot{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.ch3-herd-foot .hides{color:#b33}.ch3-herd-foot .hides.ok{color:#2e8b3a}
+.herd-end.no{color:#b33}.herd-end.yes{color:#2e8b3a}
+
+/* 新港文書 */
+.ch3-deed-wrap{position:absolute;inset:0;display:grid;grid-template-columns:1fr minmax(240px,300px);gap:12px;padding:56px 12px 12px;align-items:start}
+.ch3-deed{padding:10px 14px;display:flex;flex-direction:column;gap:8px;align-items:center;max-height:100%;overflow:auto}
+.ch3-deed h3,.ch3-clues h3{margin:0;font-size:17px}
+.ch3-contract{margin:0;padding:8px 12px 8px 30px;background:#f6e7c4;border-radius:12px;border:2px solid #d6b77e;width:100%;font-family:Georgia,serif}
+.ch3-contract li{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0;padding-left:2px}
+.ch3-contract li::marker{font-weight:900}
+.ch3-word{display:inline-flex;flex-direction:column;align-items:center;padding:1px 6px;border-radius:8px}
+.ch3-word b{font-size:18px;font-style:italic}
+.ch3-word small{font:700 12px var(--f);color:#7a5a3a}
+.ch3-word.unknown{background:#fff;border:2px dashed #8a5429}
+.ch3-word.wrong{background:#ffe1de;border-color:#d9534f;animation:shake .25s linear 2}
+.ch3-word.ok.unknown{background:#e9fbe6;border-color:#3fbf5a}
+.ch3-guess{display:flex;flex-direction:column;gap:6px}
+.ch3-guess-row{display:flex;align-items:center;gap:6px;font-weight:900}
+.ch3-guess-row>b{min-width:64px;font:italic 900 19px Georgia,serif;text-align:right}
+.ch3-guess-row button{width:46px;height:42px;border-radius:12px;border:3px solid #c9a46b;background:#fffaf0;font:900 18px var(--f);color:var(--ink);cursor:pointer}
+.ch3-guess-row button.on{border-color:#2c7ea8;background:#d9f0ff}
+.ch3-guess-row button.ch3-hint{box-shadow:0 0 0 3px var(--gold)}
+.ch3-guess-row.wrong button.on{border-color:#d9534f;background:#ffe1de}
+.ch3-clues{padding:10px 12px;display:flex;flex-direction:column;gap:6px;max-height:100%;overflow:auto}
+.ch3-dict{display:flex;flex-wrap:wrap;gap:4px}
+.ch3-dict span{background:#fffaf0;border:2px solid #e6cf9f;border-radius:8px;padding:0 6px;font-size:13px;font-weight:700}
+.ch3-dict b{font:italic 900 14px Georgia,serif;margin-right:4px}
+.ch3-clue{display:flex;gap:6px;align-items:center;margin:0;font-size:14px;line-height:1.4}
+.ch3-clue b{display:block}
+.ch3-deed-wrap.trace{display:flex;justify-content:center;align-items:center}
+.ch3-land{position:relative;aspect-ratio:7/5;height:min(100%,calc((100vw - 40px) * 5 / 7));background:linear-gradient(#cfe9a0,#a9d27a);border:6px solid var(--wood-2);border-radius:18px;box-shadow:0 8px 20px rgba(0,0,0,.35)}
+.ch3-land-svg{position:absolute;inset:0;width:100%;height:100%}
+.ch3-land-svg .river{fill:none;stroke:#59b3e0;stroke-width:5;vector-effect:non-scaling-stroke;stroke-width:18px;stroke-linecap:round;opacity:.9}
+.ch3-land-svg .bound{fill:none;stroke:#c0392b;stroke-width:5px;stroke-dasharray:10 6;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.ch3-land-svg .bound.done{fill:rgba(255,194,61,.25);animation:fade .6s}
+.ch3-decor{position:absolute;translate:-50% -50%;display:flex;flex-direction:column;align-items:center;font-size:clamp(22px,3.4vw,38px);pointer-events:none;opacity:.9}
+.ch3-decor small{font-size:12px;font-weight:900;background:rgba(255,250,235,.85);border-radius:8px;padding:0 4px}
+.ch3-spot{position:absolute;translate:-50% -50%;z-index:2;width:clamp(56px,9%,84px);aspect-ratio:1;border-radius:50%;border:4px solid #fff;background:rgba(255,250,235,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:0;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+.ch3-spot img{width:62%;height:55%;object-fit:contain}
+.ch3-spot i{font-style:normal;font-size:clamp(22px,3vw,32px);line-height:1}
+.ch3-spot small{font:italic 900 12px Georgia,serif}
+.ch3-spot.at{border-color:#c0392b;box-shadow:0 0 0 4px rgba(192,57,43,.4)}
+.ch3-spot.passed{background:#ffe9a8}
+.ch3-spot.bad{border-color:#d9534f;animation:shake .25s linear 2}
+.ch3-spot.ch3-hint{box-shadow:0 0 0 5px var(--gold),0 0 18px var(--gold);animation:pulse .7s ease-in-out infinite alternate}
+.ch3-rose{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;align-items:center;background:rgba(255,250,235,.9);border:2px solid var(--wood-2);border-radius:12px;padding:2px 8px;font-weight:900;font-size:13px;line-height:1.3;pointer-events:none}
+.ch3-rose b{color:#c0392b}
+
+/* 北邊的城堡：港灣排船 */
+.ch3-harbor-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:14px;padding:56px 12px 12px}
+.ch3-harbor-side{width:220px;flex:none;padding:12px;display:flex;flex-direction:column;gap:6px;text-align:center}
+.ch3-harbor-side h3{margin:0;font-size:18px}
+.ch3-moves{margin:0;font-weight:900;font-size:22px}
+.ch3-moves small{font-size:14px;color:#9c8466}
+.ch3-moves.warn{color:#b33}
+.ch3-tip{margin:0;font-size:14px;color:#7a5a3a;font-weight:700;line-height:1.4}
+.ch3-harbor{position:relative;height:min(100%,calc(100vw - 340px));aspect-ratio:1;margin-right:70px}
+.ch3-grid{position:absolute;inset:0;border:6px solid var(--wood-2);border-radius:14px;background:#2f7fae;background-image:linear-gradient(rgba(255,255,255,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.14) 1px,transparent 1px);background-size:calc(100% / var(--n)) calc(100% / var(--n));box-shadow:0 8px 20px rgba(0,0,0,.35);touch-action:none}
+.ch3-rock{position:absolute;width:calc(100% / var(--n));height:calc(100% / var(--n));object-fit:contain;padding:4%}
+.ch3-boat{position:absolute;padding:5px;touch-action:none;cursor:grab;transition:left .18s,top .18s;z-index:1}
+.ch3-boat.drag{transition:none;z-index:3;cursor:grabbing}
+.ch3-boat::before{content:'';position:absolute;inset:5px;border-radius:40% 40% 40% 40%/50%;background:linear-gradient(#b07a45,#7a4b22);border:3px solid #5a3412;box-shadow:0 3px 4px rgba(0,0,0,.35)}
+.ch3-boat.across::before{border-radius:12px 50% 50% 12px}
+.ch3-boat.down::before{border-radius:50% 50% 12px 12px}
+.ch3-boat.red::before{background:linear-gradient(#e85a4a,#b52d22);border-color:#7a1a12}
+.ch3-boat span{position:relative;display:flex;align-items:center;justify-content:center;height:100%;font-size:clamp(18px,3vw,30px);pointer-events:none}
+.ch3-boat.ch3-hint::before{box-shadow:0 0 0 4px var(--gold),0 0 16px var(--gold)}
+.ch3-boat.red{transition:left .9s ease-in,top .18s}
+.ch3-nudge{position:absolute;left:50%;top:50%;translate:-50% -50%;font-style:normal;font-size:clamp(22px,3.6vw,36px);font-weight:900;color:var(--gold);text-shadow:0 2px 3px rgba(0,0,0,.6);pointer-events:none;animation:pulse .6s ease-in-out infinite alternate}
+.ch3-exit{position:absolute;left:100%;width:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.ch3-exit img{width:64px;height:64px;object-fit:contain}
+.ch3-exit small{font-weight:900;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.ch3-junks{position:absolute;inset:0;z-index:2;pointer-events:none}
+.ch3-junks img{position:absolute;width:clamp(60px,9vw,110px);top:calc(14% + var(--k) * 4%);left:calc(30% + var(--k) * 7%);animation:ch3sail 6s ease-out both;animation-delay:calc(var(--k) * .35s);filter:drop-shadow(0 3px 3px rgba(0,0,0,.35))}
+@keyframes ch3sail{from{transform:translate(30vw,-6vh) scale(.6);opacity:0}to{transform:none;opacity:1}}
+
+/* 結算 */
+.ch3-home{position:absolute;inset:0;z-index:2;pointer-events:none}
+.ch3-home img{position:absolute;filter:drop-shadow(0 4px 4px rgba(0,0,0,.3));animation:pop .6s}
+.ch3-home .afu{left:58%;bottom:24%;height:38%}
+.ch3-home .uma{left:70%;bottom:26%;height:34%}
+.ch3-home .coin{left:53%;bottom:30%;height:9%}
+.ch3-home .deer{left:84%;bottom:44%;height:20%}
+.ch3-home .hides{left:63%;bottom:22%;height:13%}
+.ch3-home .bstone{left:86%;bottom:24%;height:16%}
+.ch3-home .quill{left:86%;bottom:26%;height:14%}
+.ch3-home .mom-ship{left:44%;top:22%;height:16%;animation:ch3sail 5s ease-out both}
+@media (max-height:600px){
+  .ch3-route,.ch3-trade,.ch3-herd-wrap,.ch3-deed-wrap,.ch3-harbor-wrap{padding-top:48px}
+  .ch3-hud span{font-size:14px;padding:2px 6px}
+  .ch3-compass{width:126px}
+  .ch3-compass button{font-size:18px}
+  .ch3-good img{width:30px;height:30px}
+  .ch3-good button{min-height:34px;padding:3px 6px}
+  .ch3-hold .slot{width:40px;height:40px}
+  .ch3-hold .slot img{width:32px;height:32px}
+  .ch3-contract li{gap:3px}
+  .ch3-word b{font-size:15px}
+}
+.ch3-rule{margin:0;text-align:center;font-size:14px;color:#7a5a3a;font-weight:700}
+.ch3-guess{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.ch3-guess-row{flex-wrap:wrap;justify-content:center;border:2px solid #e6cf9f;border-radius:12px;padding:4px;background:#fffaf0}
+.ch3-guess-row>b{min-width:0;text-align:center}
+.ch3-guess-row button{width:40px;height:38px;font-size:16px}
+.ch3-guess-row.wrong{border-color:#d9534f}
+.ch3-deed-head{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px}
+.ch3-deed-head .btn{min-height:42px;min-width:110px}

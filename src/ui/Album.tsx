@@ -5,6 +5,7 @@ import { CARDS2, CARD_ORDER2 } from '../data/ch2';
 import { CARDS4, CARD_ORDER4 } from '../data/ch4';
 import { CARDS6, CARD_ORDER6 } from '../data/ch6';
 import { CARDS7, CARD_ORDER7 } from '../data/ch7';
+import { CARDS3, CARD_ORDER3 } from '../data/ch3';
 
 const BASE = import.meta.env.BASE_URL;
 const KINDS = ['人物', '地點', '物品', '知識'] as const;
@@ -13,6 +14,7 @@ export interface Book { title: string; cards: Record<string, Card>; order: strin
 export const BOOK1: Book = { title: '第一章 島嶼的第一道火光', cards: CARDS1, order: CARD_ORDER1 };
 export const BOOK2: Book = { title: '第二章 山林與部落', cards: CARDS2, order: CARD_ORDER2 };
 export const BOOK4: Book = { title: '第四章 東寧屯田', cards: CARDS4, order: CARD_ORDER4 };
+export const BOOK3: Book = { title: '第三章 大航海時代', cards: CARDS3, order: CARD_ORDER3 };
 export const BOOK5: Book = { title: '第五章 八堡圳', cards: CARDS, order: CARD_ORDER };
 export const BOOK6: Book = { title: '第六章 開港與鐵路', cards: CARDS6, order: CARD_ORDER6 };
 export const BOOK7: Book = { title: '第七章 縱貫與大圳', cards: CARDS7, order: CARD_ORDER7 };
