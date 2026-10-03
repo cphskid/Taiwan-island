@@ -1041,3 +1041,194 @@ img.gear{width:110px;height:110px;object-fit:contain}
   .iron-hud{gap:3px;padding:6px}
   .iron-hud .btn{font-size:13px;min-height:30px}
 }
+
+/* ── 第四章 東寧屯田 ── */
+.ch4 .stage{background:#5a4526}
+.ch4 .scene>.talk-cover,.ch4 .scene>.say{z-index:6}
+.ch4-dry .scene-bg{filter:saturate(1.1) brightness(1.03)}
+.ch4-heat{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 0%,rgba(255,200,90,.35),transparent 60%);animation:blink 2.4s ease-in-out infinite alternate}
+.ch4-future .scene-bg,.ch4-harvest .scene-bg{filter:hue-rotate(35deg) saturate(1.35) brightness(1.05)}
+.ch4-pond .scene-bg{filter:saturate(.9) brightness(.85)}
+.ch4-tip{color:#9c8466;font-weight:700;align-self:center}
+
+/* 1 分營屯田 */
+.ch4-camp-wrap{position:absolute;inset:0;display:flex;gap:10px;align-items:center;justify-content:center;padding:54px 10px 10px}
+.ch4-map{--t:min(78px,calc((100dvh - 190px) / 5),calc((100vw - 360px) / 8));position:relative;display:grid;grid-template-columns:repeat(var(--cols),var(--t));gap:3px;padding:10px;background:#e8d3a3}
+.ch4-north{position:absolute;top:-4px;right:12px;translate:0 -100%;background:var(--cream);border:3px solid var(--wood-2);border-bottom:0;border-radius:10px 10px 0 0;padding:0 8px;font-weight:900;font-size:14px}
+.ch4-tile{position:relative;width:var(--t);height:var(--t);padding:0;border:2px solid rgba(120,90,50,.35);border-radius:10px;background:#d8bf8a;cursor:pointer;overflow:visible;font:inherit;color:inherit}
+.ch4-tile.t-w{background:#7fc4e8}
+.ch4-tile.t-b{background:#a9c98a}
+.ch4-tile.t-s,.ch4-tile.t-h{background:#b9d99a}
+.ch4-tile:hover{filter:brightness(1.08)}
+.ch4-ground{position:absolute;inset:4%;width:92%;height:92%;object-fit:contain;opacity:.95}
+.ch4-tile.t-p .ch4-ground{opacity:.75}
+.ch4-bamboo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:calc(var(--t) * .5)}
+.ch4-tag{position:absolute;left:2px;top:2px;background:rgba(61,122,106,.9);color:#fff;border-radius:6px;padding:0 4px;font-size:11px;font-weight:700}
+.ch4-campimg{position:absolute;left:-4%;top:-12%;width:108%;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35));animation:pop .25s ease-out;z-index:1}
+.ch4-campname{position:absolute;left:50%;bottom:-6px;translate:-50% 0;z-index:2;white-space:nowrap;background:var(--gold);border-radius:8px;padding:0 6px;font-size:13px}
+.ch4-tile.hint{box-shadow:0 0 0 4px var(--gold),0 0 14px rgba(255,194,61,.9);z-index:1}
+.ch4-tile.bad{border-color:#d9534f;box-shadow:0 0 0 3px #d9534f;animation:shake .25s linear 2}
+.ch4-bad{position:absolute;right:2px;top:2px;z-index:2;white-space:nowrap;background:#d9534f;color:#fff;border-radius:8px;padding:0 5px;font-style:normal;font-weight:900;font-size:12px}
+.ch4-rules{padding:10px 14px;width:min(300px,34vw);align-self:center}
+.ch4-rules h3{margin:0 0 4px}
+.ch4-rules ol{margin:0 0 10px;padding-left:22px;font-size:15px;line-height:1.5}
+.ch4-rules li.broke{color:#c0392b;font-weight:900}
+.ch4-rules .btn{min-width:0;flex:1;font-size:16px;min-height:44px;padding:0 10px}
+.ch4-names table{margin:0 auto 6px;border-collapse:collapse;font-size:18px}
+.ch4-names td{padding:3px 8px;text-align:left}
+.ch4-names td img{width:34px;vertical-align:middle;margin-right:4px}
+.ch4-names p{font-size:16px}
+
+/* 2 開水埤 */
+.ch4-pond-wrap,.ch4-salt-wrap,.ch4-grain-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:54px 12px 10px}
+.ch4-pond-board,.ch4-salt-board,.ch4-grain{padding:10px 14px;display:flex;flex-direction:column;gap:8px;width:min(900px,100%)}
+.ch4-pond-top{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.ch4-dig,.ch4-labor{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ch4-dig.hint{box-shadow:0 0 0 4px var(--gold);border-radius:12px}
+.ch4-dig small,.ch4-labor small{font-weight:700;color:#7a5a3a}
+.ch4-labor small{color:#b33}.ch4-labor small.ok{color:#2e8b3a}
+.ch4-pond-cells{min-width:150px!important;gap:2px}
+.ch4-pond-cells img{width:28px!important;height:28px!important}
+.ch4-labor span{display:flex;gap:3px}
+.ch4-labor i{width:14px;height:14px;border-radius:50%;background:#e6cf9f;border:2px solid #c9a46b}
+.ch4-labor i.on{background:#7a5a3a;border-color:#4d3820}
+.ch4-fields{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.ch4-field{display:flex;flex-direction:column;align-items:center;border:3px solid #c9a46b;border-radius:14px;background:#fffaf0;padding:3px;cursor:pointer;font:inherit;color:inherit}
+.ch4-field img{width:100%;max-height:min(70px,9dvh);object-fit:contain}
+.ch4-field small{font-weight:700;font-size:13px}
+.ch4-field.rice{border-color:#3fbf5a;background:#eefbe9}
+.ch4-field.potato{border-color:#b07a3a;background:#fbf1e4}
+.ch4-field.hint{box-shadow:0 0 0 4px var(--gold)}
+.ch4-year{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.ch4-season{display:grid;grid-template-columns:1fr 18px;grid-template-rows:auto auto auto auto;column-gap:4px;border:2px dashed #c9a46b;border-radius:12px;padding:4px 6px;font-size:13px;font-weight:700}
+.ch4-season>b{grid-column:1/3;font-size:14px}
+.ch4-season .rain{color:#2a6fb0;white-space:nowrap;overflow:hidden}
+.ch4-season .use{color:#7a5a3a}
+.ch4-season small{grid-column:1/3;min-height:1.3em;font-size:12px}
+.ch4-level{grid-column:2;grid-row:2/4;position:relative;border:2px solid #7fa8c8;border-radius:5px;background:#eef6fb;overflow:hidden}
+.ch4-level i{position:absolute;left:0;right:0;bottom:0;background:#4aa3df;transition:height .4s}
+.ch4-season.shown{border-style:solid;border-color:#4aa3df;background:#f0f8ff;animation:pop .3s ease-out}
+.ch4-season.dry{border-style:solid;border-color:#d9534f;background:#ffe9e7;animation:shake .25s linear 2}
+.ch4-season.dry small{color:#c0392b}
+
+/* 3 曬鹽 */
+.ch4-days{display:grid;grid-template-columns:repeat(12,1fr);gap:3px}
+.ch4-days span{display:flex;flex-direction:column;align-items:center;border-radius:10px;background:#fffaf0;border:2px solid #e6cf9f;font-size:20px;line-height:1.1;padding:2px 0}
+.ch4-days small{font-size:10px;font-weight:700;color:#9c8466}
+.ch4-days span.sky-rain{background:#e4effa}
+.ch4-days span.past{opacity:.4}
+.ch4-days span.on{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold);transform:translateY(-2px)}
+.ch4-salt-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ch4-salt-head>b{font-size:18px}
+.ch4-baskets{display:flex;align-items:center;gap:2px}
+.ch4-baskets img{width:34px;height:30px;object-fit:contain;opacity:.25;filter:grayscale(1)}
+.ch4-baskets img.on{opacity:1;filter:none;animation:pop .3s}
+.ch4-baskets em{font-style:normal;font-weight:900;margin-left:4px}
+.ch4-pans{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:10px}
+.ch4-pan{display:flex;flex-direction:column;align-items:center;gap:2px;border:3px solid #c9a46b;border-radius:16px;background:#fffaf0;padding:6px}
+.ch4-pan.cryst{background:#f4f8ff;border-color:#8fb3d9}
+.ch4-pan.ready{box-shadow:0 0 0 3px #3fbf5a}
+.ch4-pan.washed{animation:shake .25s linear 3;background:#e4effa}
+.ch4-pan-img{position:relative;width:min(120px,100%)}
+.ch4-pan-img img{width:100%;height:min(70px,10dvh);object-fit:contain}
+.ch4-pan.empty .ch4-pan-img img{filter:grayscale(.8) brightness(1.1);opacity:.6}
+.ch4-mat{position:absolute;inset:10% 6%;display:flex;align-items:center;justify-content:center;border-radius:8px;background:repeating-linear-gradient(45deg,#d9b56a 0 6px,#c49a4c 6px 12px);color:#4d3820;font-weight:900;font-size:14px}
+.ch4-dots{display:flex;gap:4px;font-size:13px;font-weight:700;color:#9c8466;min-height:16px}
+.ch4-dots i{width:14px;height:14px;border-radius:50%;background:#e6cf9f}
+.ch4-dots i.on{background:#ffb02e;box-shadow:0 0 6px #ffcf6e}
+.ch4-pan>small{font-weight:700;font-size:13px}
+.ch4-pan-acts{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.ch4-act{border:2px solid var(--wood-2);border-radius:12px;background:#fff;padding:3px 9px;font:700 14px var(--f);color:inherit;cursor:pointer}
+.ch4-act.on{background:#3fbf5a;border-color:#2e8b3a;color:#fff}
+.ch4-act:disabled{opacity:.35;cursor:default}
+.ch4-act.hint:not(:disabled){box-shadow:0 0 0 3px var(--gold),0 0 10px rgba(255,194,61,.9)}
+.ch4-salt-foot{align-items:center;justify-content:space-between}
+.ch4-hands{font-weight:700;font-size:14px;flex:1;min-width:200px}
+
+/* 4 蓋學堂 */
+.ch4-temple-wrap{position:absolute;inset:0;display:grid;grid-template-columns:minmax(220px,300px) auto;gap:10px;padding:54px 10px 10px;align-items:start;justify-content:center}
+.ch4-temple-wrap .clues{max-height:calc(100dvh - 130px)}
+.ch4-temple{padding:8px 12px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.ch4-tray{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;min-height:56px;max-width:440px}
+.ch4-temple>.cal-tip{font-size:12px;max-width:340px}
+.ch4-bld{display:flex;flex-direction:column;align-items:center;border:3px solid #c9a46b;border-radius:12px;background:#fffaf0;padding:2px 4px;cursor:pointer;font:inherit;color:inherit;width:68px}
+.ch4-bld img{width:52px;height:40px;object-fit:contain}
+.ch4-bld small{font-size:12px;font-weight:700}
+.ch4-bld.on{border-color:#3fbf5a;background:#e9fbe6;transform:translateY(-4px)}
+.ch4-tray-tip{width:100%;text-align:center;color:#2e8b3a;font-weight:900}
+img.flip{transform:scaleX(-1)}
+.ch4-site-box{position:relative;padding:18px 26px}
+.ch4-site{--l:min(84px,calc((100dvh - 350px) / 4));display:grid;grid-template-columns:repeat(var(--cols),var(--l));gap:4px;background:#d8c7a4;border:3px solid #a8865a;border-radius:12px;padding:6px}
+.ch4-lot{position:relative;width:var(--l);height:var(--l);border:2px dashed #a8865a;border-radius:10px;background:#efe3c8;padding:2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font:inherit;color:inherit}
+.ch4-lot.axis{background:#f6dc8f}
+.ch4-lot.ready:hover{box-shadow:0 0 0 3px #3fbf5a}
+.ch4-lot img{width:90%;height:70%;object-fit:contain;animation:pop .25s}
+.ch4-lot small{font-size:11px;font-weight:900}
+.ch4-lot.wrong{border:3px solid #d9534f;background:#ffe9e7;animation:shake .25s linear 2}
+.ch4-lot.hint{box-shadow:0 0 0 4px var(--gold),0 0 14px rgba(255,194,61,.9)}
+.ch4-compass{position:absolute;font-weight:900;font-size:13px;color:#7a5a3a}
+.ch4-compass.n{top:0;left:50%;translate:-50% 0}
+.ch4-compass.s{bottom:0;left:50%;translate:-50% 0}
+.ch4-compass.w{left:4px;top:50%;translate:0 -50%}
+.ch4-compass.e{right:4px;top:50%;translate:0 -50%}
+
+/* 5 東寧的明天 */
+.ch4-grain-head{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;font-weight:700;font-size:15px}
+.ch4-grain-head b{color:#b05a1a;font-size:18px}
+.ch4-years{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.ch4-yr{display:flex;flex-direction:column;align-items:center;gap:3px;border:3px solid #c9a46b;border-radius:14px;background:#fffaf0;padding:6px 4px}
+.ch4-yr>b{font-size:15px;white-space:nowrap}
+.ch4-yr.storm{background:#eef3fa}
+.ch4-yr.hint{box-shadow:0 0 0 4px var(--gold)}
+.ch4-yr.shown{border-color:#3fbf5a;animation:pop .3s ease-out}
+.ch4-yr.broke{border-color:#d9534f;background:#ffe9e7;animation:shake .25s linear 2}
+.ch4-yr .stepper span{min-width:52px;font-size:14px;color:var(--ink)}
+.ch4-newfields{display:flex;gap:2px}
+.ch4-newfields img{width:30px;height:24px;object-fit:contain;opacity:.25;filter:grayscale(1)}
+.ch4-newfields img.on{opacity:1;filter:none}
+.ch4-suggest{color:#b05a1a;font-weight:900}
+.ch4-ledger{list-style:none;margin:0;padding:0;font-size:13px;font-weight:700;color:#7a5a3a;text-align:center}
+.ch4-barn{display:flex;align-items:center;gap:3px;font-weight:900}
+.ch4-barn img{width:26px;height:26px;object-fit:contain}
+.ch4-yr.broke .ch4-barn{color:#c0392b}
+
+/* 6 結算：小蓮家的田（畫面照選擇變） */
+.ch4-home{position:absolute;inset:0;z-index:2;pointer-events:none}
+.ch4-paddies{position:absolute;left:8%;right:8%;bottom:22%;display:grid;grid-template-columns:repeat(6,1fr);gap:0;animation:pop .6s}
+.ch4-paddies img{width:100%}
+.ch4-home img{position:absolute;filter:drop-shadow(0 4px 3px rgba(0,0,0,.3))}
+.ch4-paddies img{position:static}
+.ch4-home-xlian{left:52%;bottom:24%;height:36%;animation:pop .5s}
+.ch4-home-veteran{left:38%;bottom:26%;height:32%}
+.ch4-home-villager{left:68%;bottom:25%;height:32%;animation:pop .7s}
+.ch4-home-deer{left:72%;bottom:27%;height:22%;animation:pop .8s}
+.ch4-home-chen{left:84%;bottom:30%;height:28%;animation:pop .9s}
+.ch4-home-brush{left:62%;bottom:24%;height:9%}
+.ch4-home-pond{left:4%;bottom:26%;height:16%}
+.ch4-home-bucket{left:6%;bottom:27%;height:11%}
+.ch4-home-flag{left:22%;bottom:34%;height:20%}
+.ch4-home-sack{left:24%;bottom:26%;height:12%}
+
+@media (max-height:600px){
+  .ch4-camp-wrap,.ch4-pond-wrap,.ch4-salt-wrap,.ch4-grain-wrap{padding-top:46px}
+  .ch4-temple-wrap{padding-top:46px}
+  .ch4-rules ol{font-size:13px}
+  .ch4-pond-board,.ch4-salt-board,.ch4-grain{gap:5px;padding:8px 12px}
+  .ch4-days span{font-size:16px}
+  .ch4-act{font-size:13px;padding:2px 7px}
+  .ch4-yr{padding:3px}
+}
+@media (max-width:760px){
+  .ch4-camp-wrap{flex-direction:column}
+  .ch4-rules{width:100%}
+  .ch4-temple-wrap{grid-template-columns:1fr}
+  .ch4-fields,.ch4-year{grid-template-columns:repeat(3,1fr)}
+}
+.ch4-end{padding:14px 20px}
+.ch4-end img.badge{width:84px;height:84px}
+.ch4-end h2{margin:2px 0 4px}
+.ch4-end .recap{font-size:14px;margin:2px auto 4px}
+@media (max-height:600px){ .ch4-end img.badge{width:56px;height:56px} .ch4-end .star-why{margin:2px 0} }
+.ch4-end .stars{font-size:44px;line-height:1.1}
+.ch4-end .star-why{font-size:15px;line-height:1.5;margin:4px 0}
+.ch4-end .cards-got{font-size:14px;margin:4px 0}
