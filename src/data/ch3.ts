@@ -273,7 +273,7 @@ export const DEED_SAY = {
 // ── 5 北邊的城堡 ──
 export const HARBORS: { title: string; rows: string[]; moves: number; intro: Line[] }[] = [
   {
-    title: '送補給進城堡', moves: 12,
+    title: '送補給進城堡', moves: 10,
     rows: ['...D..', 'HHGDEB', 'AAG.EB', 'J.FFE.', 'J..CC.', 'J..II.'],
     intro: [
       { who: 'friar', text: '我是西班牙來的傳教士。1626 年，西班牙人在這座小島上蓋了聖薩爾瓦多城。' },
@@ -282,7 +282,7 @@ export const HARBORS: { title: string; rows: string[]; moves: number; intro: Lin
     ],
   },
   {
-    title: '讓傳教士平安離開', moves: 20,
+    title: '讓傳教士平安離開', moves: 16,
     rows: ['..C..D', '..C..D', 'AAC..D', 'HFF.EE', 'HG.BBB', '.G.III'],
     intro: [
       { who: 'tick', mood: 'worried', text: '1642 年，荷蘭人的船開到基隆。西班牙人決定離開，把城堡交出去。' },
@@ -403,3 +403,14 @@ export const QUESTIONS3: Question3[] = [
     why: '傳教士教西拉雅族人用羅馬字拼寫自己的話。後來他們用這種文字寫土地契約，留下了很多新港文書。',
   },
 ];
+
+// ── 示範解法（失敗 5 次後的「看示範」用；測試會檢查它真的過關）──
+export const TRADE_DEMO: { buy?: Good; sell?: Good; sail?: PortId }[] = [
+  { buy: 'porcelain' }, { buy: 'porcelain' }, { buy: 'sugar' }, { buy: 'sugar' }, { sail: 'batavia' },
+  { sell: 'porcelain' }, { sell: 'porcelain' }, { sell: 'sugar' }, { sell: 'sugar' },
+  { buy: 'spice' }, { buy: 'spice' }, { buy: 'spice' }, { buy: 'spice' }, { sail: 'tayouan' },
+  { sell: 'spice' }, { sell: 'spice' }, { sell: 'spice' }, { sell: 'spice' },
+  { buy: 'silk' }, { buy: 'silk' }, { buy: 'silk' }, { buy: 'silk' }, { sail: 'japan' },
+  { sell: 'silk' }, { sell: 'silk' }, { sell: 'silk' }, { sell: 'silk' },
+];
+export const HERD_DEMO = [0, 5, 5, 8];
