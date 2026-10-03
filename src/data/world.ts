@@ -99,7 +99,8 @@ export type ActorKind = 'farmer' | 'carrier' | 'worker' | 'buffalo' | 'hen' | 'd
   | 'ayan' | 'knapper' | 'potter' | 'jadeworker' | 'smith' | 'deer' | 'grazer'
   | 'ani' | 'sower' | 'elder' | 'hunter' | 'trader' | 'boar' | 'macaque'
   | 'xlian' | 'xlianCarry' | 'chen' | 'veteran' | 'villager4'
-  | 'chun' | 'chunCarry' | 'mackay' | 'liu' | 'merchant6' | 'loco' | 'railcar';
+  | 'chun' | 'chunCarry' | 'mackay' | 'liu' | 'merchant6' | 'loco' | 'railcar'
+  | 'hsiung' | 'hsiungGate' | 'hatta' | 'shaoElder' | 'sugarTrain';
 export interface ActorDef {
   kind: ActorKind;
   path?: Pt[];
@@ -178,6 +179,11 @@ export const ACTOR_ART: Record<ActorKind, { walk: string[]; idle: string; work?:
   merchant6: { walk: ['ch6/p-19-merchant'], idle: 'ch6/p-19-merchant', height: 17 },
   loco: { walk: ['ch6/o-09-loco'], idle: 'ch6/o-09-loco', height: 16 },
   railcar: { walk: ['ch6/o-09-car'], idle: 'ch6/o-09-car', height: 14 },
+  hsiung: { walk: ['ch7/f-09a-walk1', 'ch7/f-09a-walk2'], idle: 'ch7/f-09a-idle', height: 14 },
+  hsiungGate: { walk: ['ch7/f-09a-gate'], idle: 'ch7/f-09a-gate', loop: ['ch7/f-09a-gate', 'ch7/f-09a-cheer'], height: 14 },
+  hatta: { walk: ['ch7/p-20-hatta'], idle: 'ch7/p-20-hatta', height: 17 },
+  shaoElder: { walk: ['ch7/p-20-elder'], idle: 'ch7/p-20-elder', height: 17 },
+  sugarTrain: { walk: ['x7-3'], idle: 'x7-3', height: 18 },
 };
 
 // 聚落周圍的樹、竹林、蘆葦，圳頭的攔水堰（O-04、O-02）。flip＝左右翻過來，看起來不會一模一樣
@@ -365,11 +371,46 @@ const LIFE_CH6: ChapterLife = {
   ],
 };
 
+// 第七章：嘉南平原（烏山頭水庫、嘉南大圳、縱貫線火車、糖廠）＋日月潭發電所
+const RAIL7: Pt[] = [{ x: 1206, y: 1780 }, { x: 1176, y: 1860 }, { x: 1160, y: 1940 }, { x: 1124, y: 2030 }, { x: 1092, y: 2130 }, { x: 1060, y: 2230 }];
+const LIFE_CH7: ChapterLife = {
+  roads: [RAIL7],
+  canal: [
+    [{ x: 1070, y: 2112 }, { x: 1040, y: 2070 }, { x: 1010, y: 2020 }, { x: 990, y: 1960 }],
+    [{ x: 1070, y: 2112 }, { x: 1110, y: 2060 }, { x: 1130, y: 2000 }],
+    [{ x: 1040, y: 2070 }, { x: 1000, y: 2090 }, { x: 960, y: 2100 }],
+  ],
+  buildings: [
+    { name: 'x7-1', at: { x: 1098, y: 2126 }, width: 46 },
+    { name: 'x7-2', at: { x: 1046, y: 2080 }, width: 18 },
+    { name: 'x7-4', at: { x: 1676, y: 1386 }, width: 36 },
+    { name: 'x7-6', at: { x: 1196, y: 1950 }, width: 30 },
+    { name: 'x7-7', at: { x: 1150, y: 1924 }, width: 26 },
+  ],
+  scenery: [
+    { name: 'x7-5', at: { x: 1640, y: 1400 }, width: 8 },
+    { name: 'x7-5', at: { x: 1612, y: 1420 }, width: 8 },
+    { name: 'x7-8', at: { x: 1004, y: 2034 }, width: 18 },
+    { name: 'ch7/g-08-rice', at: { x: 1020, y: 1990 }, width: 10 },
+    { name: 'ch7/g-08-cane', at: { x: 1130, y: 2034 }, width: 10 },
+  ],
+  smoke: [{ x: 1204, y: 1916 }],
+  actors: [
+    { kind: 'sugarTrain', path: RAIL7, speed: 16, who: '縱貫線的火車', says: '嗚——！基隆到高雄全線通車了，米和糖一路運到港口。', lod: 0 },
+    { kind: 'hsiung', path: [{ x: 1040, y: 2000 }, { x: 1060, y: 2050 }, { x: 1080, y: 2100 }], speed: 7, who: '阿雄', says: '大圳的水來了！三年輪作，每一區都輪得到稻、甘蔗和雜作。', lod: 0 },
+    { kind: 'hsiungGate', at: { x: 1032, y: 2092 }, who: '顧水門的阿雄', says: '水門開到剛剛好，田不會乾，也不會淹。', lod: 1 },
+    { kind: 'hatta', at: { x: 1118, y: 2146 }, who: '八田與一', says: '烏山頭水庫把水存起來，再用大圳送到整片嘉南平原。', lod: 0 },
+    { kind: 'shaoElder', at: { x: 1700, y: 1350 }, who: '邵族的長者', says: '湖水升高以後，我們原本住的土地淹在水裡了。電燈亮了，也請記得我們的故事。', lod: 0 },
+    { kind: 'buffalo', path: [{ x: 990, y: 2040 }, { x: 1010, y: 2060 }], speed: 3, who: '水牛', says: '哞～（有水以後，看天田也種得了稻。）', lod: 2 },
+  ],
+};
+
 export const LIFE: Partial<Record<ChapterId, ChapterLife>> = {
   ch1: LIFE_CH1,
   ch2: LIFE_CH2,
   ch4: LIFE_CH4,
   ch6: LIFE_CH6,
+  ch7: LIFE_CH7,
   ch5: { canal: CANAL, roads: ROADS, paddies: PADDIES, buildings: BUILDINGS, scenery: SCENERY, smoke: SMOKE, actors: ACTORS },
 };
 
