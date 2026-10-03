@@ -98,7 +98,8 @@ export const PADDIES: Pt[] = [
 export type ActorKind = 'farmer' | 'carrier' | 'worker' | 'buffalo' | 'hen' | 'dog' | 'hoer' | 'porter' | 'woman' | 'lian' | 'magpie' | 'washer' | 'waterer' | 'kid' | 'duck' | 'swimmer'
   | 'ayan' | 'knapper' | 'potter' | 'jadeworker' | 'smith' | 'deer' | 'grazer'
   | 'ani' | 'sower' | 'elder' | 'hunter' | 'trader' | 'boar' | 'macaque'
-  | 'xlian' | 'xlianCarry' | 'chen' | 'veteran' | 'villager4';
+  | 'xlian' | 'xlianCarry' | 'chen' | 'veteran' | 'villager4'
+  | 'chun' | 'chunCarry' | 'mackay' | 'liu' | 'merchant6' | 'loco' | 'railcar';
 export interface ActorDef {
   kind: ActorKind;
   path?: Pt[];
@@ -170,6 +171,13 @@ export const ACTOR_ART: Record<ActorKind, { walk: string[]; idle: string; work?:
   chen: { walk: ['ch4/p-18-chen'], idle: 'ch4/p-18-chen', height: 17 },
   veteran: { walk: ['ch4/p-18-veteran'], idle: 'ch4/p-18-veteran', loop: ['ch4/p-18-veteran', 'ch4/f-07a-dig'], height: 17 },
   villager4: { walk: ['ch4/p-18-villager'], idle: 'ch4/p-18-villager', height: 17 },
+  chun: { walk: ['ch6/f-08a-walk1', 'ch6/f-08a-walk2'], idle: 'ch6/f-08a-idle', height: 14 },
+  chunCarry: { walk: ['ch6/f-08a-carry'], idle: 'ch6/f-08a-carry', loop: ['ch6/f-08a-sort', 'ch6/f-08a-idle'], height: 14 },
+  mackay: { walk: ['ch6/p-19-mackay'], idle: 'ch6/p-19-mackay', height: 17 },
+  liu: { walk: ['ch6/p-19-liu'], idle: 'ch6/p-19-liu', height: 17 },
+  merchant6: { walk: ['ch6/p-19-merchant'], idle: 'ch6/p-19-merchant', height: 17 },
+  loco: { walk: ['ch6/o-09-loco'], idle: 'ch6/o-09-loco', height: 16 },
+  railcar: { walk: ['ch6/o-09-car'], idle: 'ch6/o-09-car', height: 14 },
 };
 
 // 聚落周圍的樹、竹林、蘆葦，圳頭的攔水堰（O-04、O-02）。flip＝左右翻過來，看起來不會一模一樣
@@ -327,10 +335,41 @@ const LIFE_CH4: ChapterLife = {
   ],
 };
 
+// 第六章：臺北到基隆、淡水（鐵路和火車、獅球嶺隧道、大稻埕茶行、淡水港的船、馬偕）
+const RAIL6: Pt[] = [{ x: 2330, y: 226 }, { x: 2292, y: 268 }, { x: 2254, y: 300 }, { x: 2212, y: 330 }, { x: 2170, y: 362 }, { x: 2120, y: 410 }];
+const LIFE_CH6: ChapterLife = {
+  roads: [RAIL6],
+  buildings: [
+    { name: 'ch6/o-09-station', at: { x: 2214, y: 342 }, width: 28 },
+    { name: 'ch6/o-09-station', at: { x: 2318, y: 214 }, width: 22, flip: true },
+    { name: 'ch6/g-07-tunnel', at: { x: 2290, y: 262 }, width: 18 },
+    { name: 'ch6/g-07-roast', at: { x: 2160, y: 296 }, width: 16 },
+  ],
+  scenery: [
+    { name: 'ch6/g-07-chest', at: { x: 2176, y: 314 }, width: 9 },
+    { name: 'ch6/g-07-chest', at: { x: 2186, y: 318 }, width: 8, flip: true },
+    { name: 'ch6/o-09-steamer', at: { x: 2030, y: 190 }, width: 30 },
+    { name: 'ch6/o-09-junk', at: { x: 2352, y: 194 }, width: 20 },
+    { name: 'ch6/o-09-sampan', at: { x: 2130, y: 270 }, width: 12 },
+    { name: 'ch6/g-07-bottle', at: { x: 2094, y: 226 }, width: 6 },
+  ],
+  smoke: [{ x: 2160, y: 284 }],
+  actors: [
+    { kind: 'loco', path: RAIL6, speed: 14, who: '火車', says: '嗚——！基隆到臺北的火車通車了，茶葉和米很快就能送到港口。', lod: 0 },
+    { kind: 'railcar', path: RAIL6.slice(1), speed: 14, who: '火車車廂', says: '車廂裡裝著一箱一箱的茶葉。', lod: 1 },
+    { kind: 'chun', path: [{ x: 2150, y: 306 }, { x: 2180, y: 324 }, { x: 2206, y: 340 }], speed: 7, who: '阿春', says: '我現在不怕火車了！家裡的茶，坐火車再坐船，賣到好遠好遠的地方。', lod: 0 },
+    { kind: 'chunCarry', at: { x: 2170, y: 300 }, who: '揀茶的阿春', says: '把茶梗一根一根挑出來，烘好的茶才香。', lod: 1 },
+    { kind: 'mackay', at: { x: 2084, y: 232 }, who: '馬偕', says: '我在淡水看病、拔牙，也開學堂教大家讀書。', lod: 0 },
+    { kind: 'liu', at: { x: 2230, y: 350 }, who: '劉銘傳', says: '鐵路、電報都蓋好了，臺灣跟外面的世界越來越近。', lod: 1 },
+    { kind: 'merchant6', path: [{ x: 2060, y: 206 }, { x: 2090, y: 238 }, { x: 2120, y: 262 }], speed: 5, who: '洋行商人', says: '大稻埕的烏龍茶，在外國可是很受歡迎的！', lod: 2 },
+  ],
+};
+
 export const LIFE: Partial<Record<ChapterId, ChapterLife>> = {
   ch1: LIFE_CH1,
   ch2: LIFE_CH2,
   ch4: LIFE_CH4,
+  ch6: LIFE_CH6,
   ch5: { canal: CANAL, roads: ROADS, paddies: PADDIES, buildings: BUILDINGS, scenery: SCENERY, smoke: SMOKE, actors: ACTORS },
 };
 
