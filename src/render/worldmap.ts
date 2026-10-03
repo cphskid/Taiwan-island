@@ -21,6 +21,9 @@ const TAP_SLOP = 8;
 const FOG_STEP = 90; // 雲一團一團的間距（原圖像素）
 const SEA = 0x58b4d8;
 const LABEL_PX = 14; // 地圖上章名的字在畫面上幾 px
+// 拉遠時小人和房子跟著放大，手機沒縮放也看得到：小人在畫面上至少這麼高、房子至少這麼寬（最多放大幾倍）
+const PERSON_PX = 20, PERSON_MAX = 9;
+const THING_PX = 20, THING_MAX = 3.5;
 
 export type RiftState = 'open' | 'locked' | 'hook' | 'done';
 
@@ -98,6 +101,7 @@ function rng(seed: number) {
 // 大地圖一打開就要用的圖（進場進度條也照這份先讀好，見 ui/Island.tsx firstScreenImages）
 function mapImageNames(): Set<string> {
   const names = new Set<string>(['m01', 'm01-relief', 'rift', 'badge-canal', 't2-water', 't2-dirt', 'smoke', 'm2-paddy-green', 'm2-paddy-gold']);
+  for (const ch of CHAPTERS) names.add(`badge-${ch.badge}`);
   for (const L of Object.values(LIFE)) {
     for (const d of [...L!.buildings, ...(L!.scenery ?? [])]) names.add(d.name);
     for (const c of L!.cycles ?? []) for (const f of c.frames) names.add(f);
@@ -346,7 +350,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       const k = art.height / sp.texture.height;
       sp.scale.set(k);
       box.addChild(sp);
-      return { def, sp, k, ph: i * 1.7, at: def.at ?? def.path![0] };
+      return { def, sp, k, ph: i * 1.7, at: def.at ?? def.path![0], big: 1 };
     });
     // 圳道裡的水往下游流：水面上幾道反光，順著圳道往下游漂（不要太多，免得像虛線）
     const canalLens = (L.canal ?? []).map((line) => {
@@ -432,7 +436,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     const rift = new Sprite(tex.rift);
     rift.anchor.set(0.5, 1);
     rift.scale.set(72 / rift.texture.height);
-    const badge = new Sprite(tex['badge-canal']);
+    const badge = new Sprite(tex[`badge-${ch.badge}`]);
     badge.anchor.set(0.5, 1);
     badge.scale.set(44 / badge.texture.height);
     badge.visible = false;
@@ -478,6 +482,8 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       r.label.position.set(up ? -20 : 0, up ? -36 : 4 / (vs * k));
       // 拉到看得到整座島時字會疊在一起，只留發光的章
       r.label.visible = r.state === 'done' ? z > 0.7 && z < 2 : lit || z > 1.8;
+      // 過關的徽章拉到最遠時先收起來，讓長出來的村子和小人露出來（下面時間軸有打勾）
+      r.badge.visible = r.state === 'done' && z > 0.7;
     }
     for (const p of placeList) {
       const k = clamp(48 * vs, 44, 84) / (48 * vs);
@@ -524,19 +530,30 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     const [p, q] = [...fingers.values()];
     return { d: Math.hypot(p.x - q.x, p.y - q.y) || 1, mx: (p.x + q.x) / 2, my: (p.y + q.y) / 2 };
   };
+  // 點到哪個小人：量到身體中間，範圍跟著小人在畫面上的大小（拉遠時小人放大了，也不會把旁邊的裂縫搶走）
+  const actorAt = (ls: ReturnType<typeof makeLife>[], w: Pt): ActorDef | null => {
+    let best: ActorDef | null = null, bd = Infinity;
+    for (const L of ls) {
+      if (!L.box.visible) continue;
+      for (const a of L.actors) {
+        if (!a.sp.visible) continue;
+        const h = ACTOR_ART[a.def.kind].height * a.big;
+        const d = Math.hypot(w.x - a.at.x, w.y - (a.at.y - h / 2));
+        if (d < Math.max(h * 0.7, 10 / view.scale) && d < bd) { bd = d; best = a.def; }
+      }
+    }
+    return best;
+  };
   const hitAt = (w: Pt): Hit | null => {
-    const r = Math.max(8, 26 / view.scale);
     if (era === 'now') {
-      const vis = [...nowLives.values()].filter((L) => L.box.visible).flatMap((L) => L.actors).filter((a) => a.sp.visible).map((a) => ({ at: a.at, a }));
-      const got = nearest(vis, { x: w.x, y: w.y - 6 }, r);
-      if (got) return { kind: 'actor', actor: got.a.def };
+      const got = actorAt([...nowLives.values()], w);
+      if (got) return { kind: 'actor', actor: got };
       const ph = nearest(placeList.map((p) => ({ at: { x: p.at.x, y: p.at.y - 12 * p.box.scale.x }, p })), w, Math.max(30, 50 / view.scale) * (placeList[0]?.box.scale.x ?? 1));
       return ph ? { kind: 'place', id: ph.p.id } : null;
     }
     if (!relief.visible) {
-      const vis = [...lives.values()].filter((L) => L.box.visible).flatMap((L) => L.actors).filter((a) => a.sp.visible).map((a) => ({ at: a.at, a }));
-      const got = nearest(vis, { x: w.x, y: w.y - 6 }, r);
-      if (got) return { kind: 'actor', actor: got.a.def };
+      const got = actorAt([...lives.values()], w);
+      if (got) return { kind: 'actor', actor: got };
     }
     const rr = riftList.map((x) => ({ at: { x: x.box.x, y: x.box.y - 30 * x.box.scale.x }, x }));
     const rh = nearest(rr, w, Math.max(30, 50 / view.scale) * riftList[0].box.scale.x);
@@ -652,6 +669,8 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     const phase = t / SEASON_SECONDS;
     const look = paddyLook(phase);
     const season = seasonAt(phase);
+    const vs = view.scale;
+    const bigT = clamp(THING_PX / (28 * vs), 1, THING_MAX);
     for (const L of [...(life.visible ? lives.values() : []), ...(nowLayer.visible ? nowLives.values() : [])]) {
       if (!L.box.visible) continue;
       // 建設長出來：從 0 彈到原本大小
@@ -660,15 +679,16 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
         for (const g of L.grow) {
           const k = clamp((u - g.delay) / 0.5, 0, 1);
           const s = k < 1 ? k * (1 + 0.25 * Math.sin(k * Math.PI)) : 1;
-          g.sp.scale.set(g.k * s * (g.flip ? -1 : 1), g.k * s);
+          g.sp.scale.set(g.k * s * bigT * (g.flip ? -1 : 1), g.k * s * bigT);
         }
-        if (u > 3) { L.growing = null; for (const g of L.grow) g.sp.scale.set(g.k * (g.flip ? -1 : 1), g.k); }
+        if (u > 3) L.growing = null;
       }
       if (!L.growing) {
+        for (const g of L.grow) g.sp.scale.set(g.k * bigT * (g.flip ? -1 : 1), g.k * bigT);
         for (const p of L.paddies) { p.green.alpha = look.green; p.gold.alpha = look.gold; }
         for (const f of L.fire) {
           const w = 1 + 0.06 * Math.sin(t * 9 + f.ph) + 0.04 * Math.sin(t * 23 + f.ph * 2);
-          f.sp.scale.set(f.k * w * (f.flip ? -1 : 1), f.k * (2 - w));
+          f.sp.scale.set(f.k * bigT * w * (f.flip ? -1 : 1), f.k * bigT * (2 - w));
           f.sp.alpha = 0.85 + 0.15 * Math.sin(t * 13 + f.ph);
         }
         for (const c of L.cycles) {
@@ -677,7 +697,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
           if (i !== c.cur) { c.cur = i; c.t0 = t; c.sp.texture = tex[c.c.frames[i]]; }
           const u = clamp((t - c.t0) / 0.4, 0, 1);
           const pop = u < 1 ? 0.7 + 0.3 * u + 0.15 * Math.sin(u * Math.PI) : 1;
-          c.sp.scale.set(c.k * pop);
+          c.sp.scale.set(c.k * bigT * pop);
         }
       }
       L.drawFlow(t);
@@ -703,10 +723,11 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
           else name = Math.floor((t + a.ph) / 3) % 3 === 0 ? art.walk[Math.floor(t * 4) % art.walk.length] : art.idle;
         }
         if (a.sp.texture !== tex[name]) a.sp.texture = tex[name];
-        const k = art.height / a.sp.texture.height;
+        a.big = clamp(PERSON_PX / (art.height * vs), 1, PERSON_MAX);
+        const k = (art.height / a.sp.texture.height) * a.big;
         a.sp.scale.set(left ? -k : k, k);
         if (art.fly) bob = 3 + Math.sin((t + a.ph) * 3) * 1.5;
-        a.sp.position.set(a.at.x, a.at.y - bob);
+        a.sp.position.set(a.at.x, a.at.y - bob * a.big);
         a.sp.zIndex = art.fly ? 20000 : a.at.y;
       }
     }

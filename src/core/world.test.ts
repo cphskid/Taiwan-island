@@ -70,7 +70,7 @@ describe('小人沿路走', () => {
 
 describe('拉遠只留幾個', () => {
   it('越放大出來越多', () => {
-    expect(lodLevel(1)).toBe(-1);
+    expect(lodLevel(0.4)).toBe(0);
     expect(lodLevel(2)).toBe(0);
     expect(lodLevel(5)).toBe(3);
   });

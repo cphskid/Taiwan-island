@@ -103,7 +103,8 @@ export type ActorKind = 'farmer' | 'carrier' | 'worker' | 'buffalo' | 'hen' | 'd
   | 'hsiung' | 'hsiungGate' | 'hatta' | 'shaoElder' | 'sugarTrain'
   | 'afu' | 'afuCarry' | 'uma' | 'clerk3' | 'friar3' | 'vocShip' | 'junkShip'
   | 'an' | 'anMic' | 'agong' | 'engineer' | 'hsr'
-  | 'tourist' | 'scooter' | 'family' | 'gull' | 'tra';
+  | 'tourist' | 'scooter' | 'family' | 'gull' | 'tra'
+  | 'bus' | 'truck' | 'students' | 'vendor' | 'dogwalker' | 'jogger';
 export interface ActorDef {
   kind: ActorKind;
   path?: Pt[];
@@ -205,6 +206,13 @@ export const ACTOR_ART: Record<ActorKind, { walk: string[]; idle: string; work?:
   family: { walk: ['y3-8'], idle: 'y3-8', height: 15 },
   gull: { walk: ['y3-7'], idle: 'y3-7', fly: true, height: 8 },
   tra: { walk: ['y2-4'], idle: 'y2-4', height: 14 },
+  // 今天的街上（X-10）
+  bus: { walk: ['x10-2'], idle: 'x10-2', height: 14 },
+  truck: { walk: ['x10-3'], idle: 'x10-3', height: 13 },
+  students: { walk: ['x10-5'], idle: 'x10-5', height: 14 },
+  vendor: { walk: ['x10-6'], idle: 'x10-6', height: 15 },
+  dogwalker: { walk: ['x10-7'], idle: 'x10-7', height: 15 },
+  jogger: { walk: ['x10-8', 'x10-12'], idle: 'x10-8', height: 15 },
 };
 
 // 聚落周圍的樹、竹林、蘆葦，圳頭的攔水堰（O-04、O-02）。flip＝左右翻過來，看起來不會一模一樣

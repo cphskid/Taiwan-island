@@ -130,8 +130,7 @@ export function walker(path: readonly Pt[], speed: number, t: number, rest = 2):
 
 // 拉遠只留幾個，拉近才全部出來：zoom 是目前放大倍數÷「放得下整張」的倍數
 export function lodLevel(zoom: number): number {
-  if (zoom < 1.6) return -1; // 太遠了，小人小到看不見，全部藏起來
-  if (zoom < 2.4) return 0;
+  if (zoom < 2.4) return 0; // 拉到最遠也留幾個主角（畫面上會自動放大，看得到）
   if (zoom < 3.2) return 1;
   if (zoom < 4) return 2;
   return 3;
