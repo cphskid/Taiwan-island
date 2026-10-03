@@ -70,12 +70,13 @@ function Timetable({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops
     const end = r.crash ? r.crash.t : Math.max(...r.arrive);
     sfx('SE-09');
     setRes(null);
-    let now = 0;
+    const t0 = performance.now();
     setT(0);
+    // 一格時間跑 0.18 秒（照真的時間算，分頁卡頓也不會變慢）
     const step = () => {
-      now = Math.min(end, now + 0.25);
+      const now = Math.min(end, (performance.now() - t0) / 180);
       setT(now);
-      if (now < end) { setTimeout(step, 50); return; }
+      if (now < end) { requestAnimationFrame(step); return; }
       setRes(r);
       if (r.ok) { jingle('MU-13'); setSay(TRAIN_SAY.good); setTimeout(onDone, 2200); return; }
       sfx('SE-71'); oops();
@@ -83,7 +84,7 @@ function Timetable({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops
       setFails(f);
       setSay(f >= 2 ? TRAIN_SAY.hint : r.crash ? TRAIN_SAY.crash : TRAIN_SAY.late);
     };
-    setTimeout(step, 50);
+    requestAnimationFrame(step);
   };
 
   const lineOf = (k: 0 | 1) => {
