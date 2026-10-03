@@ -96,7 +96,7 @@ function Planner({ oops, onDone }: { oops: () => void; onDone: () => void }) {
                     const hint = fails >= 3 && y === 0 && c !== sol[0][z] ? sol[0][z] : null;
                     return (
                       <td key={z}>
-                        <button className={`ch7-rcell ${c ?? 'empty'} ${hint ? 'hint' : ''} ${marks.repeat.includes(z) ? 'bad' : ''}`} onClick={() => put(y, z)}>
+                        <button className={`ch7-rcell ${c ?? 'empty'} ${hint ? 'ch7-hint' : ''} ${marks.repeat.includes(z) ? 'bad' : ''}`} onClick={() => put(y, z)}>
                           {c ? <><img src={CROP_IMG[c]} alt="" /><small>{CROP_NAME[c]} {ROTA.areas[z] * WATER[c]}</small></> : hint ? <small>試試{CROP_NAME[hint]}</small> : <small>＋</small>}
                         </button>
                       </td>

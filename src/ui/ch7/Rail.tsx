@@ -34,7 +34,7 @@ const CARGO_IMG = { rice: art7('g-08-rice-car'), sugar: art7('g-08-sugar-car') }
 
 function CarBox({ car, on, hint, ghost }: { car: Car; on?: boolean; hint?: boolean; ghost?: boolean }) {
   return (
-    <span className={`ch7-car ${on ? 'on' : ''} ${hint ? 'hint' : ''} ${ghost ? 'ghost' : ''}`}>
+    <span className={`ch7-car ${on ? 'on' : ''} ${hint ? 'ch7-hint' : ''} ${ghost ? 'ch7-far' : ''}`}>
       <img src={CARGO_IMG[car.cargo]} alt="" />
       <b>{car.to}</b>
     </span>
@@ -123,7 +123,7 @@ function YardBoard({ level, oops, onDone }: { level: number; oops: () => void; o
         </div>
         {/* 火車（往北，左邊）＋進站線（右邊進來） */}
         <div className="ch7-main">
-          <button className={`ch7-train ${sel !== null ? 'ready' : ''} ${tip?.[1] === 'out' ? 'hint' : ''} ${leaving ? 'leave' : ''}`} onClick={() => dropTo('out')}>
+          <button className={`ch7-train ${sel !== null ? 'ready' : ''} ${tip?.[1] === 'out' ? 'ch7-hint' : ''} ${leaving ? 'leave' : ''}`} onClick={() => dropTo('out')}>
             <img className="ch7-loco" src={art7('g-08-loco')} alt="火車頭" />
             {y.out.map((c) => <CarBox key={c.id} car={c} />)}
             {!y.out.length && <small className="ch7-slot-tip">掛到這裡</small>}
@@ -139,7 +139,7 @@ function YardBoard({ level, oops, onDone }: { level: number; oops: () => void; o
         </div>
         <div className="ch7-sides">
           {y.sides.map((s, k) => (
-            <div key={k} role="button" className={`ch7-side ${sel !== null && sel !== k ? 'ready' : ''} ${tip?.[1] === k ? 'hint' : ''}`} onClick={() => dropTo(k)}>
+            <div key={k} role="button" className={`ch7-side ${sel !== null && sel !== k ? 'ready' : ''} ${tip?.[1] === k ? 'ch7-hint' : ''}`} onClick={() => dropTo(k)}>
               <small>岔道 {k + 1}<br />（死巷）</small>
               <span className="ch7-side-end">▮</span>
               {s.map((c, i) => (

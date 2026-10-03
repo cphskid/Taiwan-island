@@ -1007,7 +1007,8 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .iron-hud .btn{min-width:0;width:100%;font-size:14px;min-height:36px;padding:4px 6px}
 .hill .rainfall{position:absolute;inset:0;z-index:5}
 
-/* ── 第七章 ── 縱貫與大圳 */
+/* ── 第七章 ── */
+/* 縱貫與大圳 */
 .ch7 .stage{background:#3a4a2a}
 .ch7-dry .scene-bg{filter:sepia(.75) saturate(.55) brightness(1.08) contrast(.95);transition:filter 1.5s}
 .ch7-open.wet .scene-bg{filter:brightness(1.05) saturate(1.2);transition:filter 1.5s}
@@ -1031,7 +1032,7 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .ch7-track-in{flex:1;justify-content:flex-start;background-color:#eef3e2}
 .ch7-track-in>small,.ch7-side>small{align-self:center;font-weight:900;color:#7a5a3a;font-size:13px;line-height:1.2;white-space:nowrap;margin-right:4px}
 .ch7-train.ready,.ch7-side.ready{border-color:#3fbf5a;background-color:#effbe8;cursor:pointer}
-.ch7-train.hint,.ch7-side.hint{box-shadow:0 0 0 4px var(--gold),0 0 14px rgba(255,194,61,.8)}
+.ch7-train.ch7-hint,.ch7-side.ch7-hint{box-shadow:0 0 0 4px var(--gold),0 0 14px rgba(255,194,61,.8)}
 .ch7-train.leave{animation:ch7-leave 2s ease-in forwards}
 @keyframes ch7-leave{30%{transform:translateX(10px)}to{transform:translateX(-120%);opacity:0}}
 .ch7-loco{height:62px;transform:scaleX(1);flex:none}
@@ -1042,8 +1043,8 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .ch7-car img{width:56px;height:44px;object-fit:contain}
 .ch7-car b{font-size:13px;line-height:1.1;background:#fff;border-radius:6px;padding:0 4px;border:1px solid #c9a46b;white-space:nowrap}
 .ch7-car.on{border-color:#3fbf5a;background:#e9fbe6;transform:translateY(-6px)}
-.ch7-car.hint{border-color:var(--gold);box-shadow:0 0 12px rgba(255,194,61,.9);animation:pulse .6s ease-in-out infinite alternate}
-.ch7-car.ghost{opacity:.7}
+.ch7-car.ch7-hint{border-color:var(--gold);box-shadow:0 0 12px rgba(255,194,61,.9);animation:pulse .6s ease-in-out infinite alternate}
+.ch7-car.ch7-far{opacity:.7}
 .ch7-sides{display:flex;flex-direction:column;gap:6px}
 .ch7-side{justify-content:flex-start;cursor:default}
 .ch7-side-end{align-self:stretch;display:flex;align-items:center;color:#6b3f1f;font-size:26px;margin-right:2px}
@@ -1071,10 +1072,10 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .ch7-layer.bad{box-shadow:0 0 0 4px #e04a2c;animation:shake .25s linear 2}
 .ch7-cell{width:46px;height:46px;border-radius:8px;border:2px solid #b08a58;background:#f6ead0;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .ch7-cell img{width:90%;height:90%;object-fit:contain}
-.ch7-cell.empty{border-style:dashed;background:rgba(255,250,235,.8)}
-.ch7-cell.clay{background:#e6c3a6}
-.ch7-cell.sand{background:#f7e7b0}
-.ch7-cell.rock{background:#d9d6cf}
+.ch7-cell.m-empty{border-style:dashed;background:rgba(255,250,235,.8)}
+.ch7-cell.m-clay{background:#e6c3a6}
+.ch7-cell.m-sand{background:#f7e7b0}
+.ch7-cell.m-rock{background:#d9d6cf}
 .ch7-cell.fixed{cursor:default;filter:brightness(.85);border-color:#7a6a58}
 .ch7-cell.ans{box-shadow:0 0 0 3px var(--gold)}
 .ch7-cell.ans-clay::after,.ch7-cell.ans-sand::after,.ch7-cell.ans-rock::after{position:absolute;font-size:11px;font-weight:900;color:#8a5429}
@@ -1101,7 +1102,7 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .ch7-rcell.rice{background:#e9fbe6}
 .ch7-rcell.cane{background:#f3e6f7}
 .ch7-rcell.misc{background:#fbefe0}
-.ch7-rcell.hint{box-shadow:0 0 0 4px var(--gold);color:#8a5429}
+.ch7-rcell.ch7-hint{box-shadow:0 0 0 4px var(--gold);color:#8a5429}
 .ch7-rcell.bad,tr.bad .ch7-rcell{border-color:#e04a2c;animation:shake .25s linear 2}
 .ch7-water{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:120px}
 .ch7-water-bar{width:100%;height:12px;border-radius:6px;background:#e6dcc5;overflow:hidden}
@@ -1113,10 +1114,11 @@ img.gear{width:110px;height:110px;object-fit:contain}
 
 /* 日月潭水管 */
 .ch7-pipe-board{padding:10px 14px;display:flex;gap:14px;align-items:center;width:min(820px,100%)}
-.ch7-pipes{display:grid;gap:3px;flex:1;max-width:520px}
+.ch7-pipes{display:grid;gap:3px}
+.ch7-pipe-board{justify-content:center}
 .ch7-height{display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#6b3f1f;padding-right:4px}
 .ch7-height small{font-size:11px;color:#9c8466}
-.ch7-tile{position:relative;aspect-ratio:1;max-height:84px;border-radius:10px;border:2px solid #b08a58;background:#e7f0d8;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ch7-tile{position:relative;width:clamp(44px,calc((100dvh - 340px) / 4),84px);height:clamp(44px,calc((100dvh - 340px) / 4),84px);border-radius:10px;border:2px solid #b08a58;background:#e7f0d8;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .ch7-tile svg{width:100%;height:100%}
 .ch7-tile:disabled{cursor:default}
 .ch7-tile.rock{background:#cfc8b8}
@@ -1125,7 +1127,7 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .ch7-tile.plant small{position:absolute;bottom:-1px;left:50%;translate:-50% 0;font-size:10px;font-weight:900;white-space:nowrap;background:#fff;border-radius:6px;padding:0 3px}
 .ch7-tile.wet{background:#d8eefb}
 .ch7-tile.leak{box-shadow:0 0 0 3px #e04a2c}
-.ch7-tile.hint{box-shadow:0 0 0 4px var(--gold);animation:pulse .6s ease-in-out infinite alternate}
+.ch7-tile.ch7-hint{box-shadow:0 0 0 4px var(--gold);animation:pulse .6s ease-in-out infinite alternate}
 .ch7-tile:not(:disabled):active svg{transform:rotate(30deg)}
 .ch7-tile .pipe{stroke:#8a8f99;stroke-width:22;stroke-linecap:butt}
 .ch7-tile .pipe.wet{stroke:#2f86c8}
@@ -1188,7 +1190,6 @@ img.gear{width:110px;height:110px;object-fit:contain}
   .ch7-mat img,.ch7-crop img{width:32px;height:28px}
   .ch7-rcell{height:48px;width:118px}
   .ch7-rcell img{width:34px;height:34px}
-  .ch7-tile{max-height:70px}
   .ch7-gate-crop img{width:32px;height:32px}
   .ch7-gate-kid{height:50px}
 }
@@ -1199,3 +1200,6 @@ img.gear{width:110px;height:110px;object-fit:contain}
   .ch7-rcell{width:88px}
   .ch7-pipe-board{flex-direction:column}
 }
+.ch7-home .mission .badge{width:72px;height:72px;object-fit:contain}
+@media (max-height:600px){ .ch7-home .mission .badge{width:52px;height:52px} .ch7-home .mission h2{margin:2px 0} }
+.ch7-pipe-wrap{align-items:flex-start}

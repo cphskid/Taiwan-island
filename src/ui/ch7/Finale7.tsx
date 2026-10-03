@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BACK7, CARDS7, CHOICES7, homeLines7, KEEPSAKE7, keepsakeText, QUESTIONS7, TRUTH7, art7, type Pick7 } from '../../data/ch7';
+import { BACK7, CARD_ORDER7, CHOICES7, homeLines7, KEEPSAKE7, keepsakeText, QUESTIONS7, TRUTH7, art7, type Pick7 } from '../../data/ch7';
 import { PEOPLE, img } from '../../data/babao-chapter';
 import { Face, Talk } from '../Talk';
 import { fresh7, stars7 } from '../../core/save7';
@@ -130,7 +130,7 @@ export function Finale7({ p, set, exit }: Step7Props) {
               </div>
             )}
             {p.keepsakes.includes(KEEPSAKE7.id) && <p className="cards-got">信物：{KEEPSAKE7.title}　時光朋友：阿雄</p>}
-            <p className="cards-got">圖鑑卡：{p.cards.map((c) => CARDS7[c]?.title).filter(Boolean).join('、')}</p>
+            <p className="cards-got">圖鑑卡：{CARD_ORDER7.filter((c) => p.cards.includes(c)).length} / {CARD_ORDER7.length} 張（點上面的「📖 圖鑑」看）</p>
             <div className="row">
               <button className="btn green" onClick={exit}>回大地圖看看</button>
               <button className="btn orange" onClick={() => set((o) => ({ ...fresh7(), friends: o.friends, keepsakes: o.keepsakes, cards: o.cards }))}>從頭再玩</button>

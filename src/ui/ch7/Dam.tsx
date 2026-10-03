@@ -96,7 +96,7 @@ function Builder({ oops, onDone }: { oops: () => void; onDone: () => void }) {
                   const fixed = isFixed(DAM, row, i);
                   const ans = showAnswer && !fixed && m !== sol[row][i] ? sol[row][i] : null;
                   return (
-                    <button key={i} className={`ch7-cell ${m ?? 'empty'} ${fixed ? 'fixed' : ''} ${ans ? `ans ans-${ans}` : ''}`}
+                    <button key={i} className={`ch7-cell m-${m ?? 'empty'} ${fixed ? 'fixed' : ''} ${ans ? `ans ans-${ans}` : ''}`}
                       style={{ gridColumn: colOf(DAM, row, i) + 1 }} onClick={() => put(row, i)} aria-label={m ? MAT_NAME[m] : '空格'}>
                       {m && <img src={MAT_IMG[m]} alt="" />}
                     </button>

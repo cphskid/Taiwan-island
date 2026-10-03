@@ -14,7 +14,7 @@ type Phase = 'intro' | 'pipes' | 'story' | 'shao' | 'cards' | 'jump';
 export function SunMoon({ p, set, next, oops }: Step7Props) {
   const [phase, setPhase] = useState<Phase>('intro');
   return (
-    <div className="scene ch7-lake">
+    <div className="scene ch7-sun">
       <img className="scene-bg" src={art7('s-24')} alt="" />
       {phase === 'intro' && <Talk lines={SUN_INTRO} onDone={() => setPhase('pipes')} />}
       {phase === 'pipes' && <Pipes oops={oops} onDone={() => setPhase('story')} />}
@@ -81,7 +81,7 @@ function Pipes({ oops, onDone }: { oops: () => void; onDone: () => void }) {
     <div className="ch7-pipe-wrap">
       <Goal floating text={`轉水管，把日月潭的水接到發電所，要點亮 ${CITIES.length} 座城市。水只會往一樣高或更低的地方流，不能漏水`} />
       <div className="ch7-pipe-board panel">
-        <div className="ch7-pipes" style={{ gridTemplateColumns: `auto repeat(${lv.cols}, 1fr)` }}>
+        <div className="ch7-pipes" style={{ gridTemplateColumns: `auto repeat(${lv.cols}, auto)` }}>
           {Array.from({ length: lv.rows }, (_, r) => (
             <div key={r} className="ch7-prow" style={{ display: 'contents' }}>
               <span className="ch7-height">{['山頂', '高', '低', '山下'][r] ?? ''}<small>高度 {heightOf(lv, r)}</small></span>
@@ -89,7 +89,7 @@ function Pipes({ oops, onDone }: { oops: () => void; onDone: () => void }) {
                 const i = r * lv.cols + c;
                 const t = lv.tiles[i];
                 return (
-                  <button key={i} className={`ch7-tile ${t.k} ${f.wet[i] ? 'wet' : ''} ${f.leaks.includes(i) && lit !== null ? 'leak' : ''} ${fails >= 3 && !want(i) ? 'hint' : ''}`}
+                  <button key={i} className={`ch7-tile ${t.k} ${f.wet[i] ? 'wet' : ''} ${f.leaks.includes(i) && lit !== null ? 'leak' : ''} ${fails >= 3 && !want(i) ? 'ch7-hint' : ''}`}
                     onClick={() => spin(i)} disabled={t.k !== 'pipe'} aria-label={t.k === 'plant' ? t.name : t.k}>
                     <PipeArt tile={t} wet={f.wet[i]} />
                     {t.k === 'plant' && <small>{t.name}</small>}
