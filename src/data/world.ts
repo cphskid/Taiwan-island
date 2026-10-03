@@ -97,7 +97,8 @@ export const PADDIES: Pt[] = [
 // 會動的小人和動物。path 來回走；at 是站著做事的地方
 export type ActorKind = 'farmer' | 'carrier' | 'worker' | 'buffalo' | 'hen' | 'dog' | 'hoer' | 'porter' | 'woman' | 'lian' | 'magpie' | 'washer' | 'waterer' | 'kid' | 'duck' | 'swimmer'
   | 'ayan' | 'knapper' | 'potter' | 'jadeworker' | 'smith' | 'deer' | 'grazer'
-  | 'ani' | 'sower' | 'elder' | 'hunter' | 'trader' | 'boar' | 'macaque';
+  | 'ani' | 'sower' | 'elder' | 'hunter' | 'trader' | 'boar' | 'macaque'
+  | 'xlian' | 'xlianCarry' | 'chen' | 'veteran' | 'villager4';
 export interface ActorDef {
   kind: ActorKind;
   path?: Pt[];
@@ -164,6 +165,11 @@ export const ACTOR_ART: Record<ActorKind, { walk: string[]; idle: string; work?:
   trader: { walk: ['ch2/p-16-trader'], idle: 'ch2/p-16-trader', height: 17 },
   boar: { walk: ['x2-7'], idle: 'x2-7', height: 9 },
   macaque: { walk: ['x2-8'], idle: 'x2-8', height: 9 },
+  xlian: { walk: ['ch4/f-07a-walk1', 'ch4/f-07a-walk2'], idle: 'ch4/f-07a-idle', height: 14 },
+  xlianCarry: { walk: ['ch4/f-07a-carry'], idle: 'ch4/f-07a-carry', height: 14 },
+  chen: { walk: ['ch4/p-18-chen'], idle: 'ch4/p-18-chen', height: 17 },
+  veteran: { walk: ['ch4/p-18-veteran'], idle: 'ch4/p-18-veteran', loop: ['ch4/p-18-veteran', 'ch4/f-07a-dig'], height: 17 },
+  villager4: { walk: ['ch4/p-18-villager'], idle: 'ch4/p-18-villager', height: 17 },
 };
 
 // 聚落周圍的樹、竹林、蘆葦，圳頭的攔水堰（O-04、O-02）。flip＝左右翻過來，看起來不會一模一樣
@@ -291,9 +297,40 @@ const LIFE_CH2: ChapterLife = {
   ],
 };
 
+// 第四章：台南平原的東寧（孔廟、瀨口鹽田、北邊的營盤與屯田、水埤）
+const LIFE_CH4: ChapterLife = {
+  buildings: [
+    { name: 'ch4/o-08-hall', at: { x: 1030, y: 2500 }, width: 30 },
+    { name: 'ch4/o-08-gate', at: { x: 1040, y: 2530 }, width: 20 },
+    { name: 'ch4/o-08-camp', at: { x: 1062, y: 2604 }, width: 26 },
+    { name: 'ch4/o-08-camp', at: { x: 1060, y: 2660 }, width: 24, flip: true },
+    { name: 'ch4/o-08-village', at: { x: 1200, y: 2700 }, width: 26 },
+  ],
+  scenery: [
+    { name: 'ch4/o-08-saltpan', at: { x: 950, y: 2700 }, width: 30 },
+    { name: 'ch4/o-08-saltpan', at: { x: 966, y: 2734 }, width: 26, flip: true },
+    { name: 'ch4/g-06-salt', at: { x: 976, y: 2700 }, width: 9 },
+    { name: 'ch4/o-08-pond', at: { x: 1080, y: 2560 }, width: 26 },
+    { name: 'ch4/o-08-paddy', at: { x: 1112, y: 2634 }, width: 26 },
+    { name: 'ch4/o-08-paddy', at: { x: 1086, y: 2690 }, width: 26 },
+    { name: 'ch4/o-08-potato', at: { x: 1142, y: 2664 }, width: 22 },
+    { name: 'ch4/g-06-flag', at: { x: 1078, y: 2592 }, width: 8 },
+  ],
+  smoke: [{ x: 1062, y: 2592 }, { x: 1200, y: 2688 }],
+  actors: [
+    { kind: 'xlian', path: [{ x: 1050, y: 2510 }, { x: 1070, y: 2546 }, { x: 1094, y: 2580 }], speed: 7, who: '小蓮', says: '阿爸不用再去打仗了！我們在這裡有自己的田。', lod: 0 },
+    { kind: 'xlianCarry', path: [{ x: 1082, y: 2572 }, { x: 1108, y: 2626 }], speed: 5, who: '挑水的小蓮', says: '水埤把雨水存起來，旱季田也有水。', lod: 1 },
+    { kind: 'chen', at: { x: 1010, y: 2520 }, who: '陳永華', says: '蓋孔廟、設學堂，讓孩子讀書，東寧才有明天。', lod: 0 },
+    { kind: 'veteran', at: { x: 1124, y: 2646 }, who: '屯田的老兵', says: '寓兵於農：平常種田，要打仗才拿起刀。營盤的名字，後來變成新營、柳營這些地名。', lod: 1 },
+    { kind: 'villager4', at: { x: 1214, y: 2720 }, who: '村社的阿姨', says: '溪邊的地是我們的獵場和田，大家要先商量好。', lod: 1 },
+    { kind: 'buffalo', path: [{ x: 1080, y: 2680 }, { x: 1104, y: 2700 }], speed: 3, who: '水牛', says: '哞～', lod: 2 },
+  ],
+};
+
 export const LIFE: Partial<Record<ChapterId, ChapterLife>> = {
   ch1: LIFE_CH1,
   ch2: LIFE_CH2,
+  ch4: LIFE_CH4,
   ch5: { canal: CANAL, roads: ROADS, paddies: PADDIES, buildings: BUILDINGS, scenery: SCENERY, smoke: SMOKE, actors: ACTORS },
 };
 
