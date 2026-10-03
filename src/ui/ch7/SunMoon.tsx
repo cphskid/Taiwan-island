@@ -26,17 +26,21 @@ export function SunMoon({ p, set, next, oops }: Step7Props) {
   );
 }
 
-// 一格水管的樣子：從中間往有開口的方向畫粗線
+// 一格水管的樣子：從中間往有開口的方向畫粗水管（外框、管身、亮面三層，看起來圓圓亮亮的）
 function PipeArt({ tile, wet }: { tile: Tile; wet: boolean }) {
   const o = openings(tile);
   const ends = [[50, 0], [100, 50], [50, 100], [0, 50]];
-  if (tile.k === 'rock') return <svg viewBox="0 0 100 100"><path d="M18 78 L30 40 L52 26 L74 36 L84 74 Z" fill="#8f8a7e" stroke="#5f5a50" strokeWidth="4" /></svg>;
+  if (tile.k === 'rock') return <img className="ch7-sprite rock" src={art7('g-08-rock')} alt="" />;
+  if (tile.k === 'lake') return <><img className="ch7-sprite lake" src={art7('o-13-lake')} alt="" /><PipeLines o={o} ends={ends} wet /><b className="ch7-lake-tag">日月潭</b></>;
+  if (tile.k === 'plant') return <><PipeLines o={o} ends={ends} wet={wet} /><img className={`ch7-sprite plant ${wet ? 'on' : ''}`} src={art7('o-13-station')} alt="" /></>;
+  return <PipeLines o={o} ends={ends} wet={wet} joint />;
+}
+function PipeLines({ o, ends, wet, joint }: { o: number; ends: number[][]; wet: boolean; joint?: boolean }) {
+  const segs = ends.map(([x, y], d) => (o & (1 << d) ? [x, y] : null));
   return (
-    <svg viewBox="0 0 100 100">
-      {ends.map(([x, y], d) => (o & (1 << d) ? <line key={d} x1="50" y1="50" x2={x} y2={y} className={`pipe ${wet ? 'wet' : ''}`} /> : null))}
-      {tile.k === 'pipe' && <circle cx="50" cy="50" r="13" className={`pipe-joint ${wet ? 'wet' : ''}`} />}
-      {tile.k === 'lake' && <><circle cx="44" cy="50" r="36" fill="#3d9be0" stroke="#1f6aa8" strokeWidth="5" /><text x="44" y="60" textAnchor="middle" fontSize="26" fill="#fff" fontWeight="900">湖</text></>}
-      {tile.k === 'plant' && <><rect x="18" y="30" width="64" height="50" rx="6" fill={wet ? '#ffd45c' : '#b9a27e'} stroke="#6b3f1f" strokeWidth="5" /><path d="M18 30 L50 12 L82 30 Z" fill="#a0522d" stroke="#6b3f1f" strokeWidth="5" /><text x="50" y="66" textAnchor="middle" fontSize="24" fontWeight="900" fill="#3a2412">⚡</text></>}
+    <svg viewBox="0 0 100 100" className="ch7-pipe-svg">
+      {(['pipe-o', 'pipe', 'pipe-hl'] as const).map((k) => segs.map((e, d) => e && <line key={k + d} x1="50" y1="50" x2={e[0]} y2={e[1]} className={`${k} ${wet ? 'wet' : ''}`} />))}
+      {joint && <><circle cx="50" cy="50" r="17" className={`pipe-joint ${wet ? 'wet' : ''}`} /><circle cx="45" cy="45" r="5" fill="#fff" opacity=".5" /></>}
     </svg>
   );
 }

@@ -4,12 +4,13 @@ import { CAMPS, CAMP_DONE, CAMP_INTRO, CAMP_NAMES, CAMP_RULES, CAMP_SAY, art4 } 
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
+import { Terrain } from '../Terrain';
 import { NewCards, type Step4Props } from '../Ch4';
 import { Decide4 } from './Story4';
 import { jingle, sfx } from '../../audio';
 
 type Phase = 'intro' | 'place' | 'names' | 'done' | 'choice' | 'cards';
-const TILE: Record<string, string> = { '.': 'o-08-dry', '~': 'o-08-pond', s: 'o-08-village', h: 'o-08-potato' };
+const TILE: Record<string, string> = { s: 'o-08-village', h: 'o-08-potato', b: 'o-11-bamboo' };
 const TAG: Record<string, string> = { s: '社', h: '社的田', b: '竹林' };
 const RULE_NO: Record<string, number> = Object.fromEntries(CAMP_RULES.map((r, i) => [r.id, i + 1]));
 
@@ -52,6 +53,14 @@ export function Camps({ p, set, next, oops }: Step4Props) {
         <div className="ch4-camp-wrap">
           <div className="ch4-map panel" style={{ ['--cols' as string]: CAMPS.rows[0].length }}>
             <span className="ch4-north">北 ▲</span>
+            <div className="ch4-ground-bg">
+              <img src={art4('t-earth')} alt="" />
+              <Terrain cols={CAMPS.rows[0].length} rows={CAMPS.rows.length} layers={[
+                { test: (c, r) => 'shb'.includes(CAMPS.rows[r][c]), fill: '#9fcf6e', soft: 0.3, opacity: 0.85 },
+                { test: (c, r) => CAMPS.rows[r][c] === '~', fill: '#e9d9a4', grow: 0.1, soft: 0.28 },
+                { test: (c, r) => CAMPS.rows[r][c] === '~', fill: '#4fa8dc', soft: 0.28 },
+              ]} />
+            </div>
             {CAMPS.rows.flatMap((line, row) => [...line].map((ch, col) => {
               const c = { col, row };
               const i = has(c);
@@ -60,8 +69,7 @@ export function Camps({ p, set, next, oops }: Step4Props) {
               return (
                 <button key={ck(c)} className={`ch4-tile t-${ch === '~' ? 'w' : ch === '.' ? 'p' : ch} ${hint ? 'hint' : ''} ${bad ? 'bad' : ''}`} onClick={() => tap(c)} aria-label={`${col},${row}`}>
                   {TILE[ch] && <img className="ch4-ground" src={art4(TILE[ch])} alt="" />}
-                  {ch === 'b' && <span className="ch4-bamboo">🎋</span>}
-                  {TAG[ch] && <small className="ch4-tag">{TAG[ch]}</small>}
+                                    {TAG[ch] && <small className="ch4-tag">{TAG[ch]}</small>}
                   {i >= 0 && <img className="ch4-campimg" src={art4('o-08-camp')} alt="營盤" />}
                   {i >= 0 && phase !== 'place' && <b className="ch4-campname">{CAMP_NAMES[i].name}</b>}
                   {bad && <em className="ch4-bad">{bad.map((r) => RULE_NO[r]).join('、')}</em>}

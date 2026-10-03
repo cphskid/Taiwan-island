@@ -4,6 +4,7 @@ import { RAIL_DONE, RAIL_INTRO, RAIL_RULE, RAIL_SAY, RAILS, art6 } from '../../d
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
 import { Beacon, Goal } from '../Guide';
+import { Terrain, jitter } from '../Terrain';
 import { NewCards6, type Step6Props } from '../Ch6';
 import { Decide6, Jump6 } from './Story6';
 import { jingle, sfx } from '../../audio';
@@ -87,6 +88,27 @@ function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: ()
           <small>{way === 0 ? '挖隧道穿過獅球嶺' : '沿著山邊繞過去'}</small>
         </div>
         <div className="ch6-rail-grid" style={{ gridTemplateColumns: `repeat(${W}, 1fr)`, aspectRatio: `${W} / ${H}` }}>
+          <div className="rl-land">
+            <img className="rl-bg" src={art6('s-22')} alt="" />
+            <Terrain cols={W} rows={H} layers={[
+              { test: (x, y) => railH(lv, { x, y }) >= 2, fill: '#c9d978', soft: 0.26, className: 'rl-lay' },
+              { test: (x, y) => railH(lv, { x, y }) >= 3, fill: '#b59a5c', soft: 0.24, className: 'rl-lay' },
+              { test: (x, y) => railH(lv, { x, y }) >= 4, fill: '#86643f', soft: 0.22, className: 'rl-lay' },
+              { test: (x, y) => railCh(lv, { x, y }) === '~', fill: '#ecd9a0', grow: 0.08, soft: 0.25 },
+              { test: (x, y) => railCh(lv, { x, y }) === '~', fill: '#4a9ad8', soft: 0.25 },
+            ]} />
+            {lv.map.flatMap((row, y) => [...row].map((ch, x) => {
+              const h = railH(lv, { x, y });
+              const img = h === 4 && jitter(x, y, 1) < 0.55 ? 'o-13-mountain' : h === 3 && jitter(x, y, 2) < 0.4 ? 'o-13-hill' : h === 2 && jitter(x, y, 3) < 0.3 ? 'o-11-tree' : h === 1 && ch !== 'K' && ch !== 'P' && jitter(x, y, 4) < 0.25 ? 'o-11-teabush' : null;
+              return img && <img key={`d${x},${y}`} className={`rl-deco ${img}`} src={art6(img)} alt=""
+                style={{ left: `${((x + 0.55 + (jitter(x, y, 5) - 0.5) * 0.2) / W) * 100}%`, top: `${((y + 0.7) / H) * 100}%`, width: `${(0.62 / W) * 100}%` }} />;
+            }))}
+            <svg className="rl-track" viewBox={`0 0 ${W * 100} ${H * 100}`} preserveAspectRatio="none">
+              {path.length > 1 && <polyline points={path.map((s) => `${s.at.x * 100 + 50},${s.at.y * 100 + 50}`).join(' ')} fill="none" stroke="#6b4a2a" strokeWidth="22" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="5 9" />}
+              {path.length > 1 && <polyline points={path.map((s) => `${s.at.x * 100 + 50},${s.at.y * 100 + 50}`).join(' ')} fill="none" stroke="#8e939c" strokeWidth="12" strokeLinejoin="round" strokeLinecap="round" />}
+              {path.length > 1 && <polyline points={path.map((s) => `${s.at.x * 100 + 50},${s.at.y * 100 + 50}`).join(' ')} fill="none" stroke="#c9ccd2" strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" />}
+            </svg>
+          </div>
           {lv.map.flatMap((row, y) => [...row].map((ch, x) => {
             const c = { x, y };
             const k = path.findIndex((s) => same(s.at, c));
@@ -99,11 +121,10 @@ function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: ()
               <button key={`${x},${y}`} className={`rl rl-${ch === '~' ? 'river' : ch === 'K' || ch === 'P' ? 'stn' : `h${h}`} ${st ? `on ${st.kind}` : ''} ${near ? 'near' : ''} ${hint ? 'hint' : ''} ${bad && same(bad, c) ? 'bad' : ''}`}
                 onClick={() => tap(c)} aria-label={label}>
                 {ch !== '~' && ch !== 'K' && ch !== 'P' && <i className="rl-h">{h}</i>}
-                {(ch === 'K' || ch === 'P') && <b className="rl-tag">{label}</b>}
+                {(ch === 'K' || ch === 'P') && <><img className="rl-stn-img" src={art6('o-09-station')} alt="" /><b className="rl-tag">{label}</b></>}
                 {st?.kind === 'tunnel' && <img className="rl-icon" src={art6('g-07-tunnel')} alt="" />}
                 {st?.kind === 'bridge' && <img className="rl-icon" src={art6('g-07-bridge')} alt="" />}
-                {st && st.kind === 'land' && k > 0 && railCh(lv, c) !== 'P' && <img className="rl-icon track" src={art6('g-07-track')} alt="" />}
-              </button>
+                              </button>
             );
           }))}
           {!done && (() => { const g = railGoal(lv); return <Beacon style={{ left: `${((g.x + 0.5) / W) * 100}%`, top: `${((g.y + 0.5) / H) * 100}%` }} label="臺北：鋪到這裡" spot />; })()}

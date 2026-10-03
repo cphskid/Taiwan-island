@@ -130,7 +130,8 @@ function HarborBoard({ li, oops, onDone }: { li: number; oops: () => void; onDon
       </div>
       <div className="ch3-harbor">
         <div className="ch3-grid" style={{ ['--n' as string]: n }}>
-          {h.rocks.map((r) => <img key={`${r.col},${r.row}`} className="ch3-rock" src={art3('o-07-reef')} alt="" style={{ left: `${(r.col / n) * 100}%`, top: `${(r.row / n) * 100}%` }} />)}
+          <img className="ch3-sea-bg" src={art3('t-sea')} alt="" />
+          {h.rocks.map((r) => <img key={`${r.col},${r.row}`} className="ch3-rock" src={art3('o-12-reef')} alt="" style={{ left: `${(r.col / n) * 100}%`, top: `${(r.row / n) * 100}%` }} />)}
           {boats.map((b) => {
             const off = drag?.id === b.id ? drag.by : 0;
             const col = b.col + (b.across ? off : 0), row = b.row + (b.across ? 0 : off);
@@ -138,7 +139,8 @@ function HarborBoard({ li, oops, onDone }: { li: number; oops: () => void; onDon
               <div key={b.id} className={`ch3-boat ${b.id === 'A' ? 'red' : ''} ${b.across ? 'across' : 'down'} ${drag?.id === b.id ? 'drag' : ''} ${nextMove?.id === b.id ? 'ch3-hint' : ''}`}
                 style={{ left: `${(col / n) * 100}%`, top: `${(row / n) * 100}%`, width: `${((b.across ? b.len : 1) / n) * 100}%`, height: `${((b.across ? 1 : b.len) / n) * 100}%` }}
                 onPointerDown={(e) => down(e, b)} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
-                <span>{b.id === 'A' ? '⛵' : b.len === 3 ? '🚢' : '🛶'}</span>
+                <img className="ch3-boat-img" src={art3(b.id === 'A' ? 'o-12-redship' : b.len === 3 ? 'o-12-junk' : 'o-12-sampan')} alt="" draggable={false}
+                  style={b.across ? undefined : { width: `${b.len * 100}%`, height: `${100 / b.len}%` }} />
                 {nextMove?.id === b.id && <i className="ch3-nudge">{b.across ? (nextMove.by > 0 ? '→' : '←') : nextMove.by > 0 ? '↓' : '↑'}</i>}
               </div>
             );

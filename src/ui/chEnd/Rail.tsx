@@ -4,6 +4,7 @@ import { RAIL, RAIL_DONE, RAIL_INTRO, RAIL_NAMES, RAIL_SAY, artE } from '../../d
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
 import { Beacon, Goal } from '../Guide';
+import { Terrain, jitter } from '../Terrain';
 import { NewCardsEnd, type StepEndProps } from '../ChEnd';
 import { DecideEnd, EraJumpEnd } from './StoryEnd';
 import { jingle, sfx } from '../../audio';
@@ -94,15 +95,26 @@ function Track({ oops, riding, onPass, onRode }: { oops: () => void; riding: boo
     <div className="end-rail-wrap">
       <Goal floating text={reached ? '點路線上的城市決定停站，再按「試跑一趟」' : '從台北一格一格點到高雄。路線經過的城市，點一下就會停站。'} />
       <div className="end-rail-board" style={{ ['--cols' as string]: COLS, ['--rows' as string]: ROWS }}>
+        <div className="end-rail-land">
+          <img className="end-rail-bg" src={artE('t-grass')} alt="" />
+          <Terrain cols={COLS} rows={ROWS} layers={[
+            { test: (c, r) => railAt(RAIL, { col: c, row: r }) === 'M', fill: '#6f9a4a', soft: 0.3, className: 'end-mtn' },
+            { test: (c, r) => railAt(RAIL, { col: c, row: r }) === 'M' && railAt(RAIL, { col: c - 1, row: r }) === 'M', fill: '#8a7650', soft: 0.3, wobble: 0.2, className: 'end-mtn' },
+            { test: (c, r) => railAt(RAIL, { col: c, row: r }) === 'W', fill: '#8fd3cc', soft: 0.3 },
+          ]} />
+          {RAIL.rows.flatMap((line, row) => [...line].map((ch, col) => {
+            const img = ch === 'M' && jitter(col, row, 1) < 0.6 ? 'o-13-mountain' : ch === 'W' ? 'o-11-wetland' : isCity(RAIL, { col, row }) ? 'o-13-city' : null;
+            return img && <img key={`d${col},${row}`} className={`end-rail-deco ${ch === 'M' ? 'mtn' : ch === 'W' ? 'wet' : 'city'}`} src={artE(img)} alt=""
+              style={{ left: `${((col + 0.5) / COLS) * 100}%`, top: `${((row + 0.5) / ROWS) * 100}%` }} />;
+          }))}
+        </div>
         {RAIL.rows.flatMap((line, row) => [...line].map((ch, col) => {
           const c = { col, row }, k = cellKey(c);
           const on = onPath.has(k);
           return (
             <button key={k} className={`end-rail-cell end-t-${ch === '.' ? 'p' : ch} ${on ? 'on' : ''} ${stops.includes(k) || ch === 'T' || ch === 'K' ? 'stop' : ''} ${bestCells.has(k) && !on ? 'hint' : ''} ${cellKey(end) === k ? 'end' : ''}`}
               onClick={() => tap(c)} aria-label={RAIL_NAMES[k] ?? (ch === 'M' ? '山' : ch === 'W' ? '保護區' : '平地')}>
-              {ch === 'M' && <i>⛰</i>}
-              {ch === 'W' && <i>🐦</i>}
-              {isCity(RAIL, c) && <em>{RAIL_NAMES[k]}</em>}
+                                          {isCity(RAIL, c) && <em>{RAIL_NAMES[k]}</em>}
             </button>
           );
         }))}

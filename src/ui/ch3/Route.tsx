@@ -6,6 +6,7 @@ import { Say, Talk } from '../Talk';
 import { Beacon, Goal, compass } from '../Guide';
 import { NewCards3, type Step3Props } from '../Ch3';
 import { EraJump3 } from './Story3';
+import { Terrain } from '../Terrain';
 import { jingle, sfx } from '../../audio';
 
 type Phase = 'jump' | 'intro' | 'sail' | 'good' | 'cards';
@@ -108,13 +109,20 @@ function RouteSail({ info, oops, onDone }: { info: RouteInfo; oops: () => void; 
     <div className="ch3-route">
       <Goal floating text={`把船開進${info.to}的港口（${lv.days} 天內）。從${info.from}出發，帆船只能順著季風走，黑水溝會把船往北推，水道要漲潮才進得去。`} />
       <div className="ch3-chart" style={{ aspectRatio: `${cols} / ${rows}` }}>
+        <img className="ch3-sea-bg" src={art3('t-sea')} alt="" />
+        <Terrain cols={cols} rows={rows} layers={[
+          { test: (col, row) => cellAt(lv, { col, row }) === 'current', fill: '#123f6a', soft: 0.32, opacity: 0.7 },
+          { test: (col, row) => cellAt(lv, { col, row }) === 'channel', fill: high ? '#8fe0f5' : '#f1dfa4', soft: 0.25, opacity: 0.85 },
+          { test: (col, row) => cellAt(lv, { col, row }) === 'land', fill: '#f3e1a6', grow: 0.13, soft: 0.3 },
+          { test: (col, row) => cellAt(lv, { col, row }) === 'land', img: art3('t-grass'), soft: 0.3 },
+        ]} />
         <div className="ch3-cells" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
           {lv.rows.flatMap((line, row) => [...line].map((_, col) => {
             const c = cellAt(lv, { col, row })!;
             return (
               <div key={`${col},${row}`} className={`ch3-cell ${c} ${c === 'channel' ? (high ? 'high' : 'low') : ''}`}>
                 {c === 'current' && <i>↑</i>}
-                {c === 'shoal' && <img src={art3('o-07-reef')} alt="淺灘" />}
+                {c === 'shoal' && <img src={art3('o-12-reef')} alt="淺灘" />}
                 {c === 'channel' && !high && <img src={art3('o-07-sandbar')} alt="退潮的沙洲" />}
                 {c === 'harbor' && <img src={art3(li0(info) ? 'o-07-zeelandia' : 'g-05-silver')} alt="港口" />}
               </div>

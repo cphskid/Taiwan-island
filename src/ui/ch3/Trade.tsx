@@ -93,6 +93,9 @@ function TradeBoard({ oops, onDone }: { oops: () => void; onDone: () => void }) 
     <div className="ch3-trade">
       <Goal floating text={sellHere ? '船上的貨這裡收，先賣掉換銀子' : loaded(s) ? '貨裝好了，開船去標著 ⭐ 的港口賣' : `賺到 ${lv.goal} 兩銀：便宜買、運到貴的港口賣。${lv.legs} 趟船，每一趟都要從大員出發或回到大員。`} />
       <div className="ch3-seamap panel">
+        <img className="ch3-sea-bg" src={art3('t-sea')} alt="" />
+        {PORTS.map((id) => <img key={`i${id}`} className={`ch3-isle ${id}`} src={art3('o-12-island')} alt=""
+          style={{ left: `${PORT_INFO[id].x * 100}%`, top: `${PORT_INFO[id].y * 100}%` }} />)}
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="ch3-lanes">
           {PORTS.filter((id) => id !== 'tayouan').map((id) => (
             <line key={id} x1={PORT_INFO.tayouan.x * 100} y1={PORT_INFO.tayouan.y * 100} x2={PORT_INFO[id].x * 100} y2={PORT_INFO[id].y * 100} />
