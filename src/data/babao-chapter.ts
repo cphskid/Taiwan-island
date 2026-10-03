@@ -116,7 +116,8 @@ export const PLACES: Place[] = [
 // 夥伴的圖：F-01B、F-02B 表情表（public/img/story/），moods 是每個表情用哪一格。
 export type Who = 'tick' | 'shi' | 'lin' | 'babuza' | 'zhang' | 'quan' | 'lian' | 'mu' | 'traveler'
   | 'yan' | 'potter' | 'jade' | 'smith' | 'arch' // 第一章（data/ch1.ts）
-  | 'ani' | 'elder' | 'hunter' | 'trader'; // 第二章（data/ch2.ts）
+  | 'ani' | 'elder' | 'hunter' | 'trader' // 第二章（data/ch2.ts）
+  | 'chun' | 'teaboss' | 'merchant' | 'liu' | 'mackay'; // 第六章（data/ch6.ts）
 export type Mood = 'wave' | 'happy' | 'thinking' | 'worried' | 'scared' | 'sad' | 'determined' | 'frown' | 'angry' | 'thumbs' | 'listen' | 'laugh' | 'surprised' | 'shout' | 'me';
 export const TICK_MOODS: readonly Mood[] = ['wave', 'happy', 'thinking', 'worried'];
 export interface Line { who: Who; text: string; mood?: Mood }
@@ -149,6 +150,15 @@ export const PEOPLE: Record<Who, { name: string; img?: string; moods?: Partial<R
   elder: { name: '部落長老', img: 'ch2/p-16-elder.webp', color: '#7a5230' },
   hunter: { name: '獵人叔叔', img: 'ch2/p-16-hunter.webp', color: '#55703a' },
   trader: { name: '外地來的商人', img: 'ch2/p-16-trader.webp', color: '#34508a' },
+  // 第六章：阿春（虛構的大稻埕揀茶女孩，F-08B 表情）、茶行老闆（虛構，借用 P-08）、洋行商人（虛構）、劉銘傳、馬偕（P-19）
+  chun: { name: '阿春', img: 'ch6/f-08b-happy.webp', color: '#3f7fc4', moods: {
+    happy: 'ch6/f-08b-happy.webp', worried: 'ch6/f-08b-worried.webp', scared: 'ch6/f-08b-scared.webp', sad: 'ch6/f-08b-sad.webp',
+    determined: 'ch6/f-08b-determined.webp', frown: 'ch6/f-08b-frown.webp', angry: 'ch6/f-08b-angry.webp', thumbs: 'ch6/f-08b-thumbs.webp',
+    thinking: 'ch6/f-08b-worried.webp' } },
+  teaboss: { name: '茶行老闆', img: 'people/P-08_1.webp', color: '#7a4a1e' },
+  merchant: { name: '洋行商人', img: 'ch6/p-19-merchant.webp', color: '#a0702a' },
+  liu: { name: '劉銘傳', img: 'ch6/p-19-liu.webp', color: '#2b4a8a' },
+  mackay: { name: '馬偕', img: 'ch6/p-19-mackay.webp', color: '#333a44' },
 };
 
 // 時間卡住：齒輪掉在哪個時代，那裡就一直重複同一天

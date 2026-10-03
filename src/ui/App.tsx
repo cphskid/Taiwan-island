@@ -7,6 +7,7 @@ import { loadWorld, saveWorld } from '../core/world';
 import { mergeWorld, pickProgress } from '../core/sync';
 import { load1, pickProgress1, save1 } from '../core/save1';
 import { load2, pickProgress2, save2 } from '../core/save2';
+import { load6, pickProgress6, save6 } from '../core/save6';
 import { loadCloud } from '../net/cloud';
 import { Gate } from './Gate';
 
@@ -66,6 +67,7 @@ async function syncSaves(who: Who) {
   save(pickProgress(load(), cloud.ch5 as never));
   save1(pickProgress1(load1(), cloud.ch1 as never));
   save2(pickProgress2(load2(), cloud.ch2 as never));
+  save6(pickProgress6(load6(), cloud.ch6 as never));
   saveWorld(mergeWorld(loadWorld(), cloud.world as never));
 }
 
