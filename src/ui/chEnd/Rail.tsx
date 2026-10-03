@@ -91,14 +91,14 @@ function Track({ oops, riding, onPass, onRode }: { oops: () => void; riding: boo
   ];
   const reached = railAt(RAIL, end) === 'K';
   return (
-    <div className="rail-wrap">
+    <div className="end-rail-wrap">
       <Goal floating text={reached ? '點路線上的城市決定停站，再按「試跑一趟」' : '從台北一格一格點到高雄。路線經過的城市，點一下就會停站。'} />
-      <div className="rail-board" style={{ ['--cols' as string]: COLS, ['--rows' as string]: ROWS }}>
+      <div className="end-rail-board" style={{ ['--cols' as string]: COLS, ['--rows' as string]: ROWS }}>
         {RAIL.rows.flatMap((line, row) => [...line].map((ch, col) => {
           const c = { col, row }, k = cellKey(c);
           const on = onPath.has(k);
           return (
-            <button key={k} className={`rail-cell t-${ch === '.' ? 'p' : ch} ${on ? 'on' : ''} ${stops.includes(k) || ch === 'T' || ch === 'K' ? 'stop' : ''} ${bestCells.has(k) && !on ? 'hint' : ''} ${cellKey(end) === k ? 'end' : ''}`}
+            <button key={k} className={`end-rail-cell end-t-${ch === '.' ? 'p' : ch} ${on ? 'on' : ''} ${stops.includes(k) || ch === 'T' || ch === 'K' ? 'stop' : ''} ${bestCells.has(k) && !on ? 'hint' : ''} ${cellKey(end) === k ? 'end' : ''}`}
               onClick={() => tap(c)} aria-label={RAIL_NAMES[k] ?? (ch === 'M' ? '山' : ch === 'W' ? '保護區' : '平地')}>
               {ch === 'M' && <i>⛰</i>}
               {ch === 'W' && <i>🐦</i>}
@@ -106,16 +106,16 @@ function Track({ oops, riding, onPass, onRode }: { oops: () => void; riding: boo
             </button>
           );
         }))}
-        <svg className="rail-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden><polyline points={pts} /></svg>
+        <svg className="end-rail-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden><polyline points={pts} /></svg>
         {riding && <RailTrain path={path} />}
       </div>
-      <div className="rail-info panel">
-        <div className={`rail-time ${r.minutes > RAIL.limit ? 'no' : ''}`}><b>{r.minutes}</b> / {RAIL.limit} 分鐘</div>
-        <p className="rail-math">走 {path.length - 1} 格 ×4　轉彎 {r.turns} 次 ×2　停 {Math.max(0, r.gaps.length - 1)} 站 ×2</p>
-        <ul className="rail-rules">
+      <div className="end-rail-info panel">
+        <div className={`end-rail-time ${r.minutes > RAIL.limit ? 'no' : ''}`}><b>{r.minutes}</b> / {RAIL.limit} 分鐘</div>
+        <p className="end-rail-math">走 {path.length - 1} 格 ×4　轉彎 {r.turns} 次 ×2　停 {Math.max(0, r.gaps.length - 1)} 站 ×2</p>
+        <ul className="end-rail-rules">
           {rules.map((x) => <li key={x.id} className={shown.includes(x.id) ? 'no' : ''}>{shown.includes(x.id) ? '✗' : '・'} {x.text}</li>)}
         </ul>
-        {reached && <p className="rail-gaps">站距：{r.gaps.join('、')} 格</p>}
+        {reached && <p className="end-rail-gaps">站距：{r.gaps.join('、')} 格</p>}
         <div className="row">
           <button className="btn orange" disabled={riding || path.length <= 1} onClick={undo}>退一格</button>
           <button className="btn orange" disabled={riding || path.length <= 1} onClick={reset}>重畫</button>
@@ -137,5 +137,5 @@ function RailTrain({ path }: { path: Cell[] }) {
     return () => clearTimeout(t);
   }, [i, path.length]);
   const c = path[i];
-  return <img className="rail-train" src={artE('o-11-hsr')} alt="" style={{ left: `${((c.col + 0.5) / COLS) * 100}%`, top: `${((c.row + 0.5) / ROWS) * 100}%` }} />;
+  return <img className="end-rail-train" src={artE('o-11-hsr')} alt="" style={{ left: `${((c.col + 0.5) / COLS) * 100}%`, top: `${((c.row + 0.5) / ROWS) * 100}%` }} />;
 }

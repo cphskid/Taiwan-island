@@ -76,34 +76,34 @@ function Lot({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   };
   const demo = () => { setPlan([...ANSWER]); setRes(null); };
   return (
-    <div className="lot-wrap">
+    <div className="end-lot-wrap">
       <Goal floating text={full ? '排好了，按「試投票」看看五組贊不贊成' : '點空地的每一塊，換成公園、停車場或市場。最好的方案是五組都贊成。'} />
-      <div className="lot">
-        <span className="lot-side top">🛣 大馬路</span>
-        <span className="lot-side left">🏫 學校</span>
-        <span className="lot-side right">🏢 公寓</span>
-        <span className="lot-side bottom">🏠 老房子</span>
-        <div className="lot-grid">
+      <div className="end-lot">
+        <span className="end-lot-side top">🛣 大馬路</span>
+        <span className="end-lot-side left">🏫 學校</span>
+        <span className="end-lot-side right">🏢 公寓</span>
+        <span className="end-lot-side bottom">🏠 老房子</span>
+        <div className="end-lot-grid">
           {plan.map((u, i) => (
-            <button key={i} className={`lot-block ${u ?? 'empty'} ${fails >= 3 && u !== ANSWER[i] ? 'hint' : ''}`} onClick={() => tap(i)} aria-label={BLOCKS[i]}>
-              {u ? <><img src={USE_INFO[u].img} alt="" /><b>{USE_INFO[u].name}</b></> : <b className="lot-empty">空地<br /><small>點一下</small></b>}
-              {fails >= 3 && u !== ANSWER[i] && <em className="lot-ghost">試試{USE_INFO[ANSWER[i]].name}？</em>}
+            <button key={i} className={`end-lot-block ${u ?? 'empty'} ${fails >= 3 && u !== ANSWER[i] ? 'hint' : ''}`} onClick={() => tap(i)} aria-label={BLOCKS[i]}>
+              {u ? <><img src={USE_INFO[u].img} alt="" /><b>{USE_INFO[u].name}</b></> : <b className="end-lot-empty">空地<br /><small>點一下</small></b>}
+              {fails >= 3 && u !== ANSWER[i] && <em className="end-lot-ghost">試試{USE_INFO[ANSWER[i]].name}？</em>}
             </button>
           ))}
         </div>
       </div>
-      <div className="lot-groups panel">
+      <div className="end-lot-groups panel">
         {GROUPS.map((g) => {
           const yes = res?.yes.includes(g.id), no = res && !yes;
           return (
-            <div key={g.id} className={`lot-group ${yes ? 'yes' : ''} ${no ? 'no' : ''}`}>
+            <div key={g.id} className={`end-lot-group ${yes ? 'yes' : ''} ${no ? 'no' : ''}`}>
               <i>{g.icon}</i>
               <p><b>{g.name}</b>{g.need}</p>
               <em>{yes ? '贊成 ✋' : no ? '反對' : ''}</em>
             </div>
           );
         })}
-        <div className="lot-foot">
+        <div className="end-lot-foot">
           {res && <span className={res.everyone ? 'ok' : res.passed ? 'mid' : 'bad'}>贊成 {res.yes.length} / {GROUPS.length}{res.passed ? '（過半數）' : '（沒過半數）'}</span>}
           <button className="btn green" disabled={!full || passed} onClick={tryVote}>試投票</button>
         </div>

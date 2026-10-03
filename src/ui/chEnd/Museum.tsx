@@ -66,28 +66,28 @@ export function Museum({ p, set, next, oops }: StepEndProps) {
       <img className="scene-bg" src={artE('s-27')} alt="" />
       {phase === 'intro' && <Talk lines={MUSEUM_INTRO} onDone={() => setPhase('sort')} />}
       {phase !== 'intro' && (
-        <div className="museum-wrap">
+        <div className="end-museum-wrap">
           {phase === 'sort' && <Goal floating text={left.length ? `把展品放到對的年代：還有 ${left.length} 樣` : '都放好了，按「這樣對嗎？」'} />}
-          <div className="museum-tray panel">
+          <div className="end-museum-tray panel">
             {left.map((id) => {
               const e = exOf(id);
               return (
-                <button key={id} className={`museum-item ${pick === id ? 'on' : ''} ${brought.has(id) ? 'brought' : ''}`} onClick={() => { sfx('SE-01'); setPick(pick === id ? null : id); }}>
+                <button key={id} className={`end-museum-item ${pick === id ? 'on' : ''} ${brought.has(id) ? 'brought' : ''}`} onClick={() => { sfx('SE-01'); setPick(pick === id ? null : id); }}>
                   <img src={e.img} alt="" />
                 </button>
               );
             })}
-            {pick && <p className="museum-text">{exOf(pick).text}</p>}
-            {!pick && left.length > 0 && <p className="museum-text dim">點一樣展品，讀它的說明</p>}
+            {pick && <p className="end-museum-text">{exOf(pick).text}</p>}
+            {!pick && left.length > 0 && <p className="end-museum-text dim">點一樣展品，讀它的說明</p>}
             {done && !passed && <button className="btn green" onClick={check}>這樣對嗎？</button>}
           </div>
-          <div className="museum-line">
+          <div className="end-museum-line">
             {EXHIBITS.map((slotEx, i) => {
               const id = atSlot(i);
               const e = id ? exOf(id) : null;
               return (
-                <div key={i} role="button" className={`museum-slot ${pick ? 'ready' : ''} ${id && wrong.includes(id) ? 'wrong' : ''} ${fails >= 3 && pick && ANSWER[pick] === String(i) ? 'glow' : ''}`} onClick={() => put(i)}>
-                  <div className="museum-glass">{e && <img className={brought.has(e.id) ? 'brought' : ''} src={e.img} alt="" />}</div>
+                <div key={i} role="button" className={`end-museum-slot ${pick ? 'ready' : ''} ${id && wrong.includes(id) ? 'wrong' : ''} ${fails >= 3 && pick && ANSWER[pick] === String(i) ? 'glow' : ''}`} onClick={() => put(i)}>
+                  <div className="end-museum-glass">{e && <img className={brought.has(e.id) ? 'brought' : ''} src={e.img} alt="" />}</div>
                   <b>{slotEx.when}</b>
                   {passed && <small>{slotEx.era}</small>}
                   {e && brought.has(e.id) && <em>✨你帶回來的</em>}

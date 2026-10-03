@@ -26,13 +26,14 @@ export function Traveler({ p, set, next, name }: StepEndProps) {
   return (
     <div className={`scene end-tower ${turning ? 'turning' : ''}`}>
       <img className="scene-bg" src={artE('s-25')} alt="" />
-      {turning && <div className="tower-glow" aria-hidden><img src={`${BASE}img/island/gear.webp`} alt="" /><img src={`${BASE}img/island/gear.webp`} alt="" /></div>}
+      {turning && <div className="end-tower-glow" aria-hidden><img src={`${BASE}img/island/gear.webp`} alt="" /><img src={`${BASE}img/island/gear.webp`} alt="" /></div>}
       {phase !== 'friends' && (
-        <div className={`traveler-stage ${unmasked ? 'unmasked' : ''}`}>
-          <img className="traveler-body" src={`${BASE}img/story/${phase === 'before' || phase === 'hat' ? 'F-03_8' : 'F-03_7'}.webp`} alt="旅人" />
-          {phase === 'hat' && <img className="traveler-hat" src={`${BASE}img/story/G-02_12.webp`} alt="" />}
+        <div className={`end-traveler-stage end-who ${unmasked ? 'unmasked' : ''}`}>
+          <img className="end-traveler-body" src={`${BASE}img/story/${phase === 'before' || phase === 'hat' ? 'F-03_8' : 'F-03_7'}.webp`} alt="旅人" />
+          {phase === 'hat' && <img className="end-traveler-hat" src={`${BASE}img/story/G-02_12.webp`} alt="" />}
+          {unmasked && <div className="end-future-face" aria-hidden><span>{name ? name.slice(0, 1) : '你'}</span></div>}
           {unmasked && (
-            <div className="future-tag">
+            <div className="end-future-tag">
               <b>長大的你</b>
               {name && <span>{name}</span>}
             </div>
@@ -60,7 +61,7 @@ export function Traveler({ p, set, next, name }: StepEndProps) {
       {phase === 'key' && (
         <>
           <Goal floating text="把時光鐘塔鑰匙插進鐘塔的門" />
-          <button className="tower-door" onClick={() => { sfx('SE-34'); jingle('MU-17'); setPhase('turn'); setTimeout(() => setPhase('turnTalk'), 2200); }} aria-label="鐘塔的門">
+          <button className="end-tower-door" onClick={() => { sfx('SE-34'); jingle('MU-17'); setPhase('turn'); setTimeout(() => setPhase('turnTalk'), 2200); }} aria-label="鐘塔的門">
             <img src={artE('g-09-key')} alt="" />
             <span>點一下，插進去！</span>
           </button>
@@ -75,7 +76,7 @@ export function Traveler({ p, set, next, name }: StepEndProps) {
             </div>
             <div className="end-gather-front">
               <img className="end-gather-an" src={artE('f-10a-cheer')} alt="小安" />
-              <img className="end-gather-future" src={`${BASE}img/story/F-03_7.webp`} alt="長大的你" />
+              <div className="end-gather-future end-who unmasked"><img src={`${BASE}img/story/F-03_7.webp`} alt="長大的你" /><div className="end-future-face" aria-hidden><span>{name ? name.slice(0, 1) : '你'}</span></div></div>
               {p.picks.park === 1
                 ? <div className="end-mural" aria-label="社區故事牆">{['fire', 'blank', 'ship', 'rice', 'canal', 'train', 'dam', 'hsr'].map((b) => <img key={b} src={`${BASE}img/island/badge-${b}.webp`} alt="" />)}</div>
                 : <img className="end-tree" src={artE('o-11-park')} alt="一起種的樹" />}
