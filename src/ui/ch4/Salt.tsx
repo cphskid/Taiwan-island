@@ -111,7 +111,7 @@ export function Salt({ p, set, next, oops }: Step4Props) {
         <div className="ch4-salt-wrap">
           <div className="ch4-salt-board panel">
             <div className="ch4-days">
-              {SALT.days.map((s, d) => <span key={d} className={`${d < day ? 'past' : d === day ? 'on' : ''} ${s}`}><small>第{d + 1}天</small>{SKY_ICON[s]}</span>)}
+              {SALT.days.map((s, d) => <span key={d} className={`${d < day ? 'past' : d === day ? 'on' : ''} sky-${s}`}><small>第{d + 1}天</small>{SKY_ICON[s]}</span>)}
             </div>
             <div className="ch4-salt-head">
               <b>{over ? `${SALT.days.length} 天過完了` : `第 ${day + 1} 天：今天會${SKY_NAME[sky]}`}</b>

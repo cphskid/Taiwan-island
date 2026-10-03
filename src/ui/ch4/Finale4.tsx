@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BACK_NOW4, CARDS4, CHOICES4, FAREWELL4, KEEPSAKE4, QUESTIONS4, TRUTH4, art4, homeLines4, type Pick4 } from '../../data/ch4';
+import { BACK_NOW4, CARD_ORDER4, CARDS4, CHOICES4, FAREWELL4, KEEPSAKE4, QUESTIONS4, TRUTH4, art4, homeLines4, type Pick4 } from '../../data/ch4';
 import { PEOPLE, img } from '../../data/babao-chapter';
 import { Face, Talk } from '../Talk';
 import { fresh4, stars4 } from '../../core/save4';
@@ -116,7 +116,7 @@ export function Finale4({ p, set, exit }: Step4Props) {
       )}
       {phase === 'stars' && (
         <div className="talk-cover">
-          <div className="panel mission">
+          <div className="panel mission ch4-end">
             <img className="badge" src={img('badge-rice')} alt="" />
             <h2>第四章 東寧屯田 完成！</h2>
             <div className="stars">{[0, 1, 2].map((i) => <span key={i} className={i < stars ? 'on' : ''}>★</span>)}</div>
@@ -132,7 +132,7 @@ export function Finale4({ p, set, exit }: Step4Props) {
               </div>
             )}
             {p.keepsakes.includes(KEEPSAKE4.id) && <p className="cards-got">信物：{KEEPSAKE4.title}　時光朋友：小蓮</p>}
-            <p className="cards-got">圖鑑卡：{p.cards.map((c) => CARDS4[c]?.title).filter(Boolean).join('、')}</p>
+            <p className="cards-got">圖鑑卡：{CARD_ORDER4.filter((c) => p.cards.includes(c)).length} / {CARD_ORDER4.length} 張（{p.cards.slice(-3).map((c) => CARDS4[c]?.title).filter(Boolean).join('、')}……）</p>
             <div className="row">
               <button className="btn green" onClick={exit}>回大地圖看看</button>
               <button className="btn orange" onClick={() => set((o) => ({ ...fresh4(), friends: o.friends, keepsakes: o.keepsakes, cards: o.cards }))}>從頭再玩</button>

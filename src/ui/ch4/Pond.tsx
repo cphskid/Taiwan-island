@@ -103,7 +103,7 @@ export function Pond({ p, set, next, oops }: Step4Props) {
                 return (
                   <div key={name} className={`ch4-season ${st ? (st.dry ? 'dry' : 'shown') : ''}`}>
                     <b>{SEASON_ICON[t]} {name}</b>
-                    <span className="rain">雨 {POND.rain[t] ? '💧'.repeat(Math.min(POND.rain[t], 4)) + (POND.rain[t] > 4 ? `×${POND.rain[t]}` : '') : '—'}</span>
+                    <span className="rain">雨 {POND.rain[t] ? `💧${POND.rain[t]}` : '—'}</span>
                     <span className="use">用水 {cropUse(POND, crops, t)}</span>
                     <span className="ch4-level"><i style={{ height: `${st ? (cap ? (st.level / cap) * 100 : 0) : 0}%` }} /></span>
                     <small>{st ? (st.dry ? '沒水了！' : `剩 ${st.level}${st.spill ? `，流掉 ${st.spill}` : ''}`) : ' '}</small>

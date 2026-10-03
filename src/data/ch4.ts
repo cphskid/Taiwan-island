@@ -174,7 +174,7 @@ export const SALT_SAY = {
   short: (n: number) => ({ who: 'chen', text: `12 天過去，只收了 ${n} 籃鹽。再看一次天氣，想想下雨前要先做什麼。` }) as Line,
   hint: { who: 'chen', text: '下雨的前一天，先把能收的鹽收起來；雨天留一隻手蓋草蓆，蓋在曬最久的池子上。' } as Line,
   spot: { who: 'xlian', mood: 'thinking', text: '發亮的是陳先生建議今天做的事！' } as Line,
-  good: { who: 'chen', text: '4 籃鹽！看天吃飯，也要會安排。' } as Line,
+  good: { who: 'chen', text: '鹽收夠了！看天吃飯，也要會安排。' } as Line,
 };
 export const SALT_DONE: Line[] = [
   { who: 'xlian', mood: 'happy', text: '白白亮亮的鹽！我要帶一包回去給阿爸。' },
