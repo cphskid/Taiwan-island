@@ -33,3 +33,7 @@ body:has(.tp){overflow:auto;user-select:text}
 .tp-table td.no{color:#c0392b;font-weight:700}
 .tp-table td.tp-st{color:#e0a020;letter-spacing:1px}
 .tp-goals{margin:0 0 8px;padding-left:22px;line-height:1.8}
+
+.tp-src{border-top:1px solid #eadfcb;padding:8px 0}
+.tp-src summary{cursor:pointer;font-weight:700}
+.tp-src ul{margin:8px 0 0;padding-left:22px;line-height:1.7;font-size:15px;color:#5b4a35}

@@ -47,7 +47,6 @@ export function Prologue({ onDone }: { onDone: () => void }) {
             <small>知識小卡</small>
             <h3>{fact.fact.title}</h3>
             <p>{fact.fact.text}</p>
-            <p className="source">資料來源：{fact.fact.source}</p>
             <span className="talk-next">點一下繼續 ▶</span>
           </div>
         </div>

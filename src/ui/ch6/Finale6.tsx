@@ -90,7 +90,6 @@ export function Finale6({ p, set, exit }: Step6Props) {
             <h2>{TRUTH6.title}</h2>
             <p><b>遊戲裡：</b>{TRUTH6.game}</p>
             <p><b>真實的歷史：</b>{TRUTH6.real}</p>
-            <p className="source">資料來源：{TRUTH6.source}</p>
             <button className="btn green" onClick={() => setPhase('quiz')}>我知道了</button>
           </div>
         </div>

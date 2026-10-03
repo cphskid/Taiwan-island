@@ -86,7 +86,6 @@ export function Finale2({ p, set, exit }: Step2Props) {
             <h2>{TRUTH2.title}</h2>
             <p><b>遊戲裡：</b>{TRUTH2.game}</p>
             <p><b>真實的歷史：</b>{TRUTH2.real}</p>
-            <p className="source">資料來源：{TRUTH2.source}</p>
             <button className="btn green" onClick={() => setPhase('card')}>我知道了</button>
           </div>
         </div>

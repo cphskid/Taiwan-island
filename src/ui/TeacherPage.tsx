@@ -4,6 +4,16 @@ import { classDetail, myClasses, type ClassInfo } from '../net/teacher';
 import { classReport, toCsv, type DetailRow } from '../core/report';
 import { CARD_ORDER, QUESTIONS } from '../data/babao-chapter';
 import { STEPS } from '../core/save';
+import { BOOK1, BOOK2, BOOK3, BOOK4, BOOK5, BOOK6, BOOK7, BOOK_END, type Book } from './Album';
+import { FACTS } from '../data/prologue';
+import { TRUTH1 } from '../data/ch1';
+import { TRUTH2 } from '../data/ch2';
+import { TRUTH3 } from '../data/ch3';
+import { TRUTH4 } from '../data/ch4';
+import { TRUTH } from '../data/babao-chapter';
+import { TRUTH6 } from '../data/ch6';
+import { TRUTH7 } from '../data/ch7';
+import { TRUTH_END } from '../data/chEnd';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -152,11 +162,39 @@ export function TeacherPage() {
               <li>用竹蛇籠「導」水比正面「擋」水有效。</li>
               <li>分水協商：「平均」和「公平」不一樣；開圳前這片土地已經有巴布薩族人生活。</li>
             </ul>
-            <p className="tp-note">圖鑑卡與反思題文字附有出處，建議上課前先看過；如有和課本不一致的地方，請回報給管理員。</p>
+            <p className="tp-note">圖鑑卡與章末「真的是這樣嗎？」的出處，整理在下面的「內容出處」；學生畫面不顯示出處，免得像在讀課本。如有和課本不一致的地方，請回報給管理員。</p>
           </section>
+
+          <Sources />
         </>
       )}
     </div>
+  );
+}
+
+// 內容出處：學生畫面拿掉的「資料來源」都在這裡，一章一格，點開才展開
+const CHAPTERS: { book: Book; truth: { source: string } }[] = [
+  { book: BOOK1, truth: TRUTH1 }, { book: BOOK2, truth: TRUTH2 }, { book: BOOK3, truth: TRUTH3 }, { book: BOOK4, truth: TRUTH4 },
+  { book: BOOK5, truth: TRUTH }, { book: BOOK6, truth: TRUTH6 }, { book: BOOK7, truth: TRUTH7 }, { book: BOOK_END, truth: TRUTH_END },
+];
+function Sources() {
+  return (
+    <section className="panel tp-sec">
+      <h2>內容出處</h2>
+      <details className="tp-src">
+        <summary>序章 認識臺灣（知識小卡）</summary>
+        <ul>{Object.values(FACTS).map((f) => <li key={f.title}><b>{f.title}</b>：{f.source}</li>)}</ul>
+      </details>
+      {CHAPTERS.map(({ book, truth }) => (
+        <details key={book.title} className="tp-src">
+          <summary>{book.title}</summary>
+          <ul>
+            <li><b>真的是這樣嗎？</b>：{truth.source}</li>
+            {book.order.map((id) => book.cards[id]).map((c) => <li key={c.id}><b>{c.title}</b>：{c.source}</li>)}
+          </ul>
+        </details>
+      ))}
+    </section>
   );
 }
 

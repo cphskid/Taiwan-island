@@ -77,7 +77,6 @@ export function FinaleEnd({ p, set, exit }: StepEndProps) {
             <h2>{TRUTH_END.title}</h2>
             <p><b>遊戲裡：</b>{TRUTH_END.game}</p>
             <p><b>真實的歷史：</b>{TRUTH_END.real}</p>
-            <p className="source">資料來源：{TRUTH_END.source}</p>
             <button className="btn green" onClick={() => setPhase('card')}>我知道了</button>
           </div>
         </div>

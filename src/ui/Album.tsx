@@ -7,6 +7,7 @@ import { CARDS6, CARD_ORDER6 } from '../data/ch6';
 import { CARDS7, CARD_ORDER7 } from '../data/ch7';
 import { CARDS3, CARD_ORDER3 } from '../data/ch3';
 import { CARDS_END, CARD_ORDER_END } from '../data/chEnd';
+import { VISITS } from '../data/visits';
 
 const BASE = import.meta.env.BASE_URL;
 const KINDS = ['人物', '地點', '物品', '知識'] as const;
@@ -57,7 +58,7 @@ export function Album({ have, onClose, books = [BOOK5] }: { have: readonly strin
               <Pic card={open} big />
               <h3>{open.title}</h3>
               <p>{open.text}</p>
-              <p className="source">資料來源：{open.source}</p>
+              {VISITS[open.id] && <p className="visit">📍 {VISITS[open.id]}</p>}
               <span className="talk-next">點一下收起來 ▶</span>
             </div>
           </div>

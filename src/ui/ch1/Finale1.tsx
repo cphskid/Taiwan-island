@@ -86,7 +86,6 @@ export function Finale1({ p, set, exit }: Step1Props) {
             <h2>{TRUTH1.title}</h2>
             <p><b>遊戲裡：</b>{TRUTH1.game}</p>
             <p><b>真實的歷史：</b>{TRUTH1.real}</p>
-            <p className="source">資料來源：{TRUTH1.source}</p>
             <button className="btn green" onClick={() => setPhase('quiz')}>我知道了</button>
           </div>
         </div>

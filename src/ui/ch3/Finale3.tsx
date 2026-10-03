@@ -91,7 +91,6 @@ export function Finale3({ p, set, exit }: Step3Props) {
             <h2>{TRUTH3.title}</h2>
             <p><b>遊戲裡：</b>{TRUTH3.game}</p>
             <p><b>真實的歷史：</b>{TRUTH3.real}</p>
-            <p className="source">資料來源：{TRUTH3.source}</p>
             <button className="btn green" onClick={() => setPhase('quiz')}>我知道了</button>
           </div>
         </div>
