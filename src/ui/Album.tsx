@@ -6,6 +6,7 @@ import { CARDS4, CARD_ORDER4 } from '../data/ch4';
 import { CARDS6, CARD_ORDER6 } from '../data/ch6';
 import { CARDS7, CARD_ORDER7 } from '../data/ch7';
 import { CARDS3, CARD_ORDER3 } from '../data/ch3';
+import { CARDS_END, CARD_ORDER_END } from '../data/chEnd';
 
 const BASE = import.meta.env.BASE_URL;
 const KINDS = ['人物', '地點', '物品', '知識'] as const;
@@ -18,6 +19,7 @@ export const BOOK3: Book = { title: '第三章 大航海時代', cards: CARDS3, 
 export const BOOK5: Book = { title: '第五章 八堡圳', cards: CARDS, order: CARD_ORDER };
 export const BOOK6: Book = { title: '第六章 開港與鐵路', cards: CARDS6, order: CARD_ORDER6 };
 export const BOOK7: Book = { title: '第七章 縱貫與大圳', cards: CARDS7, order: CARD_ORDER7 };
+export const BOOK_END: Book = { title: '終章 今天的島嶼', cards: CARDS_END, order: CARD_ORDER_END };
 
 // 時光圖鑑：拿到的卡亮起來，沒拿到的只看得到影子，提醒還有沒找到的。一章一本，上面切換
 export function Album({ have, onClose, books = [BOOK5] }: { have: readonly string[]; onClose: () => void; books?: Book[] }) {

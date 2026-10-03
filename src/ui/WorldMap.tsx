@@ -3,7 +3,7 @@ import { createWorldMap, type Hit, type RiftState, type WorldMap as Map } from '
 import { celebrate, opened, toCelebrate, type WorldSave } from '../core/world';
 import { ACTOR_ART, CHAPTERS, GEAR_SLOTS, HOOKS, LEGEND, TICK_LINES, chapterOf, isl, type ActorDef, type ChapterId } from '../data/world';
 import { Say, Talk } from './Talk';
-import { Album, BOOK1, BOOK2, BOOK3, BOOK4, BOOK5, BOOK6, BOOK7 } from './Album';
+import { Album, BOOK1, BOOK2, BOOK3, BOOK4, BOOK5, BOOK6, BOOK7, BOOK_END } from './Album';
 import { CARD_ORDER } from '../data/babao-chapter';
 import { ambience, music, preload, sfx, type SeCode } from '../audio';
 import { SoundToggle } from './Sound';
@@ -203,7 +203,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
       {actor && <ActorSay actor={actor} onClose={() => setActor(null)} />}
       {!actor && <Say line={say ? { who: 'tick', mood: 'happy', text: say } : null} />}
       {flash && <div className="warp" />}
-      {book && <Album have={world.cards} books={[BOOK1, BOOK2, BOOK3, BOOK4, BOOK5, BOOK6, BOOK7]} onClose={() => setBook(false)} />}
+      {book && <Album have={world.cards} books={[BOOK1, BOOK2, BOOK3, BOOK4, BOOK5, BOOK6, BOOK7, BOOK_END]} onClose={() => setBook(false)} />}
       {intro && ready && (
         <Talk
           lines={[{ who: 'tick', mood: 'wave', text: TICK_LINES.welcome }]}

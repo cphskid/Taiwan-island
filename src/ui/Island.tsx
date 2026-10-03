@@ -15,6 +15,8 @@ import { Ch7 } from './Ch7';
 import { load7 } from '../core/save7';
 import { Ch3 } from './Ch3';
 import { load3 } from '../core/save3';
+import { ChEnd } from './ChEnd';
+import { loadEnd } from '../core/saveEnd';
 import { pushCloud } from '../net/cloud';
 import { WorldMap } from './WorldMap';
 import { Prologue } from './Prologue';
@@ -42,6 +44,9 @@ function syncChapters(w: WorldSave): WorldSave {
   if (p6.done) got = markCleared(got, 'ch6');
   if (p7.done) got = markCleared(got, 'ch7');
   if (p3.done) got = markCleared(got, 'ch3');
+  const pe = loadEnd();
+  got = addCards(got, pe.cards);
+  if (pe.done) got = markCleared(got, 'end');
   return got;
 }
 
@@ -54,6 +59,7 @@ function initialMode(world: WorldSave): Mode {
     : location.search.includes('ch4=') ? { at: 'chapter', id: 'ch4' }
     : location.search.includes('ch6=') ? { at: 'chapter', id: 'ch6' }
     : location.search.includes('ch7=') ? { at: 'chapter', id: 'ch7' }
+    : location.search.includes('chEnd=') ? { at: 'chapter', id: 'end' }
     : location.search.includes('prologue') || (!world.prologue && !world.greeted) ? { at: 'prologue' }
     : { at: 'map', back: null };
 }
@@ -90,6 +96,7 @@ export function Island() {
       : mode.id === 'ch6' ? <Ch6 album={world.cards} onExit={exit} />
       : mode.id === 'ch7' ? <Ch7 album={world.cards} onExit={exit} />
       : mode.id === 'ch3' ? <Ch3 album={world.cards} onExit={exit} />
+      : mode.id === 'end' ? <ChEnd album={world.cards} onExit={exit} />
       : <Chapter album={world.cards} onExit={exit} />;
   }
   return <WorldMap world={world} setWorld={(fn) => setWorld((w) => fn(w))} back={mode.back} onEnter={(id) => setMode({ at: 'chapter', id })} onPrologue={() => setMode({ at: 'prologue' })} />;
