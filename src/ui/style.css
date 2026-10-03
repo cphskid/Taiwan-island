@@ -1256,26 +1256,32 @@ img.flip{transform:scaleX(-1)}
 .ch6-boat-info{display:flex;align-items:center;gap:4px}
 .ch6-boat-info img{width:44px;height:34px;object-fit:contain}
 .ch6-boat-rule{font-weight:700;color:#7a5a3a}
-.ch6-river{position:relative;display:grid;gap:2px;width:min(100%,calc((100dvh - 250px) * 1.8));margin:0 auto;background:#7fae5a;border-radius:12px;padding:2px}
-.rv{position:relative;border:0;border-radius:6px;padding:0;cursor:pointer;font:inherit;color:inherit;min-width:0}
-.rv-land{background:#8fc46a}
-.rv-w,.rv-A,.rv-T,.rv-B{background:#3c8fd0}
-.rv-n{background:#7cc0ee;margin:14%}
-.rv-r{background:repeating-radial-gradient(circle at 30% 40%,#9a9a8a 0 4px,#7cc0ee 4px 9px);margin:14%}
-.rv-s{background:repeating-linear-gradient(135deg,#e6cf8f 0 6px,#5aa5dd 6px 12px)}
-.rv-h{background:repeating-linear-gradient(135deg,#8a6a45 0 6px,#7cc0ee 6px 12px);margin:14%}
-.rv-m{background:repeating-linear-gradient(135deg,#9a7a55 0 6px,#5aa5dd 6px 12px)}
-.rv-B{background:#1f5f9e}
-.rv.on{box-shadow:inset 0 0 0 4px var(--gold)}
-.rv.hint:not(.on){box-shadow:inset 0 0 0 4px #fff;animation:blink .7s ease-in-out infinite alternate}
-.rv.bad{box-shadow:inset 0 0 0 5px #e04040}
-.rv-depth{position:absolute;right:3px;bottom:1px;font-style:normal;font-size:12px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6)}
-.rv-tag{position:absolute;left:50%;top:50%;translate:-50% -50%;white-space:nowrap;background:rgba(255,248,230,.95);border:2px solid var(--wood-2);border-radius:8px;padding:0 4px;font-size:12px;z-index:1;pointer-events:none}
-.rv-dot{position:absolute;left:50%;top:50%;translate:-50% -50%;width:22px;height:22px;border-radius:50%;background:var(--gold);color:var(--ink);font-style:normal;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center}
-.ch6-boat{position:absolute;width:11%;translate:-50% -60%;transition:left .35s linear,top .35s linear;pointer-events:none;z-index:2;filter:drop-shadow(0 3px 2px rgba(0,0,0,.4))}
+.ch6-river{position:relative;width:min(100%,calc((100dvh - 250px) * 1.8));margin:0 auto;border-radius:18px;overflow:hidden;box-shadow:0 0 0 4px #c99a5a,0 0 0 7px #8a5a32,0 6px 14px rgba(0,0,0,.3);background:#8cc85a}
+.rv-ground{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.rv-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.rv-svg path{transition:stroke .5s}
+.rv-ripple{animation:rv-ripple 2.4s ease-in-out infinite alternate}
+@keyframes rv-ripple{from{transform:translateX(-3px);opacity:.25}to{transform:translateX(3px);opacity:.6}}
+.rv-route-line{animation:rv-march 1s linear infinite}
+@keyframes rv-march{to{stroke-dashoffset:-17}}
+.rv-decor{position:absolute;translate:-50% -85%;pointer-events:none;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25))}
+.rv-obj{position:absolute;translate:-50% -50%;pointer-events:none;transition:opacity .5s}
+.tide-high .rv-obj-s,.tide-high .rv-obj-h{opacity:.3}
+.rv-dock{position:absolute;translate:-50% -58%;pointer-events:none;filter:drop-shadow(0 4px 3px rgba(0,0,0,.3))}
+.rv-mark{position:absolute;translate:-50% -50%;width:7%;aspect-ratio:1;border-radius:50%;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.rv-mark.next{box-shadow:0 0 0 4px #ffe066,0 0 12px #ffb02e;animation:blink .8s ease-in-out infinite alternate}
+.rv-mark.hint{box-shadow:0 0 0 4px #fff;animation:blink .7s ease-in-out infinite alternate}
+.rv-mark.bad{box-shadow:0 0 0 5px #e04040,0 0 14px #e04040}
+.rv-depth{min-width:20px;height:20px;border-radius:50%;background:rgba(20,70,120,.75);border:2px solid #fff;font-style:normal;font-size:12px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;translate:0 70%}
+.rv-tag{position:absolute;translate:-50% 60%;white-space:nowrap;background:rgba(255,248,230,.95);border:2px solid var(--wood-2);border-radius:8px;padding:0 6px;font-size:12px;z-index:2;pointer-events:none;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.rv-dot{width:24px;height:24px;border-radius:50%;background:var(--gold);border:2px solid #7a4a1a;color:var(--ink);font-style:normal;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center}
+.rv-hit{position:absolute;inset:0;display:grid;z-index:3}
+.rv-hit button{border:0;background:none;padding:0;cursor:pointer;min-width:0}
+.ch6-legend img{height:20px;vertical-align:middle;margin-left:6px}
+.lg-d1{background:#6fbcec}.lg-d2{background:#3a90d6}.lg-d3{background:#2366b0}
+.ch6-boat{position:absolute;width:10%;translate:-50% -65%;transition:left .35s linear,top .35s linear;pointer-events:none;z-index:4;filter:drop-shadow(0 3px 2px rgba(0,0,0,.4))}
 .ch6-port-foot,.ch6-rail-foot,.ch6-tea-foot,.ch6-train-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .ch6-port-foot .btn,.ch6-rail-foot .btn,.ch6-tea-foot .btn,.ch6-train-foot .btn{min-width:110px;min-height:44px}
-.lg-w{background:#3c8fd0}.lg-n{background:#7cc0ee}.lg-r{background:#9a9a8a}.lg-s{background:#e6cf8f}
 
 /* 烘茶排程 */
 .ch6-tea-board{display:flex;flex-direction:column;gap:8px;width:min(880px,100%)}
@@ -1999,7 +2005,6 @@ img.flip{transform:scaleX(-1)}
 .ch3-good .sell.ready{box-shadow:0 0 0 3px #ffe066,0 0 14px #ffb02e;animation:pulse .6s ease-in-out infinite alternate}
 .beacon.to-left .beacon-flag{translate:calc(-100% + 18px) 0;align-items:flex-end}
 .beacon.to-right .beacon-flag{translate:-18px 0;align-items:flex-start}
-.rv.next{box-shadow:inset 0 0 0 4px #ffe066;animation:blink .8s ease-in-out infinite alternate}
 .ch6-port-foot .btn.ready{box-shadow:0 0 0 3px #ffe066,0 0 14px #ffb02e;animation:pulse .6s ease-in-out infinite alternate}
 
 /* 現在篇：大地圖下方導覽列、過去／現在撥桿、背包（?now=1） */
@@ -2175,3 +2180,5 @@ button.v-chip{cursor:pointer}
   .v-toast{top:76px}
   .village .btn.big{min-height:56px}
 }
+.ch6-boat.left{scale:-1 1}
+.ch6-boat.junk{width:11%}

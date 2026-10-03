@@ -136,7 +136,7 @@ export const RIVERS: RiverStage[] = [
   },
 ];
 export const BOAT_NAME: Record<Boat['id'], string> = { sampan: '小舢舨', junk: '大帆船' };
-export const BOAT_IMG: Record<Boat['id'], string> = { sampan: art6('o-09-sampan'), junk: art6('o-09-junk') };
+export const BOAT_IMG: Record<Boat['id'], string> = { sampan: art6('o-10-sampan'), junk: art6('o-10-junk') };
 export const PORT_SAY = {
   shallow: { who: 'chun', mood: 'worried', text: '擱淺了！這裡的水太淺，船開不過去。' } as Line,
   narrow: { who: 'merchant', text: '大帆船太寬了，窄河道進不去！' } as Line,
