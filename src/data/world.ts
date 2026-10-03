@@ -102,7 +102,8 @@ export type ActorKind = 'farmer' | 'carrier' | 'worker' | 'buffalo' | 'hen' | 'd
   | 'chun' | 'chunCarry' | 'mackay' | 'liu' | 'merchant6' | 'loco' | 'railcar'
   | 'hsiung' | 'hsiungGate' | 'hatta' | 'shaoElder' | 'sugarTrain'
   | 'afu' | 'afuCarry' | 'uma' | 'clerk3' | 'friar3' | 'vocShip' | 'junkShip'
-  | 'an' | 'anMic' | 'agong' | 'engineer' | 'hsr';
+  | 'an' | 'anMic' | 'agong' | 'engineer' | 'hsr'
+  | 'tourist' | 'scooter' | 'family' | 'gull' | 'tra';
 export interface ActorDef {
   kind: ActorKind;
   path?: Pt[];
@@ -198,6 +199,12 @@ export const ACTOR_ART: Record<ActorKind, { walk: string[]; idle: string; work?:
   agong: { walk: ['end/p-21-grandpa'], idle: 'end/p-21-grandpa', height: 17 },
   engineer: { walk: ['end/p-21-engineer'], idle: 'end/p-21-engineer', height: 17 },
   hsr: { walk: ['x9-1'], idle: 'x9-1', height: 16 },
+  // 「現在」的臺灣（Y-01～03）
+  tourist: { walk: ['y2-7'], idle: 'y2-7', height: 14 },
+  scooter: { walk: ['y2-8'], idle: 'y2-8', height: 14 },
+  family: { walk: ['y3-8'], idle: 'y3-8', height: 15 },
+  gull: { walk: ['y3-7'], idle: 'y3-7', fly: true, height: 8 },
+  tra: { walk: ['y2-4'], idle: 'y2-4', height: 14 },
 };
 
 // 聚落周圍的樹、竹林、蘆葦，圳頭的攔水堰（O-04、O-02）。flip＝左右翻過來，看起來不會一模一樣
@@ -444,7 +451,7 @@ const LIFE_CH3: ChapterLife = {
 };
 
 // 終章過關：高鐵從臺北一路開到高雄，鐘塔、臺北 101、桃園機場、高速公路、高鐵站、社區公園和新大樓
-const HSR_LINE: Pt[] = [
+export const HSR_LINE: Pt[] = [
   { x: 2190, y: 370 }, { x: 1980, y: 450 }, { x: 1720, y: 600 }, { x: 1540, y: 830 }, { x: 1400, y: 1150 },
   { x: 1300, y: 1500 }, { x: 1190, y: 1850 }, { x: 1110, y: 2200 }, { x: 1080, y: 2520 }, { x: 1160, y: 2830 },
 ];

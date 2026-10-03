@@ -11,6 +11,7 @@ import {
   ACTOR_ART, CHAPTERS, LIFE, MAP, SEASON_SECONDS, isl,
   type ActorDef, type ChapterId, type ChapterLife,
 } from '../data/world';
+import { NOW_LIFE, NOW_ON, NOW_PLACES, type Era } from '../data/now';
 
 const MAX_ZOOM = 6; // 最多放大到「一倍」的幾倍
 // 「一倍」＝放得下 2071×1492 這麼大一塊（第一版 M-01 的整張），看彰化平原的小人剛好；
@@ -26,18 +27,22 @@ export type RiftState = 'open' | 'locked' | 'hook' | 'done';
 export type Hit =
   | { kind: 'actor'; actor: ActorDef }
   | { kind: 'rift'; id: ChapterId }
-  | { kind: 'region'; id: ChapterId | null; fogged: boolean };
+  | { kind: 'region'; id: ChapterId | null; fogged: boolean }
+  | { kind: 'place'; id: string };
 
 export interface WorldMapOptions {
   opened: readonly string[]; // 已經撥開雲霧的章
   onTap?: (hit: Hit | null) => void;
   start?: { at: Pt; zoom: number }; // 一開始鏡頭在哪（從關卡回來時先停在彰化，再拉遠）
+  era?: Era; // 一開始是過去還是現在（只有 ?now=1 才會用到現在）
 }
 
 export interface WorldMap {
   fps: () => number;
   setRifts: (s: Partial<Record<ChapterId, RiftState>>) => void;
   setGlasses: (on: boolean) => void;
+  setEra: (era: Era) => void; // 過去／現在：雲霧、裂縫、各時代的東西淡出，今天的臺灣淡入
+  setNowOpened: (ids: readonly string[]) => void; // 過去打完的章，現在那一區多出新舊對照
   dispel: (id: string) => Promise<void>; // 撥雲動畫：那一區的雲散開、建設長出來
   flyTo: (at: Pt, zoom: number, ms?: number) => Promise<void>; // zoom：「一倍」（UNIT）的幾倍，0＝拉到看得到整張
   clientOf: (p: Pt) => { x: number; y: number };
@@ -100,6 +105,11 @@ function mapImageNames(): Set<string> {
   for (const a of Object.values(ACTOR_ART)) {
     for (const f of [...a.walk, a.idle, ...Object.values(a.work ?? {}), ...(a.loop ?? [])]) names.add(f);
   }
+  if (NOW_ON) {
+    for (const L of Object.values(NOW_LIFE)) for (const d of [...L!.buildings, ...(L!.scenery ?? [])]) names.add(d.name);
+    for (const p of NOW_PLACES) names.add(p.art);
+    names.add('y3-6');
+  }
   return names;
 }
 export const mapImageUrls = () => [...[...mapImageNames()].map(isl), MAP.regions];
@@ -138,7 +148,12 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   life.sortableChildren = true;
   const fog = new Container();
   const rifts = new Container();
-  world.addChild(sea, island, relief, life, fog, rifts);
+  // 「現在」：今天的臺灣（一開始藏著，撥桿撥到現在才淡入）
+  const nowLayer = new Container();
+  nowLayer.sortableChildren = true;
+  nowLayer.visible = false;
+  nowLayer.alpha = 0;
+  world.addChild(sea, island, relief, life, fog, rifts, nowLayer);
 
   // ── 時光雲霧 ──
   interface Puff { sp: Sprite; region: number; x: number; y: number; ph: number; k: number; gone: boolean }
@@ -253,11 +268,11 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     holder.addChild(ts, m);
     return { holder, ts };
   };
-  const makeLife = (L: ChapterLife) => {
+  const makeLife = (L: ChapterLife, parent: Container = life) => {
     const box = new Container();
     box.sortableChildren = true;
     box.visible = false;
-    life.addChild(box);
+    parent.addChild(box);
     const put = (name: string, at: Pt, width: number, anchorY = 0.7) => {
       const sp = new Sprite(tex[name]);
       sp.anchor.set(0.5, anchorY);
@@ -365,6 +380,45 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   for (const [id, L] of Object.entries(LIFE)) if (L) lives.set(id, makeLife(L));
   const setLife = (id: string, on: boolean) => { const l = lives.get(id); if (l) l.box.visible = on; };
 
+  // ── 現在：今天的臺灣（base 一直在，過去打完的章多出新舊對照）、現在篇的地點 ──
+  const nowLives = new Map<string, ReturnType<typeof makeLife>>();
+  if (NOW_ON) for (const [id, L] of Object.entries(NOW_LIFE)) if (L) nowLives.set(id, makeLife(L, nowLayer));
+  const setNowOpened = (ids: readonly string[]) => {
+    for (const [id, l] of nowLives) l.box.visible = id === 'base' || ids.includes(id);
+  };
+  interface Place { id: string; box: Container; sp: Sprite; cones: Sprite | null; label: Text; at: Pt }
+  const placeList: Place[] = NOW_ON ? NOW_PLACES.map((p) => {
+    const box = new Container();
+    box.position.set(p.at.x, p.at.y);
+    box.zIndex = 30000;
+    const glow = new Sprite(puff);
+    glow.anchor.set(0.5);
+    glow.tint = 0xffe58a;
+    glow.alpha = 0.55;
+    glow.scale.set(0.8, 0.45);
+    const sp = new Sprite(tex[p.art]);
+    sp.anchor.set(0.5, 0.8);
+    sp.scale.set(p.width / sp.texture.width);
+    let cones: Sprite | null = null;
+    if (!p.ready) {
+      cones = new Sprite(tex['y3-6']);
+      cones.anchor.set(0.5, 0.5);
+      cones.scale.set((p.width * 0.45) / cones.texture.width);
+      cones.position.set(p.width * 0.38, 2);
+    }
+    const label = new Text({
+      text: p.name,
+      style: { fontFamily: '"Noto Sans TC", system-ui, sans-serif', fontSize: LABEL_PX * 2, fontWeight: '900', fill: 0xfff2b0, align: 'center', stroke: { color: 0x1d4f6b, width: 7 } },
+      resolution: 2,
+    });
+    label.anchor.set(0.5, 0);
+    box.addChild(glow, sp, ...(cones ? [cones] : []), label);
+    nowLayer.addChild(box);
+    return { id: p.id, box, sp, cones, label, at: p.at };
+  }) : [];
+  let era: Era = opt.era ?? 'past';
+  let eraK = era === 'now' ? 1 : 0; // 0＝過去、1＝現在，切換時慢慢變
+
   // ── 時空裂縫 ──
   interface Rift { id: ChapterId; box: Container; glow: Sprite; rift: Sprite; badge: Sprite; label: Text; state: RiftState }
   const riftList: Rift[] = CHAPTERS.map((ch) => {
@@ -425,6 +479,12 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       // 拉到看得到整座島時字會疊在一起，只留發光的章
       r.label.visible = r.state === 'done' ? z > 0.7 && z < 2 : lit || z > 1.8;
     }
+    for (const p of placeList) {
+      const k = clamp(48 * vs, 44, 84) / (48 * vs);
+      p.box.scale.set(k);
+      p.label.scale.set(0.5 / (vs * k));
+      p.label.position.set(0, 4 / (vs * k));
+    }
   };
   apply();
   app.renderer.on('resize', () => { view = clampView(view, b, size()); apply(); });
@@ -466,6 +526,13 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   };
   const hitAt = (w: Pt): Hit | null => {
     const r = Math.max(8, 26 / view.scale);
+    if (era === 'now') {
+      const vis = [...nowLives.values()].filter((L) => L.box.visible).flatMap((L) => L.actors).filter((a) => a.sp.visible).map((a) => ({ at: a.at, a }));
+      const got = nearest(vis, { x: w.x, y: w.y - 6 }, r);
+      if (got) return { kind: 'actor', actor: got.a.def };
+      const ph = nearest(placeList.map((p) => ({ at: { x: p.at.x, y: p.at.y - 12 * p.box.scale.x }, p })), w, Math.max(30, 50 / view.scale) * (placeList[0]?.box.scale.x ?? 1));
+      return ph ? { kind: 'place', id: ph.p.id } : null;
+    }
     if (!relief.visible) {
       const vis = [...lives.values()].filter((L) => L.box.visible).flatMap((L) => L.actors).filter((a) => a.sp.visible).map((a) => ({ at: a.at, a }));
       const got = nearest(vis, { x: w.x, y: w.y - 6 }, r);
@@ -526,13 +593,30 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   for (const id of opt.opened) clearFog(id);
   thinEdges();
   for (const id of lives.keys()) setLife(id, openedSet.has(id));
+  setNowOpened(opt.opened);
   buildRelief();
+  const showEra = () => {
+    life.alpha = fog.alpha = rifts.alpha = 1 - eraK;
+    life.visible = fog.visible = rifts.visible = eraK < 1 && !relief.visible;
+    nowLayer.alpha = eraK;
+    nowLayer.visible = eraK > 0 && !relief.visible;
+  };
+  showEra();
 
   // ── 每一格的動畫 ──
   let t = 0;
   const dispelling: { list: Puff[]; t0: number; cx: number; cy: number }[] = [];
   app.ticker.add((tk) => {
     t += tk.deltaMS / 1000;
+    const want = era === 'now' ? 1 : 0;
+    if (eraK !== want) {
+      eraK = want > eraK ? Math.min(1, eraK + tk.deltaMS / 900) : Math.max(0, eraK - tk.deltaMS / 900);
+      showEra();
+    }
+    for (const p of placeList) {
+      p.sp.y = -Math.abs(Math.sin(t * 2 + p.at.x)) * 2;
+      if (p.cones) p.cones.alpha = 0.8 + 0.2 * Math.sin(t * 3);
+    }
     sea.tilePosition.set(t * 6, t * 3);
     for (const p of puffs) {
       if (p.gone) continue;
@@ -568,7 +652,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     const phase = t / SEASON_SECONDS;
     const look = paddyLook(phase);
     const season = seasonAt(phase);
-    for (const L of lives.values()) {
+    for (const L of [...(life.visible ? lives.values() : []), ...(nowLayer.visible ? nowLives.values() : [])]) {
       if (!L.box.visible) continue;
       // 建設長出來：從 0 彈到原本大小
       if (L.growing) {
@@ -646,8 +730,12 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     },
     setGlasses(on) {
       relief.visible = on;
-      life.visible = !on;
+      showEra();
     },
+    setEra(e) {
+      era = e;
+    },
+    setNowOpened,
     async dispel(id) {
       const ch = CHAPTERS.find((c) => c.id === id);
       if (!ch) return;

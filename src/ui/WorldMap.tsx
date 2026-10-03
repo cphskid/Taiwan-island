@@ -7,6 +7,8 @@ import { Album, BOOK1, BOOK2, BOOK3, BOOK4, BOOK5, BOOK6, BOOK7, BOOK_END } from
 import { CARD_ORDER } from '../data/babao-chapter';
 import { ambience, music, preload, sfx, type SeCode } from '../audio';
 import { SoundToggle } from './Sound';
+import { NOW_LINES, NOW_ON, NOW_PLACES, type Era, type NowPlace } from '../data/now';
+import { PARK_MAP } from '../net/park';
 
 // 點到小人或動物的聲音
 const ACTOR_SE: Partial<Record<ActorDef['kind'], SeCode>> = { buffalo: 'SE-63', dog: 'SE-65', hen: 'SE-66' };
@@ -46,6 +48,11 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
   const [flash, setFlash] = useState(false);
   const [book, setBook] = useState(false);
   const [flyGear, setFlyGear] = useState<number | null>(null); // 正在飛向時鐘的齒輪孔
+  // 過去／現在（現在先藏在 ?now=1 後面）
+  const [era, setEra] = useState<Era>('past');
+  const [eraWarp, setEraWarp] = useState(0); // 切換時的穿梭光，數字變了就重播
+  const [place, setPlace] = useState<NowPlace | null>(null);
+  const [bag, setBag] = useState(false);
   const live = useRef({ world, busy });
   live.current = { world, busy };
 
@@ -53,7 +60,9 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
     if (live.current.busy) return;
     setActor(null);
     if (!hit) { setPicked(null); return; }
+    setPlace(null);
     if (hit.kind === 'actor') { sfx(ACTOR_SE[hit.actor.kind] ?? 'SE-39'); setActor(hit.actor); setPicked(null); return; }
+    if (hit.kind === 'place') { sfx('SE-03'); setPlace(NOW_PLACES.find((p) => p.id === hit.id) ?? null); setPicked(null); setSay(null); return; }
     if (hit.kind === 'rift') { sfx(chapterOf(hit.id).playable ? 'SE-03' : 'SE-13'); setPicked(hit.id); setSay(null); return; }
     if (hit.fogged) { sfx('SE-02'); setSay(hit.id ? `${TICK_LINES.fogged}這一區是${chapterOf(hit.id).no}「${chapterOf(hit.id).title}」。` : TICK_LINES.fogged); setPicked(null); return; }
     sfx('SE-03');
@@ -71,6 +80,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
       opened: opened(world),
       onTap: (h) => onTapRef.current(h),
       start: back ? { at: from.rift, zoom: 4 } : undefined,
+      era,
     }).then(async (m) => {
       if (!alive) { m.destroy(); return; }
       map.current = m;
@@ -117,6 +127,29 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
   };
 
   useEffect(() => { map.current?.setGlasses(glasses); if (glasses) setSay(TICK_LINES.glasses); }, [glasses, ready]);
+  useEffect(() => { map.current?.setNowOpened(opened(world)); }, [world, ready]);
+
+  // 撥桿：過去 ⇄ 現在。穿梭光一閃，雲霧和各時代的東西淡出，今天的臺灣淡入
+  const flip = () => {
+    if (busy) return;
+    const next: Era = era === 'past' ? 'now' : 'past';
+    sfx('SE-31');
+    setEraWarp((n) => n + 1);
+    setEra(next);
+    setPicked(null);
+    setPlace(null);
+    setActor(null);
+    setGlasses(false);
+    map.current?.setEra(next);
+    setSay(next === 'now' ? NOW_LINES.toNow : NOW_LINES.toPast);
+  };
+  const goPlace = async (p: NowPlace) => {
+    if (busy) return;
+    sfx('SE-01');
+    setPlace(p);
+    setActor(null);
+    await map.current?.flyTo(p.at, 1.8, 700);
+  };
 
   const enter = async (id: ChapterId) => {
     const m = map.current;
@@ -141,7 +174,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
   const ch = picked ? chapterOf(picked) : null;
   const done = ch ? world.cleared.includes(ch.id) : false;
   return (
-    <div className="world">
+    <div className={`world ${NOW_ON ? 'has-nav' : ''} era-${era}`}>
       <div className="board full" ref={host} />
 
       <div className="clock" title="時光鐘">
@@ -155,9 +188,11 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
         <button className={`tool ${glasses ? 'on' : ''}`} onClick={() => { sfx('SE-38'); setGlasses(!glasses); }}>
           <img className="tool-img" src={isl('h-eye')} alt="" />地形眼鏡
         </button>
-        <button className="tool" onClick={() => { sfx('SE-03'); setBook(true); }}>
-          <span className="tool-icon">📖</span>圖鑑 {CARD_ORDER.filter((id) => world.cards.includes(id)).length}/{CARD_ORDER.length}
-        </button>
+        {!NOW_ON && (
+          <button className="tool" onClick={() => { sfx('SE-03'); setBook(true); }}>
+            <span className="tool-icon">📖</span>圖鑑 {CARD_ORDER.filter((id) => world.cards.includes(id)).length}/{CARD_ORDER.length}
+          </button>
+        )}
         <SoundToggle />
       </div>
       {glasses && (
@@ -168,6 +203,17 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
         </div>
       )}
 
+      {era === 'now' ? (
+        <div className="timeline now-places">
+          {NOW_PLACES.map((p) => (
+            <button key={p.id} className={`era ${p.ready ? 'open' : 'locked'} ${place?.id === p.id ? 'on' : ''}`} onClick={() => goPlace(p)}>
+              <img className="era-badge" src={isl(p.art)} alt="" />
+              <small>{p.genre}</small>
+              <span>{p.name}</span>
+            </button>
+          ))}
+        </div>
+      ) : (
       <div className="timeline">
         <button className={`era ${world.prologue ? 'done' : 'open'}`} onClick={() => { sfx('SE-01'); onPrologue(); }}>
           <img className="era-badge" src={isl('badge-blank')} alt="" />
@@ -185,6 +231,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
           );
         })}
       </div>
+      )}
 
       {ch && !busy && (
         <div className="chapter-card panel" onClick={(e) => e.stopPropagation()}>
@@ -200,6 +247,41 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
         </div>
       )}
 
+      {place && !busy && (
+        <div className="chapter-card place-card panel" onClick={(e) => e.stopPropagation()}>
+          <button className="x" onClick={() => { sfx('SE-02'); setPlace(null); }} aria-label="關掉">✕</button>
+          <img className="card-badge" src={isl(place.art)} alt="" />
+          <small>{place.genre}　{'★'.repeat(place.stars)}{'☆'.repeat(3 - place.stars)}</small>
+          <h2>{place.name}</h2>
+          <p>{place.blurb}</p>
+          {place.ready
+            ? <button className="btn green">出發！</button>
+            : <p className="building">{NOW_LINES.building}</p>}
+        </div>
+      )}
+      {bag && <Bag world={world} onClose={() => setBag(false)} />}
+      {NOW_ON && (
+        <nav className="navbar">
+          <button className="nav-btn" onClick={() => { if (busy) return; sfx('SE-01'); setPicked(null); setPlace(null); void map.current?.flyTo({ x: 1340, y: 1852 }, 0, 800); }}>
+            <img src={isl('h-map')} alt="" /><span>地圖</span>
+          </button>
+          <button className="nav-btn" onClick={() => { sfx('SE-03'); setPlace(null); setPicked(null); setBag(true); }}>
+            <span className="nav-icon">🎒</span><span>背包</span>
+          </button>
+          <button className={`era-lever ${era}`} onClick={flip} aria-label={era === 'past' ? '撥到現在' : '撥回過去'}>
+            <span className="lever-past">過去</span>
+            <i className="lever-knob" />
+            <span className="lever-now">現在</span>
+          </button>
+          <button className="nav-btn" onClick={() => { sfx('SE-03'); setBook(true); }}>
+            <span className="nav-icon">📖</span><span>圖鑑 {CARD_ORDER.filter((id) => world.cards.includes(id)).length}</span>
+          </button>
+          <a className="nav-btn" href={PARK_MAP ?? undefined}>
+            <img src={`${BASE}img/park.webp`} alt="" /><span>回樂園</span>
+          </a>
+        </nav>
+      )}
+      {eraWarp > 0 && <div key={eraWarp} className={`era-warp to-${era}`} />}
       {actor && <ActorSay actor={actor} onClose={() => setActor(null)} />}
       {!actor && <Say line={say ? { who: 'tick', mood: 'happy', text: say } : null} />}
       {flash && <div className="warp" />}
@@ -230,5 +312,34 @@ function ActorSay({ actor, onClose }: { actor: ActorDef; onClose: () => void }) 
       <p><b style={{ color: '#2e7d22' }}>{actor.who}</b>{actor.says}</p>
       <i className="say-x">✕</i>
     </button>
+  );
+}
+
+// 背包：跨章累積的道具和信物（過關的章留下的徽章）
+const TOOL_INFO: Record<string, { name: string; img: string; text: string }> = {
+  glasses: { name: '地形眼鏡', img: 'h-eye', text: '戴上就看得出哪裡高、哪裡低。' },
+  compass: { name: '天氣羅盤', img: 'h-rotate', text: '看得出季風從哪裡吹來。' },
+};
+function Bag({ world, onClose }: { world: WorldSave; onClose: () => void }) {
+  const keeps = CHAPTERS.filter((c) => world.cleared.includes(c.id));
+  return (
+    <div className="bag panel" onClick={(e) => e.stopPropagation()}>
+      <button className="x" onClick={() => { sfx('SE-02'); onClose(); }} aria-label="關掉">✕</button>
+      <h2>背包</h2>
+      <h3>道具</h3>
+      <div className="bag-row">
+        {world.tools.length === 0 && <p className="bag-empty">還沒有道具，先去玩序章吧！</p>}
+        {world.tools.map((t) => TOOL_INFO[t] && (
+          <div key={t} className="bag-item"><img src={isl(TOOL_INFO[t].img)} alt="" /><b>{TOOL_INFO[t].name}</b><small>{TOOL_INFO[t].text}</small></div>
+        ))}
+      </div>
+      <h3>時光信物</h3>
+      <div className="bag-row">
+        {keeps.length === 0 && <p className="bag-empty">穿越到過去、幫上忙，就會拿到那個時代的信物。</p>}
+        {keeps.map((c) => (
+          <div key={c.id} className="bag-item"><img src={isl(`badge-${c.badge}`)} alt="" /><b>{c.no}</b><small>{c.title}</small></div>
+        ))}
+      </div>
+    </div>
   );
 }
