@@ -71,11 +71,24 @@ function puffTexture(): Texture {
   return Texture.from(c);
 }
 
+// 打開地圖時現在做到哪、哪些圖還沒到、哪些圖讀失敗（地圖卡住時畫面上顯示，方便找原因）
+export const mapStatus = { stage: '', pending: new Set<string>(), failed: [] as string[] };
+
 // 地區分界圖：每個像素的 R＝地區編號
 async function loadRegions(): Promise<{ w: number; h: number; at: (x: number, y: number) => number; data: Uint8Array }> {
   const im = new Image();
-  im.src = MAP.regions;
-  await im.decode();
+  // 不用 im.decode()：iPad Safari 有時會丟錯或一直不回來，整張地圖就卡住
+  const ok = await new Promise<boolean>((done) => {
+    im.onload = () => done(true);
+    im.onerror = () => done(false);
+    setTimeout(() => done(im.complete && im.naturalWidth > 0), 20000);
+    im.src = MAP.regions;
+  });
+  if (!ok || !im.width) {
+    mapStatus.failed.push('m01-regions');
+    const data = new Uint8Array(1);
+    return { w: 1, h: 1, at: () => 0, data };
+  }
   const c = document.createElement('canvas');
   c.width = im.width;
   c.height = im.height;
@@ -135,9 +148,25 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   host.appendChild(app.canvas);
 
   const tex: Record<string, Texture> = {};
+  // 一張圖讀失敗或 20 秒還沒好，就先用空白貼圖，不讓整張地圖卡住
   const loadTex = (names: Iterable<string>) =>
-    Promise.all([...names].filter((n) => !tex[n]).map(async (n) => { tex[n] = await Assets.load<Texture>(isl(n)); }));
+    Promise.all([...names].filter((n) => !tex[n]).map(async (n) => {
+      mapStatus.pending.add(n);
+      const t = await Promise.race([
+        Assets.load<Texture>(isl(n)).catch(() => null),
+        new Promise<null>((ok) => setTimeout(() => ok(null), 20000)),
+      ]);
+      mapStatus.pending.delete(n);
+      if (!t) mapStatus.failed.push(n);
+      tex[n] = t ?? Texture.EMPTY;
+    }));
+  // iPad Safari 用 Web Worker 解圖有時一直不回來（地圖整片只剩海），改在主執行緒解
+  Assets.setPreferences({ preferWorkers: false });
+  mapStatus.stage = '讀地圖的圖';
+  mapStatus.pending.clear();
+  mapStatus.failed = [];
   const [regions] = await Promise.all([loadRegions(), loadTex(baseImageNames(opt.opened))]);
+  mapStatus.stage = '把地圖畫出來';
   let destroyed = false;
   const puff = puffTexture();
 
@@ -230,6 +259,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   const openedSet = new Set<string>(opt.opened);
   const buildRelief = () => {
     const src = tex['m01-relief'].source.resource as CanvasImageSource & { width: number; height: number };
+    if (!src?.width) return;   // 地形圖讀失敗：地形眼鏡先沒有，地圖照常
     const c = document.createElement('canvas');
     c.width = src.width;
     c.height = src.height;

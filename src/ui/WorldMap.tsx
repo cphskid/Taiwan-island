@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { createWorldMap, type Hit, type RiftState, type WorldMap as Map } from '../render/worldmap';
+import { createWorldMap, mapStatus, type Hit, type RiftState, type WorldMap as Map } from '../render/worldmap';
 import { celebrate, opened, toCelebrate, type WorldSave } from '../core/world';
 import { ACTOR_ART, CHAPTERS, GEAR_SLOTS, HOOKS, LEGEND, TICK_LINES, chapterOf, isl, type ActorDef, type ChapterId } from '../data/world';
 import { Say, Talk } from './Talk';
@@ -40,6 +40,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
   const host = useRef<HTMLDivElement>(null);
   const map = useRef<Map | null>(null);
   const [ready, setReady] = useState(false);
+  const [stuck, setStuck] = useState<string | null>(null);
   const [fps, setFps] = useState(0);
   const [glasses, setGlasses] = useState(false);
   const [picked, setPicked] = useState<ChapterId | null>(null);
@@ -89,7 +90,8 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
       if (import.meta.env.DEV) (window as unknown as { __map: Map }).__map = m; // 瀏覽器測試用
       m.setRifts(riftStates({ ...world, cleared: opened(world) }));
       setReady(true);
-      dispatchEvent(new Event('island:map-ready'));   // 進場的穿越畫面等這個才收起來（ui/App.tsx）
+      dispatchEvent(new Event('island:map-ready'));
+      if (mapStatus.failed.length) setStuck(`有 ${mapStatus.failed.length} 張圖沒讀到（${mapStatus.failed.slice(0, 3).join('、')}），重新整理通常就好`);   // 進場的穿越畫面等這個才收起來（ui/App.tsx）
       timer = window.setInterval(() => setFps(Math.round(m.fps())), 500);
       const todo = toCelebrate(live.current.world);
       if (back || todo.length) {
@@ -99,8 +101,17 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
         for (const id of todo) await celebrateOne(m, id as ChapterId);
         setBusy(false);
       }
+    }).catch((e: unknown) => {
+      if (alive) setStuck(`地圖打不開：${e instanceof Error ? e.message : String(e)}`);
     });
-    return () => { music(null); ambience(null); alive = false; clearInterval(timer); map.current?.destroy(); map.current = null; };
+    // 15 秒還沒好：畫面上說卡在哪一步、還在等哪些圖，給一個重新整理的按鈕
+    const watch = window.setTimeout(() => {
+      if (!alive || map.current) return;
+      const p = [...mapStatus.pending];
+      setStuck(`地圖還沒好（${mapStatus.stage || '準備中'}${p.length ? `，還在等 ${p.length} 張圖：${p.slice(0, 3).join('、')}` : ''}${mapStatus.failed.length ? `，讀失敗：${mapStatus.failed.slice(0, 3).join('、')}` : ''}）`);
+    }, 15000);
+    return () => {
+      clearTimeout(watch); music(null); ambience(null); alive = false; clearInterval(timer); map.current?.destroy(); map.current = null; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onTapRef = useRef(onTap);
@@ -179,6 +190,12 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
   return (
     <div className={`world ${NOW_ON ? 'has-nav' : ''} era-${era}`}>
       <div className="board full" ref={host} data-ready={ready ? 1 : undefined} />
+      {stuck && (
+        <div className="map-stuck">
+          <p>{stuck}</p>
+          <button className="btn" onClick={() => location.reload()}>重新整理</button>
+        </div>
+      )}
 
       <div className="clock" title="時光鐘">
         <img src={isl('clock-empty')} alt="" />

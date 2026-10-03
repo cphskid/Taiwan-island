@@ -230,7 +230,8 @@ export async function createBoard(host: HTMLElement, opt: BoardOptions): Promise
   const flowLayer = new Container();
   world.addChild(ground, groundArt, relief, canalBed, water, flowLayer, props, propArt, preview, grid, hints, hover, cursor, cageArt, pieces, marks, fog);
 
-  // 預先載入要用的圖
+  // 預先載入要用的圖（iPad Safari 用 Web Worker 解圖有時不回來，跟大地圖一樣關掉）
+  Assets.setPreferences({ preferWorkers: false });
   const tex: Record<string, Texture> = {};
   const urls = [...Object.values(opt.art?.props ?? {}), ...Object.values(opt.art?.tiles ?? {}), opt.art?.cage, opt.art?.water, opt.art?.dirt].filter((u): u is string => !!u);
   await Promise.all(urls.map(async (u) => { tex[u] = await Assets.load<Texture>(u); }));
