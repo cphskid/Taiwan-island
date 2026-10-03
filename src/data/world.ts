@@ -100,7 +100,8 @@ export type ActorKind = 'farmer' | 'carrier' | 'worker' | 'buffalo' | 'hen' | 'd
   | 'ani' | 'sower' | 'elder' | 'hunter' | 'trader' | 'boar' | 'macaque'
   | 'xlian' | 'xlianCarry' | 'chen' | 'veteran' | 'villager4'
   | 'chun' | 'chunCarry' | 'mackay' | 'liu' | 'merchant6' | 'loco' | 'railcar'
-  | 'hsiung' | 'hsiungGate' | 'hatta' | 'shaoElder' | 'sugarTrain';
+  | 'hsiung' | 'hsiungGate' | 'hatta' | 'shaoElder' | 'sugarTrain'
+  | 'afu' | 'afuCarry' | 'uma' | 'clerk3' | 'friar3' | 'vocShip' | 'junkShip';
 export interface ActorDef {
   kind: ActorKind;
   path?: Pt[];
@@ -184,6 +185,13 @@ export const ACTOR_ART: Record<ActorKind, { walk: string[]; idle: string; work?:
   hatta: { walk: ['ch7/p-20-hatta'], idle: 'ch7/p-20-hatta', height: 17 },
   shaoElder: { walk: ['ch7/p-20-elder'], idle: 'ch7/p-20-elder', height: 17 },
   sugarTrain: { walk: ['x7-3'], idle: 'x7-3', height: 18 },
+  afu: { walk: ['ch3/f-06a-walk1', 'ch3/f-06a-walk2'], idle: 'ch3/f-06a-idle', height: 14 },
+  afuCarry: { walk: ['ch3/f-06a-carry'], idle: 'ch3/f-06a-carry', loop: ['ch3/f-06a-carry', 'ch3/f-06a-point'], height: 14 },
+  uma: { walk: ['ch3/p-17-uma'], idle: 'ch3/p-17-uma', height: 15 },
+  clerk3: { walk: ['ch3/p-17-clerk'], idle: 'ch3/p-17-clerk', height: 17 },
+  friar3: { walk: ['ch3/p-17-friar'], idle: 'ch3/p-17-friar', height: 17 },
+  vocShip: { walk: ['x3-2'], idle: 'x3-2', height: 30 },
+  junkShip: { walk: ['x3-7'], idle: 'x3-7', height: 22 },
 };
 
 // 聚落周圍的樹、竹林、蘆葦，圳頭的攔水堰（O-04、O-02）。flip＝左右翻過來，看起來不會一模一樣
@@ -405,9 +413,34 @@ const LIFE_CH7: ChapterLife = {
   ],
 };
 
+// 第三章過關：大員（安平）的熱蘭遮城、商館、碼頭和來往的船；北邊基隆和平島的聖薩爾瓦多城
+const LIFE_CH3: ChapterLife = {
+  buildings: [
+    { name: 'x3-1', at: { x: 912, y: 2388 }, width: 40 },
+    { name: 'x3-4', at: { x: 948, y: 2416 }, width: 24 },
+    { name: 'x3-8', at: { x: 836, y: 2420 }, width: 22 },
+    { name: 'x3-3', at: { x: 2398, y: 210 }, width: 30 },
+  ],
+  scenery: [
+    { name: 'x3-5', at: { x: 962, y: 2440 }, width: 12 },
+    { name: 'x3-6', at: { x: 900, y: 2436 }, width: 14 },
+  ],
+  actors: [
+    { kind: 'vocShip', path: [{ x: 690, y: 2280 }, { x: 710, y: 2360 }, { x: 720, y: 2440 }], speed: 5, who: '荷蘭東印度公司的大船', says: '從巴達維亞來，載走鹿皮和糖，也把中國的瓷器、生絲轉運到日本和歐洲。', lod: 0 },
+    { kind: 'junkShip', path: [{ x: 740, y: 2520 }, { x: 770, y: 2470 }, { x: 790, y: 2430 }], speed: 4, who: '從福建來的戎克船', says: '一路順著季風過臺灣海峽，帶來生絲和瓷器。', lod: 1 },
+    { kind: 'afu', path: [{ x: 870, y: 2420 }, { x: 890, y: 2440 }, { x: 920, y: 2450 }], speed: 6, who: '阿福', says: '大員的碼頭好熱鬧！貨要算清楚，鹿也不能抓光光。', lod: 0 },
+    { kind: 'afuCarry', at: { x: 856, y: 2430 }, who: '搬貨的阿福', says: '這箱是糖，那箱是瓷器，別搬錯船喔！', lod: 1 },
+    { kind: 'clerk3', at: { x: 930, y: 2400 }, who: '商館的書記', says: '每一筆買賣都要記進帳簿裡。', lod: 1 },
+    { kind: 'uma', at: { x: 940, y: 2460 }, who: '烏瑪', says: '鹿要留一些，草原明年才有鹿。我們的話，也用文字留下來了。', lod: 0 },
+    { kind: 'deer', path: [{ x: 990, y: 2440 }, { x: 1010, y: 2470 }, { x: 980, y: 2490 }], speed: 10, who: '梅花鹿', says: '呦！', lod: 2 },
+    { kind: 'friar3', at: { x: 2378, y: 232 }, who: '西班牙的修士', says: '北邊的雞籠也有一座城，叫聖薩爾瓦多城。', lod: 0 },
+  ],
+};
+
 export const LIFE: Partial<Record<ChapterId, ChapterLife>> = {
   ch1: LIFE_CH1,
   ch2: LIFE_CH2,
+  ch3: LIFE_CH3,
   ch4: LIFE_CH4,
   ch6: LIFE_CH6,
   ch7: LIFE_CH7,
