@@ -21,6 +21,8 @@ interface Props {
   onEnter: (id: ChapterId) => void;
   back: ChapterId | null; // 剛從哪一章回來：鏡頭先停在那一章，再拉遠
   onPrologue: () => void; // 再玩一次序章
+  onPlace?: (id: string) => void; // 進現在篇的地點
+  startNow?: boolean; // 從現在篇的地點回來：一進來就是「現在」
 }
 
 function riftStates(w: WorldSave): Partial<Record<ChapterId, RiftState>> {
@@ -34,7 +36,7 @@ function riftStates(w: WorldSave): Partial<Record<ChapterId, RiftState>> {
 }
 
 // 選章畫面：被時光雲霧蓋住的台灣。點裂縫穿越進那一章，過關回來那一區的雲霧散開、活起來
-export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) {
+export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, startNow }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const map = useRef<Map | null>(null);
   const [ready, setReady] = useState(false);
@@ -49,7 +51,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
   const [book, setBook] = useState(false);
   const [flyGear, setFlyGear] = useState<number | null>(null); // 正在飛向時鐘的齒輪孔
   // 過去／現在（現在先藏在 ?now=1 後面）
-  const [era, setEra] = useState<Era>('past');
+  const [era, setEra] = useState<Era>(startNow && NOW_ON ? 'now' : 'past');
   const [eraWarp, setEraWarp] = useState(0); // 切換時的穿梭光，數字變了就重播
   const [place, setPlace] = useState<NowPlace | null>(null);
   const [bag, setBag] = useState(false);
@@ -255,7 +257,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue }: Props) 
           <h2>{place.name}</h2>
           <p>{place.blurb}</p>
           {place.ready
-            ? <button className="btn green">出發！</button>
+            ? <button className="btn green" onClick={() => { sfx('SE-31'); onPlace?.(place.id); }}>出發！</button>
             : <p className="building">{NOW_LINES.building}</p>}
         </div>
       )}

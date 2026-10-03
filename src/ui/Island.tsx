@@ -20,11 +20,12 @@ import { loadEnd } from '../core/saveEnd';
 import { pushCloud } from '../net/cloud';
 import { WorldMap } from './WorldMap';
 import { Prologue } from './Prologue';
+import { Village } from './Village';
 import { warm } from './warm';
 import { mapImageUrls } from '../render/worldmap';
 
 // 整個遊戲的兩層：全台大地圖（選章）⇄ 章節關卡；第一次進來先玩序章《認識臺灣》。
-// 網址加 ?step=3 直接進第五章的某一步、?ch1=2 直接進第一章的某一步、?ch2=2、?ch3=2…?chEnd=2 直接進那一章的某一步；?prologue 直接玩序章；?world=fresh 大地圖從頭開始、?world=clear5 假裝剛過完第五章、?world=clear1,2,5 假裝過了好幾章（測試用）。
+// 網址加 ?village 直接進現在篇的漁村；?step=3 直接進第五章的某一步、?ch1=2 直接進第一章的某一步、?ch2=2、?ch3=2…?chEnd=2 直接進那一章的某一步；?prologue 直接玩序章；?world=fresh 大地圖從頭開始、?world=clear5 假裝剛過完第五章、?world=clear1,2,5 假裝過了好幾章（測試用）。
 function initialWorld(): WorldSave {
   const q = new URLSearchParams(location.search).get('world');
   if (q === 'fresh') return freshWorld();
@@ -50,9 +51,10 @@ function syncChapters(w: WorldSave): WorldSave {
   return got;
 }
 
-type Mode = { at: 'map'; back: ChapterId | null } | { at: 'chapter'; id: ChapterId } | { at: 'prologue' };
+type Mode = { at: 'map'; back: ChapterId | null; now?: boolean } | { at: 'chapter'; id: ChapterId } | { at: 'prologue' } | { at: 'village' };
 function initialMode(world: WorldSave): Mode {
-  return location.search.includes('step=') ? { at: 'chapter', id: 'ch5' }
+  return location.search.includes('village') ? { at: 'village' }
+    : location.search.includes('step=') ? { at: 'chapter', id: 'ch5' }
     : location.search.includes('ch1=') ? { at: 'chapter', id: 'ch1' }
     : location.search.includes('ch2=') ? { at: 'chapter', id: 'ch2' }
     : location.search.includes('ch3=') ? { at: 'chapter', id: 'ch3' }
@@ -80,7 +82,7 @@ export function Island() {
   // 換畫面時，在背景先抓這一幕（和接下來）會用到的圖：序章、大地圖用 island/，各章用自己的資料夾（ch1/、ch2/…），劇情人物在 story/
   const at = mode.at === 'chapter' ? mode.id : mode.at;
   useEffect(() => {
-    warm(...(at === 'prologue' ? ['story/', 'island/'] : at === 'map' ? ['island/', 'story/'] : at === 'ch5' ? ['island/', 'people/'] : [`${at}/`, 'story/']));
+    warm(...(at === 'prologue' ? ['story/', 'island/'] : at === 'village' ? ['village/', 'island/'] : at === 'map' ? ['island/', 'story/'] : at === 'ch5' ? ['island/', 'people/'] : [`${at}/`, 'story/']));
   }, [at]);
 
   if (mode.at === 'prologue')
@@ -88,6 +90,7 @@ export function Island() {
       setWorld((w) => ({ ...w, prologue: true, tools: [...w.tools, ...['glasses', 'compass'].filter((t) => !w.tools.includes(t))] }));
       setMode({ at: 'map', back: null });
     }} />;
+  if (mode.at === 'village') return <Village onExit={() => setMode({ at: 'map', back: null, now: true })} />;
   if (mode.at === 'chapter') {
     const exit = () => { setWorld((w) => syncChapters(w)); setMode({ at: 'map', back: mode.id }); };
     return mode.id === 'ch1' ? <Ch1 album={world.cards} onExit={exit} />
@@ -99,5 +102,5 @@ export function Island() {
       : mode.id === 'end' ? <ChEnd album={world.cards} onExit={exit} />
       : <Chapter album={world.cards} onExit={exit} />;
   }
-  return <WorldMap world={world} setWorld={(fn) => setWorld((w) => fn(w))} back={mode.back} onEnter={(id) => setMode({ at: 'chapter', id })} onPrologue={() => setMode({ at: 'prologue' })} />;
+  return <WorldMap world={world} setWorld={(fn) => setWorld((w) => fn(w))} back={mode.back} startNow={mode.now} onEnter={(id) => setMode({ at: 'chapter', id })} onPrologue={() => setMode({ at: 'prologue' })} onPlace={(id) => { if (id === 'village') setMode({ at: 'village' }); }} />;
 }
