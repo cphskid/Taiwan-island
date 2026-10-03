@@ -42,7 +42,7 @@ function Decode({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const pick = (w: string, d: Dir) => { if (won) return; sfx('SE-03'); setGuess({ ...guess, [w]: d }); setWrong(wrong.filter((x) => x !== w)); };
   const check = (g = guess) => {
     const r = decodeCheck(SECRET, g as Record<string, string>);
-    if (r.done) { jingle('MU-13'); setWon(true); setWrong([]); setTimeout(onDone, 1300); return; }
+    if (r.done) { sfx('SE-104'); jingle('MU-13'); setWon(true); setWrong([]); setTimeout(onDone, 1300); return; }
     sfx('SE-71'); oops();
     const f = fails + 1;
     setFails(f);
@@ -105,7 +105,7 @@ function Trace({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const tap = (s: Spot) => {
     if (done) return;
     if (s.id === want.id) {
-      sfx('SE-05');
+      sfx('SE-104');
       const n = k + 1;
       setK(n);
       setSay(null);

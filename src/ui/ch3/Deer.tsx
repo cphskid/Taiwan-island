@@ -46,7 +46,7 @@ function HerdPlan({ oops, onDone }: { oops: () => void; onDone: () => void }) {
     setTakes(takes.map((t, k) => (k === y ? v : t)));
   };
   const go = (plan = takes) => {
-    sfx('SE-09');
+    sfx('SE-103');
     const r = herdRun(HERD, plan);
     let k = 0;
     const tick = () => {

@@ -31,7 +31,7 @@ export function Future({ p, set, next, oops }: Step4Props) {
   useEffect(() => {
     if (phase !== 'run') return;
     const stop = res.brokeAt >= 0 ? res.brokeAt + 1 : GRAIN.years;
-    if (shown < stop) { const t = setTimeout(() => { sfx(res.years[shown].broke ? 'SE-71' : 'SE-36'); setShown(shown + 1); }, 700); return () => clearTimeout(t); }
+    if (shown < stop) { const t = setTimeout(() => { sfx(res.years[shown].broke ? 'SE-71' : 'SE-111'); setShown(shown + 1); }, 700); return () => clearTimeout(t); }
     if (res.ok) { jingle('MU-13'); setSay(GRAIN_SAY.good); const t = setTimeout(() => { setSay(null); setPhase('choice'); }, 2200); return () => clearTimeout(t); }
     oops();
     const f = fails + 1;

@@ -29,7 +29,7 @@ export function Camps({ p, set, next, oops }: Step4Props) {
     setRes(null);
     if (i >= 0) { sfx('SE-02'); setCamps(camps.filter((_, k) => k !== i)); return; }
     if (camps.length >= CAMPS.camps) { sfx('SE-04'); setSay({ who: 'xlian', mood: 'thinking', text: `只有 ${CAMPS.camps} 個營盤喔。點一下已經紮好的營盤，可以拿起來。` }); return; }
-    sfx('SE-50');
+    sfx('SE-107');
     setCamps([...camps, c]);
   };
   const check = () => {

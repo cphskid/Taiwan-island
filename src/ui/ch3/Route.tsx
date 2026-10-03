@@ -61,7 +61,7 @@ function RouteSail({ info, oops, onDone }: { info: RouteInfo; oops: () => void; 
     return r;
   };
   const finish = async (o: string) => {
-    if (o === 'arrived') { jingle('MU-13'); setWon(true); setSay(info.good[0]); await sleep(1500); if (alive.current) onDone(); return; }
+    if (o === 'arrived') { sfx('SE-101'); jingle('MU-13'); setWon(true); setSay(info.good[0]); await sleep(1500); if (alive.current) onDone(); return; }
     if (o === 'sailing') return;
     sfx('SE-71'); oops();
     const f = fails + 1;

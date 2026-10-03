@@ -15,7 +15,7 @@ import { Train6 } from './ch6/Train6';
 import { Finale6 } from './ch6/Finale6';
 
 // 環境音：雨天碼頭、河邊、雨天茶行、田野、河邊、田野、（結算自己放）
-const AMB: (AmbCode | null)[] = ['SE-76', 'SE-62', 'SE-76', 'SE-75', 'SE-62', 'SE-75', null];
+const AMB: (AmbCode | null)[] = ['SE-112', 'SE-112', 'SE-76', 'SE-75', 'SE-62', 'SE-117', null];
 
 export interface Step6Props {
   p: Progress6;
@@ -46,8 +46,9 @@ export function Ch6({ onExit, album }: { onExit: () => void; album: readonly str
   });
   useEffect(() => { save6(p); pushCloud('ch6', p); }, [p]);
   useEffect(() => { if (p.done) void awardStamp('ch6'); }, [p.done]);
-  useEffect(() => { music(null); return () => ambience(null); }, []);
-  useEffect(() => { ambience(AMB[p.step]); }, [p.step]);
+  useEffect(() => () => { music(null); ambience(null); }, []);
+  // 開場放這一章的主題曲，進關卡就只留環境音
+  useEffect(() => { ambience(AMB[p.step]); music(p.step === 0 ? 'MU-36' : null); }, [p.step]);
 
   const set = (fn: (p: Progress6) => Progress6) => setP((old) => fn(old));
   const next = () => setP((old) => goTo6(old, Math.min(LAST6, old.step + 1) as Step6));

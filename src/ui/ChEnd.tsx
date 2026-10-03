@@ -16,7 +16,7 @@ import { Traveler } from './chEnd/Traveler';
 import { FinaleEnd } from './chEnd/FinaleEnd';
 
 // 環境音：鐘塔廣場（田野風）、工地、田野、社區、博物館（山洞的回音）、鐘塔、結算
-const AMB = ['SE-62', 'SE-61', 'SE-62', 'SE-62', 'SE-47', 'SE-61', null] as const;
+const AMB = ['SE-122', 'SE-61', 'SE-122', 'SE-125', 'SE-128', 'SE-122', null] as const;
 
 export interface StepEndProps {
   p: ProgressEnd;
@@ -51,7 +51,7 @@ export function ChEnd({ onExit, album }: { onExit: () => void; album: readonly s
   useEffect(() => { if (p.done) void awardStamp('end'); }, [p.done]);
   useEffect(() => { void whoAmI().then((w) => setName(w.kind === 'student' ? w.nickname : null)).catch(() => {}); }, []);
   useEffect(() => () => { music(null); ambience(null); }, []);
-  useEffect(() => { ambience(AMB[p.step]); music(p.step === 0 ? 'MU-10' : null); }, [p.step]);
+  useEffect(() => { ambience(AMB[p.step]); music(p.step === 0 ? 'MU-38' : null); }, [p.step]);
 
   const set = (fn: (p: ProgressEnd) => ProgressEnd) => setP((old) => fn(old));
   const next = () => setP((old) => goToEnd(old, Math.min(LAST_END, old.step + 1) as StepEnd));

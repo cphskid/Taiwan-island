@@ -15,7 +15,7 @@ import { Fort } from './ch3/Fort';
 import { Finale3 } from './ch3/Finale3';
 
 // 環境音：海浪（大員港、航線、碼頭）、田野（新港社）、雨（基隆）、結算
-const AMB = ['SE-47', 'SE-47', 'SE-47', 'SE-62', 'SE-62', 'SE-76', null] as const;
+const AMB = ['SE-100', 'SE-100', 'SE-100', 'SE-61', 'SE-62', 'SE-100', null] as const;
 
 export interface Step3Props {
   p: Progress3;
@@ -46,8 +46,9 @@ export function Ch3({ onExit, album }: { onExit: () => void; album: readonly str
   });
   useEffect(() => { save3(p); pushCloud('ch3', p); }, [p]);
   useEffect(() => { if (p.done) void awardStamp('ch3'); }, [p.done]);
-  useEffect(() => { music(null); return () => ambience(null); }, []);
-  useEffect(() => { ambience(AMB[p.step]); }, [p.step]);
+  useEffect(() => () => { music(null); ambience(null); }, []);
+  // 開場放這一章的主題曲，進關卡就只留環境音
+  useEffect(() => { ambience(AMB[p.step]); music(p.step === 0 ? 'MU-33' : null); }, [p.step]);
 
   const set = (fn: (p: Progress3) => Progress3) => setP((old) => fn(old));
   const next = () => setP((old) => goTo3(old, Math.min(LAST3, old.step + 1) as Step3));

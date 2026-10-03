@@ -68,7 +68,7 @@ function Lot({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const tryVote = () => {
     const r = vote(plan);
     setRes(r);
-    if (r.everyone) { jingle('MU-13'); setPassed(true); setSay(MEET_SAY.good); setTimeout(onDone, 2600); return; }
+    if (r.everyone) { sfx('SE-124'); jingle('MU-13'); setPassed(true); setSay(MEET_SAY.good); setTimeout(onDone, 2600); return; }
     sfx('SE-71'); oops();
     const f = fails + 1;
     setFails(f);

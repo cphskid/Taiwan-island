@@ -44,7 +44,7 @@ function Gates({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   };
   const release = () => {
     const r = gateCheck(ROTA, YEAR1, open);
-    sfx('SE-36');
+    sfx('SE-119');
     setRes(r);
     if (r.ok) {
       setWon(true);

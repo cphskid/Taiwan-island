@@ -72,7 +72,7 @@ function Track({ oops, riding, onPass, onRode }: { oops: () => void; riding: boo
   };
   const reset = () => { sfx('SE-02'); setPath([T]); setStops([]); setShown([]); };
   const go = () => {
-    if (r.ok) { jingle('MU-13'); setSay(RAIL_SAY.good); onPass(); setTimeout(onRode, 3200); return; }
+    if (r.ok) { sfx('SE-123'); jingle('MU-13'); setSay(RAIL_SAY.good); onPass(); setTimeout(onRode, 3200); return; }
     sfx('SE-71'); oops();
     const f = fails + 1;
     setFails(f);

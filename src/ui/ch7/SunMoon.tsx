@@ -66,7 +66,7 @@ function Pipes({ oops, onDone }: { oops: () => void; onDone: () => void }) {
     setLit(power);
     if (f.ok) {
       setWon(true);
-      jingle('MU-13');
+      sfx('SE-120'); jingle('MU-13');
       setSay(PIPE_SAY.good);
       setTimeout(onDone, 2600);
       return;

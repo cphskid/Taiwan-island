@@ -47,7 +47,7 @@ function Builder({ oops, onDone }: { oops: () => void; onDone: () => void }) {
     else {
       if (u[mat] >= DAM.stock[mat]) { sfx('SE-04'); setSay({ who: 'hsiung', mood: 'worried', text: `${MAT_NAME[mat]}用完了！把放錯的地方點一下拿回來，或換別的材料。` }); return; }
       nd[row][i] = mat;
-      sfx('SE-07');
+      sfx('SE-118');
     }
     setD(nd);
     setBad(-1);

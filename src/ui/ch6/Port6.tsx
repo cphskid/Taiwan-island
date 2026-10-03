@@ -61,7 +61,7 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
   };
   const go = () => {
     const v = sail(lv, path, tide, boat);
-    sfx('SE-09');
+    sfx('SE-101');
     setStuck(null);
     const stopAt = v.ok ? path.length - 1 : v.why === 'short' ? path.length - 1 : v.at;
     let k = 0;

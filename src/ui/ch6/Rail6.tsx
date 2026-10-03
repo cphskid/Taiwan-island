@@ -61,11 +61,11 @@ function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: ()
       fail(RAIL_SAY[s === 'far' || s === 'used' || s === 'edge' ? 'steep' : s]);
       return;
     }
-    sfx(s.kind === 'land' ? 'SE-07' : 'SE-36');
+    sfx(s.kind === 'land' ? 'SE-114' : 'SE-36');
     const np = [...path, s];
     setPath(np);
     if (railDone(lv, np)) {
-      jingle('MU-13'); setSay(RAIL_SAY.good);
+      sfx('SE-113'); jingle('MU-13'); setSay(RAIL_SAY.good);
       let i = 0; setTrain(0);
       const run = () => { i += 1; if (i >= np.length) { setTimeout(onDone, 700); return; } setTrain(i); setTimeout(run, 220); };
       setTimeout(run, 400);

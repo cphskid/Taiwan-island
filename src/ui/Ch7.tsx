@@ -15,7 +15,7 @@ import { OpenDay } from './ch7/OpenDay';
 import { Finale7 } from './ch7/Finale7';
 
 // 環境音：乾旱的平原、車站與工地（田野）、乾旱、山上的湖、圳水流進田裡、結算
-const AMB = ['SE-75', 'SE-62', 'SE-62', 'SE-75', 'SE-61', 'SE-76', null] as const;
+const AMB = ['SE-75', 'SE-117', 'SE-62', 'SE-75', 'SE-61', 'SE-76', null] as const;
 
 export interface Step7Props {
   p: Progress7;
@@ -46,8 +46,9 @@ export function Ch7({ onExit, album }: { onExit: () => void; album: readonly str
   });
   useEffect(() => { save7(p); pushCloud('ch7', p); }, [p]);
   useEffect(() => { if (p.done) void awardStamp('ch7'); }, [p.done]);
-  useEffect(() => { music(null); return () => ambience(null); }, []);
-  useEffect(() => { ambience(AMB[p.step]); }, [p.step]);
+  useEffect(() => () => { music(null); ambience(null); }, []);
+  // 開場放這一章的主題曲，進關卡就只留環境音
+  useEffect(() => { ambience(AMB[p.step]); music(p.step === 0 ? 'MU-37' : null); }, [p.step]);
 
   const set = (fn: (p: Progress7) => Progress7) => setP((old) => fn(old));
   const next = () => setP((old) => goTo7(old, Math.min(LAST7, old.step + 1) as Step7));

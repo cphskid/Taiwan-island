@@ -61,7 +61,7 @@ export function Traveler({ p, set, next, name }: StepEndProps) {
       {phase === 'key' && (
         <>
           <Goal floating text="把時光鐘塔鑰匙插進鐘塔的門" />
-          <button className="end-tower-door" onClick={() => { sfx('SE-34'); jingle('MU-17'); setPhase('turn'); setTimeout(() => setPhase('turnTalk'), 2200); }} aria-label="鐘塔的門">
+          <button className="end-tower-door" onClick={() => { sfx('SE-126'); jingle('MU-17'); setPhase('turn'); setTimeout(() => setPhase('turnTalk'), 2200); }} aria-label="鐘塔的門">
             <img src={artE('g-09-key')} alt="" />
             <span>點一下，插進去！</span>
           </button>

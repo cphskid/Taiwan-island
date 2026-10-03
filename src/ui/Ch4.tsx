@@ -15,7 +15,7 @@ import { Future } from './ch4/Future';
 import { Finale4 } from './ch4/Finale4';
 
 // 環境音：乾熱的平原、平原、乾季的田、海邊、府城、田野
-const AMB = ['SE-75', 'SE-62', 'SE-75', 'SE-47', 'SE-62', 'SE-62', null] as const;
+const AMB = ['SE-75', 'SE-61', 'SE-75', 'SE-106', 'SE-61', 'SE-61', null] as const;
 
 export interface Step4Props {
   p: Progress4;
@@ -46,8 +46,9 @@ export function Ch4({ onExit, album }: { onExit: () => void; album: readonly str
   });
   useEffect(() => { save4(p); pushCloud('ch4', p); }, [p]);
   useEffect(() => { if (p.done) void awardStamp('ch4'); }, [p.done]);
-  useEffect(() => { music(null); return () => ambience(null); }, []);
-  useEffect(() => { ambience(AMB[p.step]); }, [p.step]);
+  useEffect(() => () => { music(null); ambience(null); }, []);
+  // 開場放這一章的主題曲，進關卡就只留環境音
+  useEffect(() => { ambience(AMB[p.step]); music(p.step === 0 ? 'MU-34' : null); }, [p.step]);
 
   const set = (fn: (p: Progress4) => Progress4) => setP((old) => fn(old));
   const next = () => setP((old) => goTo4(old, Math.min(LAST4, old.step + 1) as Step4));

@@ -50,7 +50,7 @@ export function Salt({ p, set, next, oops }: Step4Props) {
     if (!canDo(SALT, now, a)) return;
     if (acts.length >= SALT.hands) { sfx('SE-04'); setSay({ who: 'xlian', mood: 'worried', text: `一天只能做 ${SALT.hands} 件事！點一下做過的事可以取消。` }); return; }
     if (a.kind === 'cover' && cover >= 0) { sfx('SE-04'); setSay({ who: 'xlian', mood: 'worried', text: '草蓆只有一張喔。' }); return; }
-    sfx(a.kind === 'harvest' ? 'SE-05' : a.kind === 'cover' ? 'SE-36' : 'SE-53');
+    sfx(a.kind === 'harvest' ? 'SE-108' : a.kind === 'cover' ? 'SE-109' : 'SE-53');
     setActs([...acts, a]);
   };
   const can = (a: SaltAct) => acts.some((x) => same(x, a)) || (acts.length < SALT.hands && (a.kind === 'cover' ? cover < 0 && canDo(SALT, now, a) : canDo(SALT, now, a)));

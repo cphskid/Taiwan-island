@@ -16,6 +16,7 @@ export function Fort({ p, set, next, oops }: Step3Props) {
   const [phase, setPhase] = useState<Phase>('jump');
   const [li, setLi] = useState(0);
   const lv = HARBORS[li];
+  useEffect(() => { if (phase === 'fleet') sfx('SE-105'); }, [phase]); // 鄭成功的船隊開進來
   const fleet = phase === 'jump2' || phase === 'fleet' || phase === 'card2';
   return (
     <div className={`scene ${fleet ? 'ch3-fleet' : 'ch3-north'}`}>
@@ -66,7 +67,7 @@ function HarborBoard({ li, oops, onDone }: { li: number; oops: () => void; onDon
     const m = id === lastId ? mv : mv + 1; // 同一艘船連續滑，算同一步
     setBoats(nb); setMoves(m); setLast(id);
     if (harborFree(h, nb)) {
-      setWon(true); jingle('MU-13');
+      setWon(true); sfx('SE-101'); jingle('MU-13');
       setBoats(nb.map((b) => (b.id === 'A' ? { ...b, col: n + 1 } : b)));
       await sleep(1400);
       if (alive.current) onDone();

@@ -38,7 +38,7 @@ function Schedule({ onDone, oops, night }: { onDone: () => void; oops: () => voi
   const [say, setSay] = useState<Line | null>(night ? { who: 'chun', mood: 'determined', text: '排得好，我就不用熬夜了。我們試試看！' } : null);
   const good = teaGood(TEA)[0];
   const left = TEA.batches.filter((b) => !order.includes(b.id));
-  const add = (id: string) => { if (run?.ok) return; sfx('SE-07'); setRun(null); setOrder([...order, id]); };
+  const add = (id: string) => { if (run?.ok) return; sfx('SE-115'); setRun(null); setOrder([...order, id]); };
   const drop = (id: string) => { if (run?.ok) return; sfx('SE-02'); setRun(null); setOrder(order.filter((x) => x !== id)); };
   const start = () => {
     const r = teaRun(TEA, order);

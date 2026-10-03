@@ -44,7 +44,7 @@ export function School({ p, set, next, oops }: Step4Props) {
   };
   const check = () => {
     const r = checkTemple(TEMPLE, placed);
-    if (r.done) { jingle('MU-13'); setSay({ who: 'chen', text: '每一座都放對了！' }); setTimeout(() => { setSay(null); setPhase('done'); }, 1600); return; }
+    if (r.done) { sfx('SE-110'); jingle('MU-13'); setSay({ who: 'chen', text: '每一座都放對了！' }); setTimeout(() => { setSay(null); setPhase('done'); }, 1600); return; }
     sfx('SE-04'); oops();
     setWrong(r.wrong);
     const f = fails + 1;

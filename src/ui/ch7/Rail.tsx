@@ -60,7 +60,7 @@ function YardBoard({ level, oops, onDone }: { level: number; oops: () => void; o
   const finish = (ny: Yard) => {
     if (!yardDone(lv, ny)) return;
     setLeaving(true);
-    jingle('MU-13');
+    sfx('SE-113'); jingle('MU-13');
     setSay(YARD_SAY.good);
     setTimeout(onDone, 2200);
   };

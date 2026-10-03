@@ -41,7 +41,7 @@ function Sort({ mode, oops, onDone }: { mode: 'kind' | 'map'; oops: () => void; 
 
   const put = (to: string) => {
     if (!pick || passed) return;
-    sfx('SE-36');
+    sfx('SE-127');
     setPlaced({ ...placed, [pick]: to });
     setWrong(wrong.filter((w) => w !== pick));
     setPick(null);

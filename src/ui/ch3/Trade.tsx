@@ -60,8 +60,8 @@ function TradeBoard({ oops, onDone }: { oops: () => void; onDone: () => void }) 
     }
   };
   const doBuy = (g: Good) => { const n = buy(lv, s, g); if (!n) { sfx('SE-04'); return; } sfx('SE-07'); after(n); };
-  const doSell = (g: Good) => { const n = sell(lv, s, g); if (!n) { sfx('SE-04'); return; } sfx('SE-05'); after(n); };
-  const doSail = (to: PortId) => { const n = sail(lv, s, to); if (!n) { sfx('SE-04'); return; } sfx('SE-09'); after(n); };
+  const doSell = (g: Good) => { const n = sell(lv, s, g); if (!n) { sfx('SE-04'); return; } sfx('SE-102'); after(n); };
+  const doSail = (to: PortId) => { const n = sail(lv, s, to); if (!n) { sfx('SE-04'); return; } sfx('SE-101'); after(n); };
   const restart = () => { sfx('SE-02'); setS(freshTrade(lv)); };
   const demo = async () => {
     setBusy(true);
@@ -71,7 +71,7 @@ function TradeBoard({ oops, onDone }: { oops: () => void; onDone: () => void }) 
       await new Promise((r) => setTimeout(r, 380));
       if (!alive.current) return;
       n = (a.buy ? buy(lv, n, a.buy) : a.sell ? sell(lv, n, a.sell) : sail(lv, n, a.sail!)) ?? n;
-      sfx(a.sail ? 'SE-09' : 'SE-07');
+      sfx(a.sail ? 'SE-101' : 'SE-07');
       after(n, true);
     }
   };

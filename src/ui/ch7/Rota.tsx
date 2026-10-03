@@ -40,7 +40,7 @@ function Planner({ oops, onDone }: { oops: () => void; onDone: () => void }) {
     if (ok) return;
     const nr = r.map((row) => [...row]);
     nr[y][z] = r[y][z] === crop ? null : crop;
-    sfx(nr[y][z] ? 'SE-07' : 'SE-02');
+    sfx(nr[y][z] === 'cane' ? 'SE-121' : nr[y][z] ? 'SE-07' : 'SE-02');
     setR(nr);
     setMarks({ over: [], repeat: [], mix: [] });
   };

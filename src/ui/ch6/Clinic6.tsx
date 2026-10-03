@@ -41,7 +41,7 @@ function Match({ onDone, oops }: { onDone: () => void; oops: () => void }) {
 
   const put = (h: string) => {
     if (!pick || ok) return;
-    sfx('SE-36');
+    sfx('SE-116');
     setPlan({ ...plan, [pick]: h });
     setWrong(wrong.filter((w) => w !== pick)); setFull([]);
     setPick(null);

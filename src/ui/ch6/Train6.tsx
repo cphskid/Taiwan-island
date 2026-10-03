@@ -68,7 +68,7 @@ function Timetable({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops
   const go = () => {
     const r = trainCheck(lv, waits[0], waits[1]);
     const end = r.crash ? r.crash.t : Math.max(...r.arrive);
-    sfx('SE-09');
+    sfx('SE-113');
     setRes(null);
     const t0 = performance.now();
     setT(0);
