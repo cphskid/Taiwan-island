@@ -20,9 +20,9 @@ const BASE = import.meta.env.BASE_URL;
 
 type State =
   | { step: 'checking' }
-  | { step: 'loading'; done: number; total: number }
+  | { step: 'loading'; pct: number; label: string }
   | { step: 'blocked'; reason: string; needLogin: boolean }
-  | { step: 'play'; who: Who };
+  | { step: 'play'; who: Who; opening: boolean };
 
 export function App() {
   const [state, setState] = useState<State>({ step: 'checking' });
@@ -30,7 +30,8 @@ export function App() {
   const check = async () => {
     setState({ step: 'checking' });
     // 確認帳號（要跟資料庫來回好幾趟）的同時就先開始抓圖，不用等確認完才開始
-    void preload(firstScreenImages(), () => {});
+    const first = firstScreenImages();
+    const early = preload(first.urls, (f) => setState((s) => (s.step === 'checking' || s.step === 'loading' ? { step: 'loading', pct: 0.1 + f * 0.75, label: '準備島嶼' } : s)));
     const who = await whoAmI();
     if (who.kind === 'guest') {
       setState({ step: 'blocked', reason: '請先回樂園登入，再從島嶼開拓者的設施進來。', needLogin: true });
@@ -40,9 +41,10 @@ export function App() {
     if (!gate.ok) setState({ step: 'blocked', reason: gate.reason ?? '現在還不能進來', needLogin: false });
     else {
       await syncSaves(who);
-      // 登島前先把第一個畫面的圖讀完（有進度條），進去就是完整的畫面
-      await preload(firstScreenImages(), (done, total) => setState({ step: 'loading', done, total }));
-      setState({ step: 'play', who });
+      // 登島前先把第一個畫面的圖讀完（進度條 10%～85%），最多等 8 秒，沒讀完的進去後再補
+      await Promise.race([early, new Promise((ok) => setTimeout(ok, 8000))]);
+      // 大地圖還要把圖做成貼圖（85%～100%），地圖說好了才收起穿越畫面
+      setState({ step: 'play', who, opening: first.map });
     }
   };
 
@@ -60,8 +62,9 @@ export function App() {
         <h1>穿越吧！島嶼開拓者</h1>
         {state.step === 'play' && <WhoBadge who={state.who} />}
       </header>
-      {state.step === 'checking' && <Boot pct={0} />}
-      {state.step === 'loading' && <Boot pct={state.done / Math.max(1, state.total)} />}
+      {state.step === 'checking' && <Boot pct={0.05} label="確認通行證" />}
+      {state.step === 'loading' && <Boot pct={state.pct} label={state.label} />}
+      {state.step === 'play' && state.opening && <Opening onDone={() => setState({ ...state, opening: false })} />}
       {state.step === 'blocked' && <Gate reason={state.reason} needLogin={state.needLogin} onRetry={check} />}
       {state.step === 'play' && <Island />}
       <div className="rotate-hint">請把平板轉成橫的</div>
@@ -69,36 +72,48 @@ export function App() {
   );
 }
 
-// 穿越中的進度條：時光齒輪轉著，下面一條進度
-function Boot({ pct }: { pct: number }) {
+// 穿越中的進度條：滴答、目前在做什麼、百分比
+function Boot({ pct, label }: { pct: number; label: string }) {
+  const n = Math.min(100, Math.round(pct * 100));
   return (
     <div className="boot">
       <img src={`${BASE}img/tick/wave.webp`} alt="" />
-      <p>穿越時空中…</p>
-      <div className="boot-bar"><i style={{ width: `${Math.round(pct * 100)}%` }} /></div>
+      <p>穿越時空中… {n}%</p>
+      <div className="boot-bar"><i style={{ width: `${n}%` }} /></div>
+      <small>{label}</small>
     </div>
   );
 }
 
-// 一次讀幾張圖並回報進度；最多等 20 秒，網路很慢也不會卡在門口（沒讀完的進去再補）
-function preload(urls: string[], onProgress: (done: number, total: number) => void): Promise<void> {
+// 大地圖在做貼圖：進度從 85% 慢慢走到 99%，地圖好了（或最多 6 秒）就收起來
+function Opening({ onDone }: { onDone: () => void }) {
+  const [pct, setPct] = useState(0.85);
+  useEffect(() => {
+    const t0 = performance.now();
+    const tick = setInterval(() => setPct(0.85 + 0.14 * Math.min(1, (performance.now() - t0) / 4000)), 150);
+    const cap = setTimeout(onDone, 6000);
+    addEventListener('island:map-ready', onDone);
+    return () => { clearInterval(tick); clearTimeout(cap); removeEventListener('island:map-ready', onDone); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return <Boot pct={pct} label="展開地圖" />;
+}
+
+// 只把圖抓進瀏覽器快取（不解碼，平板記憶體才不會爆），一次抓很多張，回報 0～1 的進度
+function preload(urls: string[], onProgress: (f: number) => void): Promise<void> {
   const list = [...new Set(urls)];
   if (!list.length) return Promise.resolve();
   let done = 0, next = 0;
-  onProgress(0, list.length);
   return new Promise((finish) => {
-    const timer = setTimeout(finish, 20000);
     const one = () => {
       if (next >= list.length) return;
-      const im = new Image();
-      im.src = list[next++];
+      const url = list[next++];
       const after = () => {
-        onProgress(++done, list.length);
-        if (done === list.length) { clearTimeout(timer); finish(); } else one();
+        onProgress(++done / list.length);
+        if (done === list.length) finish(); else one();
       };
-      im.decode().then(after, after);
+      fetch(url).then((r) => r.blob()).then(after, after);
     };
-    for (let i = 0; i < 8; i++) one();
+    for (let i = 0; i < 16; i++) one();
   });
 }
 

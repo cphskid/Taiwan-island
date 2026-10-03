@@ -17,11 +17,9 @@ function pump() {
     const src = queue.shift()!;
     running++;
     later(() => {
-      const im = new Image();
-      im.decoding = 'async';
-      im.src = src;
+      // 只抓進快取、不解碼，平板記憶體才夠
       const done = () => { running--; pump(); };
-      im.decode().then(done, done);
+      fetch(src).then((r) => r.blob()).then(done, done);
     });
   }
 }

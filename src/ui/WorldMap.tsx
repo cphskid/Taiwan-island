@@ -89,6 +89,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
       if (import.meta.env.DEV) (window as unknown as { __map: Map }).__map = m; // 瀏覽器測試用
       m.setRifts(riftStates({ ...world, cleared: opened(world) }));
       setReady(true);
+      dispatchEvent(new Event('island:map-ready'));   // 進場的穿越畫面等這個才收起來（ui/App.tsx）
       timer = window.setInterval(() => setFps(Math.round(m.fps())), 500);
       const todo = toCelebrate(live.current.world);
       if (back || todo.length) {
@@ -177,7 +178,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
   const done = ch ? world.cleared.includes(ch.id) : false;
   return (
     <div className={`world ${NOW_ON ? 'has-nav' : ''} era-${era}`}>
-      <div className="board full" ref={host} />
+      <div className="board full" ref={host} data-ready={ready ? 1 : undefined} />
 
       <div className="clock" title="時光鐘">
         <img src={isl('clock-empty')} alt="" />
