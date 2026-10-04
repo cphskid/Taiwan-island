@@ -67,7 +67,11 @@ export function App() {
       {state.step === 'play' && state.opening && <Opening onDone={() => setState({ ...state, opening: false })} />}
       {state.step === 'blocked' && <Gate reason={state.reason} needLogin={state.needLogin} onRetry={check} />}
       {state.step === 'play' && <Island />}
-      <div className="rotate-hint">請把平板轉成橫的</div>
+      <div className="rotate-hint">
+        <img src={`${BASE}img/tick/wave.webp`} alt="" />
+        <b>把手機轉成橫的</b>
+        <p>這一關要看整張圖，橫過來畫面比較大喔！</p>
+      </div>
     </div>
   );
 }
