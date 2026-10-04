@@ -198,7 +198,7 @@ function RiverMap({ lv, st, tide, path, sol, stuck, nextOk, tap, dest, boat }: {
   const same2 = (a: Pt, b2: Pt) => a.x === b2.x && a.y === b2.y;
   const tagOf = (ch: string) => ch === 'A' || ch === 'm' ? st.from : ch === 'T' ? '大稻埕' : ch === 'B' ? st.to : '';
   return (
-    <div className={`ch6-river tide-${tide}`} style={{ aspectRatio: `${W} / ${H}` }}>
+    <div className={`ch6-river tide-${tide}`} style={{ aspectRatio: `${W} / ${H}`, ['--ar' as string]: W / H }}>
       <img className="rv-ground" src={art6('s-22')} alt="" />
       <svg className="rv-svg" viewBox={`0 0 ${W * U} ${H * U}`} preserveAspectRatio="none">
         <g fill="none" strokeLinecap="round" strokeLinejoin="round">

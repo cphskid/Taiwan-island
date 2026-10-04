@@ -90,8 +90,9 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
       if (import.meta.env.DEV) (window as unknown as { __map: Map }).__map = m; // 瀏覽器測試用
       m.setRifts(riftStates({ ...world, cleared: opened(world) }));
       setReady(true);
+      setStuck(null);
       dispatchEvent(new Event('island:map-ready'));
-      if (mapStatus.failed.length) setStuck(`有 ${mapStatus.failed.length} 張圖沒讀到（${mapStatus.failed.slice(0, 3).join('、')}），重新整理通常就好`);   // 進場的穿越畫面等這個才收起來（ui/App.tsx）
+      if (mapStatus.failed.length) setStuck(`有 ${mapStatus.failed.length} 張圖沒讀到，地圖上少了一點東西，照樣可以玩。想補回來，按「重新載入」再讀一次。`);   // 進場的穿越畫面等這個才收起來（ui/App.tsx）
       timer = window.setInterval(() => setFps(Math.round(m.fps())), 500);
       const todo = toCelebrate(live.current.world);
       if (back || todo.length) {
@@ -108,7 +109,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
     const watch = window.setTimeout(() => {
       if (!alive || map.current) return;
       const p = [...mapStatus.pending];
-      setStuck(`地圖還沒好（${mapStatus.stage || '準備中'}${p.length ? `，還在等 ${p.length} 張圖：${p.slice(0, 3).join('、')}` : ''}${mapStatus.failed.length ? `，讀失敗：${mapStatus.failed.slice(0, 3).join('、')}` : ''}）`);
+      setStuck(`地圖還在準備（${mapStatus.stage || '準備中'}${p.length ? `，還差 ${p.length} 張圖` : ''}）。網路慢的時候會久一點，請再等一下；等了一分鐘都沒動，再按「重新載入」。`);
     }, 15000);
     return () => {
       clearTimeout(watch); music(null); ambience(null); alive = false; clearInterval(timer); map.current?.destroy(); map.current = null; };
@@ -193,7 +194,10 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
       {stuck && (
         <div className="map-stuck">
           <p>{stuck}</p>
-          <button className="btn" onClick={() => location.reload()}>重新整理</button>
+          <div className="row">
+            <button className="btn" onClick={() => location.reload()}>重新載入</button>
+            {ready && <button className="btn ghost" onClick={() => setStuck(null)}>知道了</button>}
+          </div>
         </div>
       )}
 

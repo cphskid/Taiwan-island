@@ -2219,3 +2219,53 @@ button.v-chip{cursor:pointer}
   .talk-body p{font-size:19px;line-height:1.6}
   .talk-next{font-size:15px}
 }
+
+/* 手機橫拿（矮螢幕）：解謎的圖照高度放到最大，按鈕收到旁邊一欄；左上留給收起來的 🎯 目標鈕 */
+@media (max-height:600px) and (min-width:561px){
+  .ch3-route{padding:6px 8px 6px 56px;gap:8px}
+  .ch3-chart{height:min(100%,calc((100vw - 270px) * 7 / 10));max-width:calc(100% - 196px);border-width:4px}
+  .ch3-helm{width:188px;padding:6px 8px;gap:5px;max-height:100%;overflow-y:auto}
+  .ch3-hud span{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:0 4px}
+  .ch3-compass{width:120px}
+  .ch3-waits .btn{min-height:40px}
+  .ch3-reset{min-height:30px}
+  .ch3-chart .beacon-flag span{font-size:13px;padding:0 6px;border-width:2px}
+
+  .ch6-port-wrap{padding:6px 8px 6px 56px}
+  .ch6-port-board{display:grid;grid-template-columns:auto minmax(170px,1fr);grid-template-rows:minmax(0,1fr) auto;align-items:start;gap:6px 10px;width:auto;max-width:100%;height:100%;padding:8px}
+  .ch6-port-board .ch6-river{grid-column:1;grid-row:1/3;align-self:center;margin:0;width:min(calc((100dvh - 96px) * var(--ar,1.8)),calc(100vw - 290px))}
+  .ch6-port-bar{grid-column:2;grid-row:1;flex-direction:column;align-items:stretch;gap:6px;max-height:100%;overflow-y:auto}
+  .ch6-port-bar .ch6-seg{flex-wrap:wrap}
+  .ch6-port-bar .ch6-seg>span{width:100%}
+  .ch6-port-foot{grid-column:2;grid-row:2;justify-content:stretch}
+  .ch6-port-foot .ch6-legend{font-size:13px;line-height:1.25}
+  .ch6-port-foot .btn{flex:1;min-width:0}
+  .ch6-legend{flex-basis:100%}
+  .ch6-river .beacon-flag span{font-size:13px;padding:0 6px;border-width:2px}
+
+  .ch4-temple-wrap{padding:6px 8px 6px 56px;grid-template-columns:minmax(180px,1fr) auto;grid-template-rows:minmax(0,1fr);align-items:stretch}
+  .ch4-temple-wrap .clues{max-height:none;overflow-y:auto}
+  .ch4-temple{display:grid;grid-template-columns:auto auto;grid-template-rows:1fr auto;align-items:center;gap:4px 10px;padding:6px 10px}
+  .ch4-tray{grid-column:1;grid-row:1;display:grid;grid-template-columns:repeat(2,68px);max-width:none;min-height:0;align-content:center}
+  .ch4-tray .btn,.ch4-tray-tip{grid-column:1/-1}
+  .ch4-temple>.cal-tip{grid-column:1;grid-row:2;max-width:146px;line-height:1.3}
+  .ch4-site-box{grid-column:2;grid-row:1/3;padding:18px 22px}
+  .ch4-site{--l:min(84px,calc((100dvh - 150px) / 4))}
+}
+@media (max-height:380px) and (min-width:561px){
+  .ch3-compass{width:96px;gap:2px}
+  .ch3-compass button{font-size:15px;border-width:2px}
+  .ch3-hud span{font-size:13px;padding:1px 6px}
+  .ch3-waits .btn{min-height:36px;font-size:14px}
+  .ch3-reset{min-height:24px;font-size:13px}
+}
+@media (max-height:380px) and (min-width:561px){
+  .ch4-bld{width:62px}
+  .ch4-bld img{width:44px;height:30px}
+  .ch4-tray{grid-template-columns:repeat(2,62px);gap:4px}
+  .ch4-temple>.cal-tip{max-width:132px}
+  .ch6-port-foot .ch6-legend{display:none}
+  .ch6-port-foot .btn{min-height:40px}
+}
+.map-stuck .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.map-stuck .btn.ghost{background:#fff;color:var(--wood-2);border:3px solid #c9a46b;box-shadow:none}

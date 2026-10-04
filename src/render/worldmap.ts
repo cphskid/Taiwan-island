@@ -111,9 +111,9 @@ function rng(seed: number) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
 }
 
-// 大地圖的圖分兩批：一打開就要的（底圖、海、裂縫、徽章、已經撥開雲霧那幾章的人和房子），
-// 和還沒撥開的章的人和房子（看不到，地圖打開後才在背景慢慢讀，讀好才放上去）。
-// 進場進度條只等第一批（ui/Island.tsx firstScreenImages），不然一次要讀兩百多張圖。
+// 大地圖的圖分兩批：一打開就要的（底圖、海、裂縫、徽章，十幾張），
+// 和各章的人和房子（地圖打開後才在背景一章章讀，已撥開的章先讀，讀好就冒出來）。
+// 進場進度條只等第一批（ui/Island.tsx firstScreenImages）；全破的人各章加起來兩百多張，手機要等很久。
 function lifeNames(L: ChapterLife): string[] {
   const names = [...L.buildings, ...(L.scenery ?? [])].map((d) => d.name);
   for (const c of L.cycles ?? []) names.push(...c.frames);
@@ -123,10 +123,9 @@ function lifeNames(L: ChapterLife): string[] {
   }
   return names;
 }
-function baseImageNames(opened: readonly string[]): Set<string> {
+function baseImageNames(): Set<string> {
   const names = new Set<string>(['m01', 'm01-relief', 'rift', 'badge-canal', 't2-water', 't2-dirt', 'smoke', 'm2-paddy-green', 'm2-paddy-gold']);
   for (const ch of CHAPTERS) names.add(`badge-${ch.badge}`);
-  for (const id of opened) { const L = LIFE[id as keyof typeof LIFE]; if (L) for (const n of lifeNames(L)) names.add(n); }
   if (NOW_ON) {
     for (const L of Object.values(NOW_LIFE)) if (L) for (const n of lifeNames(L)) names.add(n);
     for (const p of NOW_PLACES) names.add(p.art);
@@ -134,7 +133,7 @@ function baseImageNames(opened: readonly string[]): Set<string> {
   }
   return names;
 }
-export const mapImageUrls = (opened: readonly string[]) => [...[...baseImageNames(opened)].map(isl), MAP.regions];
+export const mapImageUrls = () => [...[...baseImageNames()].map(isl), MAP.regions];
 
 export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): Promise<WorldMap> {
   const app = new Application();
@@ -165,7 +164,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   mapStatus.stage = '讀地圖的圖';
   mapStatus.pending.clear();
   mapStatus.failed = [];
-  const [regions] = await Promise.all([loadRegions(), loadTex(baseImageNames(opt.opened))]);
+  const [regions] = await Promise.all([loadRegions(), loadTex(baseImageNames())]);
   mapStatus.stage = '把地圖畫出來';
   let destroyed = false;
   const puff = puffTexture();
@@ -415,7 +414,6 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     return { box, grow, fire, cycles, paddies, actors, drawFlow, growing: null as { t0: number } | null };
   };
   const lives = new Map<string, ReturnType<typeof makeLife>>();
-  for (const id of opt.opened) { const L = LIFE[id as keyof typeof LIFE]; if (L) lives.set(id, makeLife(L)); }
   const setLife = (id: string, on: boolean) => { const l = lives.get(id); if (l) l.box.visible = on; };
   // 還沒撥開的章：圖讀好才做出來（先藏著，過關撥雲時才出現）
   const pending = new Map<string, Promise<ReturnType<typeof makeLife> | undefined>>();
@@ -657,8 +655,9 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   for (const id of opt.opened) clearFog(id);
   thinEdges();
   for (const id of lives.keys()) setLife(id, openedSet.has(id));
-  // 地圖出來以後，一章一章在背景讀其他章的圖
-  void (async () => { for (const id of Object.keys(LIFE)) { if (destroyed) return; await ensureLife(id).catch(() => {}); } })();
+  // 地圖出來以後，一章一章在背景讀各章的人和房子：已撥開的章先（讀好就出現），再讀還沒撥開的
+  const order = [...Object.keys(LIFE)].sort((a, b2) => Number(!openedSet.has(a)) - Number(!openedSet.has(b2)));
+  void (async () => { for (const id of order) { if (destroyed) return; await ensureLife(id).catch(() => {}); } })();
   setNowOpened(opt.opened);
   buildRelief();
   const showEra = () => {

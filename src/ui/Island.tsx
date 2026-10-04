@@ -72,7 +72,7 @@ export function firstScreenImages(): { urls: string[]; map: boolean } {
   const w = initialWorld();
   const m = initialMode(w);
   if (m.at === 'prologue') return { urls: ['story/K-01', 'story/K-02', 'story/K-03', 'tick/happy'].map((n) => `${IMG}${n}.webp`), map: false };
-  if (m.at === 'map') return { urls: mapImageUrls(opened(w)), map: true };
+  if (m.at === 'map') return { urls: mapImageUrls(), map: true };
   return { urls: [], map: false };
 }
 
