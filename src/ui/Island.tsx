@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { addCards, freshWorld, loadWorld, markCleared, opened, saveWorld, type WorldSave } from '../core/world';
+import { addCards, allCleared, freshWorld, loadWorld, markCleared, opened, saveWorld, type WorldSave } from '../core/world';
 import { load } from '../core/save';
-import type { ChapterId } from '../data/world';
+import { CHAPTERS, type ChapterId } from '../data/world';
+import { unlockNow } from '../data/now';
 import { Chapter } from './Chapter';
 import { Ch1 } from './Ch1';
 import { load1 } from '../core/save1';
@@ -25,8 +26,13 @@ import { warm } from './warm';
 import { mapImageUrls } from '../render/worldmap';
 
 // 整個遊戲的兩層：全台大地圖（選章）⇄ 章節關卡；第一次進來先玩序章《認識臺灣》。
-// 網址加 ?village 直接進現在篇的漁村；?step=3 直接進第五章的某一步、?ch1=2 直接進第一章的某一步、?ch2=2、?ch3=2…?chEnd=2 直接進那一章的某一步；?prologue 直接玩序章；?world=fresh 大地圖從頭開始、?world=clear5 假裝剛過完第五章、?world=clear1,2,5 假裝過了好幾章（測試用）。
+// 網址加 ?village 直接進現在篇的漁村；?step=3 直接進第五章的某一步、?ch1=2 直接進第一章的某一步、?ch2=2、?ch3=2…?chEnd=2 直接進那一章的某一步；?prologue 直接玩序章；?world=fresh 大地圖從頭開始、?world=clear5 假裝剛過完第五章、?world=clear1,2,5 假裝過了好幾章、?world=clear1,2,3,4,5,6,7,End 全破（撥雲完接著播整篇通關，撥桿出現）（測試用）。
 function initialWorld(): WorldSave {
+  const w = readWorld();
+  if (allCleared(w, CHAPTERS.map((c) => c.id))) unlockNow(); // 過去篇全破：大地圖要準備好「現在」（撥桿等看完整篇通關才出現）
+  return w;
+}
+function readWorld(): WorldSave {
   const q = new URLSearchParams(location.search).get('world');
   if (q === 'fresh') return freshWorld();
   if (q?.startsWith('clear')) return { ...freshWorld(), greeted: true, cleared: q.slice(5).split(',').map((n) => (n === 'End' ? 'end' : `ch${n}`)) as WorldSave['cleared'] };

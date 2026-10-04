@@ -3,12 +3,15 @@
 // 「現在篇」的地點（漁村、規則小鎮…）是地圖上的點，每個都能直接點，還沒做好的顯示施工中。
 //
 // 座標跟 data/world.ts 一樣是 M-01 第二版的像素。圖是 Y-01～03（public/img/island/y1-*、y2-*、y3-*）。
-// 現在還藏在網址 ?now=1 後面，沒加的人看到的大地圖跟原本一模一樣。
+// 現在藏在網址 ?now=1 後面；沒加的人要過去篇全部過關才會出現撥桿，之前看到的大地圖跟原本一模一樣。
 
 import { HSR_LINE, type ChapterId, type ChapterLife } from './world';
 import type { Pt } from '../core/world';
 
-export const NOW_ON = typeof location !== 'undefined' && new URLSearchParams(location.search).has('now');
+// 網址有 ?now=1 一律打開；沒加的人要等過去篇全部過關、看完整篇通關，撥桿才出現（unlockNow）
+export const NOW_URL = typeof location !== 'undefined' && new URLSearchParams(location.search).has('now');
+export let NOW_ON = NOW_URL;
+export function unlockNow() { NOW_ON = true; }
 
 export type Era = 'past' | 'now';
 

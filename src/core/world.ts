@@ -15,9 +15,10 @@ export interface WorldSave {
   cards: string[]; // 圖鑑：跨章累積拿過的卡（章節重玩也不會不見）
   prologue: boolean; // 玩完序章《認識臺灣》了
   tools: string[]; // 跨章累積的道具（序章拿到地形眼鏡 glasses、天氣羅盤 compass）
+  finale: boolean; // 看過「整篇通關」縮時動畫（過去篇全部過關後播一次，播完撥桿才出現）
 }
 
-export const freshWorld = (): WorldSave => ({ v: 1, cleared: [], celebrated: [], greeted: false, cards: [], prologue: false, tools: [] });
+export const freshWorld = (): WorldSave => ({ v: 1, cleared: [], celebrated: [], greeted: false, cards: [], prologue: false, tools: [], finale: false });
 
 const KEY = 'island.world.v1';
 
@@ -51,6 +52,9 @@ export function addCards(w: WorldSave, ids: readonly string[]): WorldSave {
   const more = ids.filter((id) => !w.cards.includes(id));
   return more.length ? { ...w, cards: [...w.cards, ...more] } : w;
 }
+
+// 過去篇每一章（含終章）都過關了：要播整篇通關、撥桿出現
+export const allCleared = (w: WorldSave, ids: readonly string[]) => ids.every((id) => w.cleared.includes(id));
 
 // 過關了、但還沒在大地圖上看過撥雲動畫的章
 export const toCelebrate = (w: WorldSave) => w.cleared.filter((id) => !w.celebrated.includes(id));

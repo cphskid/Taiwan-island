@@ -35,5 +35,6 @@ export function mergeWorld(local: WorldSave, cloud: Partial<WorldSave> | null | 
     cards: union(local.cards, c.cards ?? []),
     prologue: local.prologue || !!c.prologue,
     tools: union(local.tools, c.tools ?? []),
+    finale: !!local.finale || !!c.finale,
   };
 }

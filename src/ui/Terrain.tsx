@@ -7,6 +7,7 @@ export interface TerrainLayer {
   test: (col: number, row: number) => boolean;
   fill?: string; // 顏色
   img?: string; // 貼圖網址（整張鋪滿畫面）
+  tile?: number; // 貼圖改成一塊一塊重複鋪：一塊多寬（格）；不給就整張鋪滿
   grow?: number; // 往外長多少格（沙灘、岸邊用）
   soft?: number; // 邊有多圓（0.1～0.35 格）
   wobble?: number; // 岸邊彎彎曲曲的程度（格），預設 0.14
@@ -36,6 +37,11 @@ export function Terrain({ cols, rows, layers, className = '' }: { cols: number; 
           }
           return (
             <g key={i}>
+              {l.img && l.tile && (
+                <pattern id={`${uid}p${i}`} patternUnits="userSpaceOnUse" width={l.tile * U} height={l.tile * U * 0.5625}>
+                  <image href={l.img} x={0} y={0} width={l.tile * U} height={l.tile * U * 0.5625} preserveAspectRatio="xMidYMid slice" />
+                </pattern>
+              )}
               <filter id={`${uid}f${i}`} x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
                 <feGaussianBlur stdDeviation={soft} />
                 <feComponentTransfer><feFuncA type="linear" slope="14" intercept="-6.5" /></feComponentTransfer>
@@ -49,7 +55,8 @@ export function Terrain({ cols, rows, layers, className = '' }: { cols: number; 
       </defs>
       {layers.map((l, i) => (
         <g key={i} mask={`url(#${uid}m${i})`} opacity={l.opacity ?? 1} className={l.className}>
-          {l.img ? <image href={l.img} x={0} y={0} width={W} height={H} preserveAspectRatio="xMidYMid slice" /> : <rect x={0} y={0} width={W} height={H} fill={l.fill ?? '#fff'} />}
+          {l.img && l.tile ? <rect x={0} y={0} width={W} height={H} fill={`url(#${uid}p${i})`} />
+            : l.img ? <image href={l.img} x={0} y={0} width={W} height={H} preserveAspectRatio="xMidYMid slice" /> : <rect x={0} y={0} width={W} height={H} fill={l.fill ?? '#fff'} />}
         </g>
       ))}
     </svg>

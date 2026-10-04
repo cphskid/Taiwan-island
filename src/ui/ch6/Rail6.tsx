@@ -87,19 +87,19 @@ function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: ()
           <span className={lv.tunnels && used.tunnels >= lv.tunnels ? 'out' : ''}><img src={art6('g-07-tunnel')} alt="" />隧道 {lv.tunnels - used.tunnels}</span>
           <small>{way === 0 ? '挖隧道穿過獅球嶺' : '沿著山邊繞過去'}</small>
         </div>
-        <div className="ch6-rail-grid" style={{ gridTemplateColumns: `repeat(${W}, 1fr)`, aspectRatio: `${W} / ${H}` }}>
+        <div className="ch6-rail-grid" style={{ gridTemplateColumns: `repeat(${W}, 1fr)`, aspectRatio: `${W} / ${H}`, '--ar': W / H } as React.CSSProperties}>
           <div className="rl-land">
             <img className="rl-bg" src={art6('s-22')} alt="" />
             <Terrain cols={W} rows={H} layers={[
-              { test: (x, y) => railH(lv, { x, y }) >= 2, fill: '#c9d978', soft: 0.26, className: 'rl-lay' },
-              { test: (x, y) => railH(lv, { x, y }) >= 3, fill: '#b59a5c', soft: 0.24, className: 'rl-lay' },
-              { test: (x, y) => railH(lv, { x, y }) >= 4, fill: '#86643f', soft: 0.22, className: 'rl-lay' },
-              { test: (x, y) => railCh(lv, { x, y }) === '~', fill: '#ecd9a0', grow: 0.08, soft: 0.25 },
-              { test: (x, y) => railCh(lv, { x, y }) === '~', fill: '#4a9ad8', soft: 0.25 },
+              { test: (x, y) => railH(lv, { x, y }) >= 2, img: art6('t-hill'), tile: 4, soft: 0.3, wobble: 0.2, className: 'rl-lay' },
+              { test: (x, y) => railH(lv, { x, y }) >= 3, img: art6('t-slope'), tile: 3.5, soft: 0.28, wobble: 0.2, className: 'rl-lay' },
+              { test: (x, y) => railH(lv, { x, y }) >= 4, img: art6('t-rock'), tile: 3.5, soft: 0.26, wobble: 0.2, className: 'rl-lay' },
+              { test: (x, y) => railCh(lv, { x, y }) === '~', fill: '#ecd9a0', grow: 0.1, soft: 0.28, wobble: 0.22 },
+              { test: (x, y) => railCh(lv, { x, y }) === '~', img: art6('t-river'), tile: 4, soft: 0.28, wobble: 0.22 },
             ]} />
             {lv.map.flatMap((row, y) => [...row].map((ch, x) => {
               const h = railH(lv, { x, y });
-              const img = h === 4 && jitter(x, y, 1) < 0.55 ? 'o-13-mountain' : h === 3 && jitter(x, y, 2) < 0.4 ? 'o-13-hill' : h === 2 && jitter(x, y, 3) < 0.3 ? 'o-11-tree' : h === 1 && ch !== 'K' && ch !== 'P' && jitter(x, y, 4) < 0.25 ? 'o-11-teabush' : null;
+              const img = h === 4 && jitter(x, y, 1) < 0.22 ? 'o-13-mountain' : h === 3 && jitter(x, y, 2) < 0.2 ? 'o-13-hill' : h === 2 && jitter(x, y, 3) < 0.3 ? 'o-11-tree' : h === 1 && ch !== 'K' && ch !== 'P' && jitter(x, y, 4) < 0.25 ? 'o-11-teabush' : null;
               return img && <img key={`d${x},${y}`} className={`rl-deco ${img}`} src={art6(img)} alt=""
                 style={{ left: `${((x + 0.55 + (jitter(x, y, 5) - 0.5) * 0.2) / W) * 100}%`, top: `${((y + 0.7) / H) * 100}%`, width: `${(0.62 / W) * 100}%` }} />;
             }))}
@@ -120,18 +120,24 @@ function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: ()
             return (
               <button key={`${x},${y}`} className={`rl rl-${ch === '~' ? 'river' : ch === 'K' || ch === 'P' ? 'stn' : `h${h}`} ${st ? `on ${st.kind}` : ''} ${near ? 'near' : ''} ${hint ? 'hint' : ''} ${bad && same(bad, c) ? 'bad' : ''}`}
                 onClick={() => tap(c)} aria-label={label}>
-                {ch !== '~' && ch !== 'K' && ch !== 'P' && <i className="rl-h">{h}</i>}
+                {(near || (k === path.length - 1 && !done)) && ch !== '~' && ch !== 'K' && ch !== 'P' && <i className="rl-h">{H_NAME[h]}<b>{h}</b></i>}
+                {near && ch === '~' && <i className="rl-h river">河</i>}
                 {(ch === 'K' || ch === 'P') && <><img className="rl-stn-img" src={art6('o-09-station')} alt="" /><b className="rl-tag">{label}</b></>}
                 {st?.kind === 'tunnel' && <img className="rl-icon" src={art6('g-07-tunnel')} alt="" />}
                 {st?.kind === 'bridge' && <img className="rl-icon" src={art6('g-07-bridge')} alt="" />}
-                              </button>
+              </button>
             );
           }))}
           {!done && (() => { const g = railGoal(lv); return <Beacon style={{ left: `${((g.x + 0.5) / W) * 100}%`, top: `${((g.y + 0.5) / H) * 100}%` }} label="臺北：鋪到這裡" spot />; })()}
           {pos && <img className="ch6-loco" src={art6('o-09-loco')} alt="" style={{ left: `${((pos.x + 0.5) / W) * 100}%`, top: `${((pos.y + 0.5) / H) * 100}%` }} />}
         </div>
         <div className="ch6-rail-foot">
-          <span className="ch6-legend"><i className="lg-h1" />1 平地 <i className="lg-h2" />2 小丘 <i className="lg-h3" />3 山坡 <i className="lg-h4" />4 高山 <i className="lg-rv" />河　點已經鋪好的格子可以退回去</span>
+          <span className="ch6-legend rl-legend">
+            {([['s-22', '1 平地'], ['t-hill', '2 小丘'], ['t-slope', '3 山坡'], ['t-rock', '4 高山'], ['t-river', '河']] as const).map(([img, t]) => (
+              <span key={img}><i style={{ backgroundImage: `url(${art6(img)})` }} />{t}</span>
+            ))}
+            <em>點已經鋪好的地方可以退回去</em>
+          </span>
           <button className="btn orange" disabled={done || path.length < 2} onClick={() => { sfx('SE-02'); setPath(railBegin(lv)); setBad(null); }}>重鋪</button>
         </div>
       </div>

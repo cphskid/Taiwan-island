@@ -56,6 +56,23 @@ export const chapterByRegion = (region: number) => CHAPTERS.find((c) => c.region
 // 每章最後一句是下一章的鉤子：過了第五章，北部（第六章）的裂縫開始發光
 export const HOOKS: Partial<Record<ChapterId, ChapterId>> = { ch5: 'ch6' };
 
+// 整篇通關的縮時：過去篇全部過關後，鏡頭照時間順序一章一章飛過去，最後拉遠看整座島
+export const LAPSE: Record<ChapterId, { when: string; line: string }> = {
+  ch1: { when: '好幾千年前', line: '八仙洞的火光亮起，十三行的煉鐵爐冒煙' },
+  ch2: { when: '很久很久以前', line: '中央山脈的部落種小米、守護山林' },
+  ch3: { when: '1624 年', line: '帆船開進大員，熱蘭遮城蓋起來' },
+  ch4: { when: '1661 年', line: '鄭氏軍隊在台南平原屯田' },
+  ch5: { when: '1719 年', line: '八堡圳的水流進彰化平原' },
+  ch6: { when: '1860 年代', line: '淡水、基隆開港，火車開進臺北' },
+  ch7: { when: '1930 年代', line: '嘉南大圳完工，日月潭開始發電' },
+  end: { when: '今天', line: '高鐵從北跑到南，雲霧全部散開' },
+};
+export const FINALE_LINES = {
+  title: '整篇通關！',
+  text: '從第一道火光到今天，這座島的每個時代你都去過了。八枚時光徽章都拿到了！',
+  lever: '下面多了一個「時光撥桿」！撥到「現在」，看看你走過的地方今天變成什麼樣子。',
+};
+
 // 時光鐘上 7 個齒輪孔的位置（clock-empty 圖的比例座標，從最上面順時針）
 export const GEAR_SLOTS: Pt[] = [
   { x: 0.48, y: 0.141 }, { x: 0.748, y: 0.258 }, { x: 0.83, y: 0.522 }, { x: 0.633, y: 0.791 },

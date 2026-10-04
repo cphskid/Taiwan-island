@@ -172,6 +172,11 @@ returns setof text language sql stable security definer set search_path = public
 $$;
 revoke all on function public.island_earned_stamps(uuid) from public, anon, authenticated;
 
+-- 島嶼章當初只開了第五章（ch5），其他章過關蓋不下去；七章加終章都做好了，全部打開。
+-- 打開後學生下次進樂園，park_my_profile 會照 island_earned_stamps 自動補蓋已過關的章。
+update public.park_stamps set active = true
+ where facility = 'island_pioneer' and code in ('ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end') and not active;
+
 -- -----------------------------------------------------------------------------
 -- 4. 在樂園登記這個設施的網址與摘要函式（只補空的欄位，不動管理員改過的狀態）
 --    狀態（施工中／試營運／開放）請管理員在樂園後台的「設施」改。

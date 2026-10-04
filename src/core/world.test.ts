@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
-  addCards, celebrate, freshWorld, loadWorld, lodLevel, markCleared, nearest, opened, paddyLook, pathLength, pointAlong,
+  addCards, allCleared, celebrate, freshWorld, loadWorld, lodLevel, markCleared, nearest, opened, paddyLook, pathLength, pointAlong,
   saveWorld, seasonAt, toCelebrate, walker,
 } from './world';
 
 describe('大地圖進度', () => {
+  it('全部章都過關才算整篇通關（順序不拘）', () => {
+    const ids = ['ch1', 'ch2', 'end'];
+    expect(allCleared({ ...freshWorld(), cleared: ['end', 'ch1'] }, ids)).toBe(false);
+    expect(allCleared({ ...freshWorld(), cleared: ['end', 'ch2', 'ch1'] }, ids)).toBe(true);
+    expect(freshWorld().finale).toBe(false);
+  });
   it('過關記一次，撥雲動畫播過才算撥開', () => {
     let w = markCleared(freshWorld(), 'ch5');
     expect(markCleared(w, 'ch5').cleared).toEqual(['ch5']);
