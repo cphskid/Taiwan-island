@@ -51,6 +51,10 @@ body{background:var(--sky);color:var(--ink);font-family:var(--f);overflow:hidden
 .tool:disabled{opacity:.45;cursor:default}
 .tool.on{background:linear-gradient(#7fd85a,#4aa834)}
 .tool-icon{font-size:30px;line-height:1}
+/* 大地圖右邊的工具平常收起來：只留一顆「工具」，地形眼鏡開著時亮一個綠點 */
+.tool.fold{min-height:64px;background:linear-gradient(#8a5a30,#5a3418);position:relative}
+.world-tools.open .tool.fold{min-height:52px}
+.tool.fold.busy::after{content:"";position:absolute;top:6px;right:6px;width:14px;height:14px;border-radius:50%;background:#7fd85a;box-shadow:0 0 0 2px #fff}
 .tray{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:12px;padding:10px 14px;background:rgba(255,244,220,.92);border:5px solid var(--wood-2);border-radius:24px;box-shadow:inset 0 0 0 2px var(--gold),0 6px 14px rgba(0,0,0,.25)}
 .item{display:flex;align-items:center;gap:10px;min-height:64px;padding:0 16px;border-radius:16px;background:#fff;border:3px solid var(--gold);font-weight:700;font-size:18px;touch-action:none;cursor:grab}
 .item b{color:var(--wood-2)}
@@ -242,6 +246,7 @@ img.gear{width:110px;height:110px;object-fit:contain}
   .hint b{font-size:14px}
   .tools{right:6px;gap:6px}
   .tool{width:64px;min-height:54px;border-radius:16px;border-width:3px;font-size:13px;white-space:nowrap;box-shadow:0 3px 0 #4a2a12}
+  .tool.fold,.world-tools.open .tool.fold{min-height:48px}
   .tool-img{width:30px;height:30px}
   .tool-icon{font-size:22px}
   .tray{bottom:6px;left:calc(50% - 34px);gap:6px;padding:4px 8px;border-width:3px;border-radius:18px}

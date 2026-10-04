@@ -43,6 +43,8 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
   const [stuck, setStuck] = useState<string | null>(null);
   const [fps, setFps] = useState(0);
   const [glasses, setGlasses] = useState(false);
+  // 右邊的工具（地形眼鏡、圖鑑、聲音）不常用：平常收成一顆「工具」鈕，點開才展開
+  const [toolsOpen, setToolsOpen] = useState(false);
   const [picked, setPicked] = useState<ChapterId | null>(null);
   const [say, setSay] = useState<string | null>(null);
   const [actor, setActor] = useState<ActorDef | null>(null);
@@ -208,16 +210,21 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
       </div>
       {flyGear !== null && <img className="gear-fly" src={isl('gear')} alt="" style={{ '--tx': `${GEAR_SLOTS[flyGear].x * 140 + 12}px`, '--ty': `${GEAR_SLOTS[flyGear].y * 140 + 12}px` } as React.CSSProperties} />}
 
-      <div className="tools">
-        <button className={`tool ${glasses ? 'on' : ''}`} onClick={() => { sfx('SE-38'); setGlasses(!glasses); }}>
-          <img className="tool-img" src={isl('h-eye')} alt="" />地形眼鏡
+      <div className={`tools world-tools ${toolsOpen ? 'open' : 'folded'}`}>
+        <button className={`tool fold ${glasses ? 'busy' : ''}`} aria-expanded={toolsOpen} onClick={() => { sfx('SE-03'); setToolsOpen(!toolsOpen); }}>
+          <span className="tool-icon">{toolsOpen ? '✕' : '🧰'}</span>{toolsOpen ? '收起' : '工具'}
         </button>
-        {!NOW_ON && (
-          <button className="tool" onClick={() => { sfx('SE-03'); setBook(true); }}>
-            <span className="tool-icon">📖</span>圖鑑 {CARD_ORDER.filter((id) => world.cards.includes(id)).length}/{CARD_ORDER.length}
+        {toolsOpen && <>
+          <button className={`tool ${glasses ? 'on' : ''}`} onClick={() => { sfx('SE-38'); setGlasses(!glasses); }}>
+            <img className="tool-img" src={isl('h-eye')} alt="" />地形眼鏡
           </button>
-        )}
-        <SoundToggle />
+          {!NOW_ON && (
+            <button className="tool" onClick={() => { sfx('SE-03'); setBook(true); }}>
+              <span className="tool-icon">📖</span>圖鑑 {CARD_ORDER.filter((id) => world.cards.includes(id)).length}/{CARD_ORDER.length}
+            </button>
+          )}
+          <SoundToggle />
+        </>}
       </div>
       {glasses && (
         <div className="legend world-legend">
