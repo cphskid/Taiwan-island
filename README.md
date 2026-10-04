@@ -26,6 +26,7 @@ npm run build:dev  # 測試站版本（/Taiwan-island/dev/，測試庫）
 - `src/net/` 跟樂園與 Supabase 接線
 - `src/audio/` 音效與音樂：檔名用全站統一編號放 `public/audio/`（例如 `SE-32.mp3`、`MU-10.mp3`），還沒有檔也照玩（幾個合成小聲音頂著）
 - `src/data/` 章節資料（地圖、題目、知識卡），改難度和文字不用動程式
+- `tools/atlas.mjs`（`npm run atlas`）把大地圖每章的人物、房子小圖打包成一章一張圖集（`public/img/island/atlas/`），進大地圖才快；**換了或新增各章大地圖上的小圖要重跑**（忘了也不會壞，建置會警告，那幾張改成單獨讀）
 - `tools/make_world.py` 由 M-01 大地圖算出地區分界、高度場與地形眼鏡圖（改了 `src/data/world-*.json` 要重跑）
 
 測試用網址：`?step=3` 直接進第五章某一步；`?world=fresh` 大地圖從頭；`?world=clear5` 假裝剛過完第五章，看撥雲動畫。

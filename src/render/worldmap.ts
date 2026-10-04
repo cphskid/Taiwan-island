@@ -4,13 +4,15 @@
 // 座標用 M-01 原圖的像素。觸控跟關卡一樣：單指平移、雙指縮放、點一下。
 // 效能：雲霧是幾百張同一張貼圖的 Sprite（一次批次畫完），會動的小人最多約 10 個，拉遠就藏起來。
 
-import { Application, Assets, Container, Graphics, Sprite, Text, Texture, TilingSprite } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture, TilingSprite } from 'pixi.js';
+import ATLAS from 'virtual:atlas';
 import { clampView, fitView, panBy, zoomAt, type View } from '../core/camera';
 import { lodLevel, nearest, paddyLook, pointAlong, seasonAt, walker, type Pt } from '../core/world';
 import {
   ACTOR_ART, CHAPTERS, LIFE, MAP, SEASON_SECONDS, isl,
   type ActorDef, type ChapterId, type ChapterLife,
 } from '../data/world';
+import { lifeNames } from '../data/life-names';
 import { NOW_LIFE, NOW_ON, NOW_PLACES, type Era } from '../data/now';
 
 const MAX_ZOOM = 6; // 最多放大到「一倍」的幾倍
@@ -113,16 +115,8 @@ function rng(seed: number) {
 
 // 大地圖的圖分兩批：一打開就要的（底圖、海、裂縫、徽章，十幾張），
 // 和各章的人和房子（地圖打開後才在背景一章章讀，已撥開的章先讀，讀好就冒出來）。
-// 進場進度條只等第一批（ui/Island.tsx firstScreenImages）；全破的人各章加起來兩百多張，手機要等很久。
-function lifeNames(L: ChapterLife): string[] {
-  const names = [...L.buildings, ...(L.scenery ?? [])].map((d) => d.name);
-  for (const c of L.cycles ?? []) names.push(...c.frames);
-  for (const def of L.actors) {
-    const a = ACTOR_ART[def.kind];
-    names.push(...a.walk, a.idle, ...Object.values(a.work ?? {}), ...(a.loop ?? []));
-  }
-  return names;
-}
+// 進場進度條只等第一批（ui/Island.tsx firstScreenImages）。
+// 各章的人和房子打包成一章一張圖集（tools/atlas.mjs），兩百多張小圖變八張；圖集裡沒有的才單獨讀。
 function baseImageNames(): Set<string> {
   const names = new Set<string>(['m01', 'm01-relief', 'rift', 'badge-canal', 't2-water', 't2-dirt', 'smoke', 'm2-paddy-green', 'm2-paddy-gold']);
   for (const ch of CHAPTERS) names.add(`badge-${ch.badge}`);
@@ -158,6 +152,29 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       mapStatus.pending.delete(n);
       if (!t) mapStatus.failed.push(n);
       tex[n] = t ?? Texture.EMPTY;
+    }));
+  // 先讀那章的圖集，切成一張張小圖放進 tex，剩下圖集沒有的再單獨讀（每章只讀一次）
+  const atlasLoads = new Map<string, Promise<unknown>>();
+  const loadAtlas = (id: string) => {
+    if (!atlasLoads.has(id)) atlasLoads.set(id, readAtlas(id));
+    return atlasLoads.get(id)!;
+  };
+  const readAtlas = (id: string) =>
+    Promise.all((ATLAS[id] ?? []).map(async (pg) => {
+      const names = Object.keys(pg.frames).filter((n) => !tex[n]);
+      if (!names.length) return;
+      const url = isl(`island/atlas/${pg.file.replace(/\.webp$/, '')}`);
+      mapStatus.pending.add(url);
+      const t = await Promise.race([
+        Assets.load<Texture>(url).catch(() => null),
+        new Promise<null>((ok) => setTimeout(() => ok(null), 20000)),
+      ]);
+      mapStatus.pending.delete(url);
+      if (!t) return; // 圖集讀不到：那幾張改成單獨讀
+      for (const n of names) {
+        const [x, y, w, h] = pg.frames[n];
+        tex[n] ??= new Texture({ source: t.source, frame: new Rectangle(x, y, w, h) });
+      }
     }));
   // iPad Safari 用 Web Worker 解圖有時一直不回來（地圖整片只剩海），改在主執行緒解
   Assets.setPreferences({ preferWorkers: false });
@@ -421,7 +438,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     if (lives.has(id)) return Promise.resolve(lives.get(id));
     const L = LIFE[id as keyof typeof LIFE];
     if (!L) return Promise.resolve(undefined);
-    if (!pending.has(id)) pending.set(id, loadTex(lifeNames(L)).then(() => {
+    if (!pending.has(id)) pending.set(id, loadAtlas(id).then(() => loadTex(lifeNames(L))).then(() => {
       if (destroyed) return undefined;
       if (!lives.has(id)) { const l = makeLife(L); l.box.visible = openedSet.has(id); lives.set(id, l); }
       return lives.get(id);
@@ -657,6 +674,8 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   for (const id of lives.keys()) setLife(id, openedSet.has(id));
   // 地圖出來以後，一章一章在背景讀各章的人和房子：已撥開的章先（讀好就出現），再讀還沒撥開的
   const order = [...Object.keys(LIFE)].sort((a, b2) => Number(!openedSet.has(a)) - Number(!openedSet.has(b2)));
+  // 圖集一次全部開始抓（一共才八張），人和房子還是照順序一章章做出來
+  for (const id of order) void loadAtlas(id);
   void (async () => { for (const id of order) { if (destroyed) return; await ensureLife(id).catch(() => {}); } })();
   setNowOpened(opt.opened);
   buildRelief();

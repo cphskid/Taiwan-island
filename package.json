@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build --base=/Taiwan-island/",
     "build:dev": "tsc -b && vite build --mode staging --base=/Taiwan-island/dev/",
     "test": "vitest run",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "atlas": "node tools/atlas.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

@@ -3,9 +3,13 @@
 // 一次只抓幾張、瀏覽器閒下來才抓，不跟眼前的畫面搶頻寬。
 // 圖的清單在建置時自動列出 public/img（vite.config.ts 的 img-list），新增圖不用手動維護。
 import list from 'virtual:img-list';
+import ATLAS from 'virtual:atlas';
 
 const BASE = import.meta.env.BASE_URL;
 const queued = new Set<string>();
+// 大地圖各章的人和房子已經打包進圖集（img/island/atlas/），單張的就不用再抓
+for (const pages of Object.values(ATLAS))
+  for (const pg of pages) for (const n of Object.keys(pg.frames)) queued.add(n.includes('/') ? `img/${n}.webp` : `img/island/${n}.webp`);
 const queue: string[] = [];
 let running = 0;
 const MAX = 3;

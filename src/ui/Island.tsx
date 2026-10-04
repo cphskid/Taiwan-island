@@ -88,8 +88,14 @@ export function Island() {
   useEffect(() => { saveWorld(world); pushCloud('world', world); }, [world]);
   // 換畫面時，在背景先抓這一幕（和接下來）會用到的圖：序章、大地圖用 island/，各章用自己的資料夾（ch1/、ch2/…），劇情人物在 story/
   const at = mode.at === 'chapter' ? mode.id : mode.at;
+  // 大地圖等地圖畫出來才開始抓，不跟地圖本身搶（最多等 10 秒）
   useEffect(() => {
-    warm(...(at === 'prologue' ? ['story/', 'island/'] : at === 'village' ? ['village/', 'island/'] : at === 'map' ? ['island/', 'story/'] : at === 'ch5' ? ['island/', 'people/'] : [`${at}/`, 'story/']));
+    const go = () => warm(...(at === 'prologue' ? ['story/', 'island/'] : at === 'village' ? ['village/', 'island/'] : at === 'map' ? ['island/', 'story/'] : at === 'ch5' ? ['island/', 'people/'] : [`${at}/`, 'story/']));
+    if (at !== 'map') return go();
+    const t = setTimeout(go, 10000);
+    const ready = () => { clearTimeout(t); go(); };
+    window.addEventListener('island:map-ready', ready, { once: true });
+    return () => { clearTimeout(t); window.removeEventListener('island:map-ready', ready); };
   }, [at]);
 
   if (mode.at === 'prologue')
