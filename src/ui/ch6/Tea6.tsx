@@ -1,28 +1,100 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { teaGood, teaRun, type TeaRun } from '../../core/railway';
-import { TEA, TEA_DONE, TEA_INTRO, TEA_RULE, TEA_SAY, art6 } from '../../data/ch6';
+import { TEA, TEA_DONE, TEA_EASY_INTRO, TEA_EASY_SAY, TEA_INTRO, TEA_RULE, TEA_SAY, TEA_STEPS, art6 } from '../../data/ch6';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
+import { ChallengeOffer, ChallengeTag } from '../Challenge';
 import { NewCards6, type Step6Props } from '../Ch6';
 import { Decide6, Jump6 } from './Story6';
 import { jingle, sfx } from '../../audio';
 
-type Phase = 'jump' | 'intro' | 'boss' | 'plan' | 'done' | 'cards';
+type Phase = 'jump' | 'intro' | 'journey' | 'boss' | 'offer' | 'cIntro' | 'plan' | 'done' | 'cards';
 
-// 步驟 2 茶葉出口：四批茶排先後順序。揀茶桌、焙籠一次只能做一批；揀好的茶等太久會發霉、天黑前要烘完
+// 步驟 2 茶葉出口：故事版是排出「一片茶葉的旅程」（阿春先放第一站）；
+// 原本四批茶排揀茶、烘焙順序的排程題，過關後可以選⭐⭐⭐再挑戰
 export function Tea6({ p, set, next, oops }: Step6Props) {
   const [phase, setPhase] = useState<Phase>('jump');
+  const toDone = () => setPhase('done');
   return (
     <div className="scene ch6-tea ch6-rain">
       <img className="scene-bg" src={art6('s-19')} alt="" />
       <div className="ch6-rainfall" />
       {phase === 'jump' && <Jump6 from={0} to={1} onDone={() => setPhase('intro')} />}
-      {phase === 'intro' && <Talk lines={TEA_INTRO} onDone={() => setPhase('boss')} />}
-      {phase === 'boss' && <Decide6 id="boss" set={set} onDone={() => setPhase('plan')} />}
-      {phase === 'plan' && <Schedule oops={oops} night={p.picks.boss === 1} onDone={() => setPhase('done')} />}
+      {phase === 'intro' && <Talk lines={TEA_EASY_INTRO} onDone={() => setPhase('journey')} />}
+      {phase === 'journey' && <Journey oops={oops} onDone={() => setPhase('boss')} />}
+      {phase === 'boss' && <Decide6 id="boss" set={set} onDone={() => setPhase('offer')} />}
+      {phase === 'offer' && <ChallengeOffer text="幫阿春排四批茶的順序：揀茶桌和焙籠一次只能做一批，揀好的茶等太久會發霉，天黑前要全部烘好。" onTry={() => setPhase('cIntro')} onSkip={toDone} />}
+      {phase === 'cIntro' && <Talk lines={TEA_INTRO} onDone={() => setPhase('plan')} />}
+      {phase === 'plan' && <><Schedule oops={() => {}} night={p.picks.boss === 1} onDone={toDone} /><ChallengeTag onQuit={toDone} /></>}
       {phase === 'done' && <Talk lines={TEA_DONE} onDone={() => setPhase('cards')} />}
       {phase === 'cards' && <NewCards6 ids={['c6-tea', 'c6-camphor']} p={p} set={set} onDone={next} />}
+    </div>
+  );
+}
+
+// 卡片打散的順序（固定，免得每次重來都不一樣）
+const SHUFFLE = ['roast', 'port', 'sort', 'ship', 'carry', 'box', 'pick'];
+
+// 故事版：點卡片排出茶葉的旅程，點錯的話阿春說為什麼還太早
+function Journey({ oops, onDone }: { oops: () => void; onDone: () => void }) {
+  const [placed, setPlaced] = useState<string[]>([]);
+  const [miss, setMiss] = useState(0); // 這一站點錯幾次
+  const [bad, setBad] = useState<string | null>(null);
+  const [demo, setDemo] = useState(true);
+  const [say, setSay] = useState<Line | null>(null);
+  const alive = useRef(true);
+  useEffect(() => () => { alive.current = false; }, []);
+  useEffect(() => {
+    const t = setTimeout(() => { if (!alive.current) return; sfx('SE-115'); setPlaced([TEA_STEPS[0].id]); setSay(TEA_EASY_SAY.demo); setDemo(false); }, 1000);
+    return () => clearTimeout(t);
+  }, []);
+  const want = TEA_STEPS[placed.length];
+  const done = placed.length === TEA_STEPS.length;
+  const tap = (id: string) => {
+    if (demo || done || placed.includes(id)) return;
+    if (id === want.id) {
+      sfx('SE-115');
+      const p = [...placed, id];
+      setPlaced(p); setMiss(0); setBad(null);
+      if (p.length === TEA_STEPS.length) { jingle('MU-13'); setSay(TEA_EASY_SAY.good); setTimeout(() => alive.current && onDone(), 2400); return; }
+      setSay(null);
+      return;
+    }
+    sfx('SE-04'); oops();
+    setMiss(miss + 1); setBad(id);
+    setSay(TEA_EASY_SAY.wrong(TEA_STEPS.find((t) => t.id === id)!, want));
+  };
+  const step = (id: string) => TEA_STEPS.find((t) => t.id === id)!;
+  return (
+    <div className="ch6-tea-wrap">
+      <Goal floating text={demo ? '先看阿春放第一站。' : '點卡片，照順序排出一片茶葉從茶園到外國的旅程。'} />
+      <div className="panel tea-journey">
+        <div className="tea-road">
+          {TEA_STEPS.map((t, i) => {
+            const id = placed[i];
+            return (
+              <div key={t.id} className={`tea-slot ${id ? 'on' : ''} ${i === placed.length && !done ? 'next' : ''}`}>
+                <em>{i + 1}</em>
+                {id ? <><img src={art6(step(id).img)} alt="" /><b>{step(id).name}</b></> : <span>？</span>}
+              </div>
+            );
+          })}
+        </div>
+        <div className="tea-cards">
+          {SHUFFLE.filter((id) => !placed.includes(id)).map((id) => {
+            const t = step(id);
+            return (
+              <button key={id} className={`tea-card ${bad === id ? 'bad' : ''} ${miss >= 2 && id === want?.id ? 'hint' : ''}`} disabled={demo || done} onClick={() => tap(id)}>
+                <img src={art6(t.img)} alt="" />
+                <b>{t.name}</b>
+                <small>{t.text}</small>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <Say line={say} />
     </div>
   );
 }
@@ -31,6 +103,7 @@ const HOURS = Array.from({ length: TEA.limit + 2 }, (_, i) => i);
 const TEA_IMG: Record<string, string> = { oolong: 'g-07-tea', pouchong: 'g-07-tea', fine: 'g-07-tea', coarse: 'g-07-tea' };
 const TEA_TINT: Record<string, string> = { oolong: '#6b8e23', pouchong: '#3fa86b', fine: '#2e7d5b', coarse: '#a0864a' };
 
+// ⭐⭐⭐ 再挑戰：四批茶排先後順序。揀茶桌、焙籠一次只能做一批；揀好的茶等太久會發霉、天黑前要烘完
 function Schedule({ onDone, oops, night }: { onDone: () => void; oops: () => void; night: boolean }) {
   const [order, setOrder] = useState<string[]>([]);
   const [run, setRun] = useState<TeaRun | null>(null);

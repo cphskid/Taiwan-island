@@ -3,7 +3,7 @@ import {
   clinicCheck, clinicSolve, perms, railBegin, railDone, railSolve, railStep, railUsed, riverSolve, sail, teaGood, teaRun, trainCheck, trainSolve,
   type Pt, type RailStep,
 } from './railway';
-import { CLINIC, RAILS, RIVERS, TEA, TRAINS } from '../data/ch6';
+import { CLINIC, RAILS, RIVERS, TEA, TEA_STEPS, TRAINS } from '../data/ch6';
 import { fresh6, pickProgress6, stars6 } from './save6';
 
 const P = (x: number, y: number): Pt => ({ x, y });
@@ -39,6 +39,15 @@ describe('河運', () => {
     expect(s.tide).toBe('high');
     expect(sail(lv, s.path, 'high', 'junk').ok).toBe(false);
     expect(sail(lv, s.path, 'low', 'sampan').ok).toBe(false);
+  });
+});
+
+describe('茶葉的旅程（故事版）', () => {
+  it('七站不重複，每張卡都有「為什麼」', () => {
+    expect(new Set(TEA_STEPS.map((t) => t.id)).size).toBe(TEA_STEPS.length);
+    for (const t of TEA_STEPS) {
+      expect(t.why.length).toBeGreaterThan(0);
+    }
   });
 });
 

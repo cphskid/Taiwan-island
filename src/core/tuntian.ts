@@ -235,6 +235,86 @@ export function saltRun(lv: SaltLevel, plan: readonly (readonly SaltAct[])[]): P
   return p;
 }
 
+// ── 3 曬鹽（故事版）────────────────────────────────
+// 幾格鹽田，每格：-1 空的、0 剛引進的海水，晴天曬一天多 1（中間是越來越鹹的鹵水），曬到 ready 就結出鹽了。
+// 每天只做一件事：引海水（空的那格）、收鹽（結出鹽的那格，收完變空的），或等太陽。草蓆另外決定今天蓋不蓋（全部一起蓋）。
+// 做完以後天氣才來：晴天沒蓋的鹽田曬一天（最多到 ready），蓋著的曬不到；陰天不變；下雨的話，沒蓋的鹽田被沖掉，變空的。
+export interface SaltEasyLevel { days: Sky[]; pans: number; need: number; ready: number } // ready：曬幾個晴天結出鹽
+export type EasyAct = { kind: 'fill'; pan: number } | { kind: 'harvest'; pan: number } | { kind: 'wait' };
+export interface EasyPans { v: number[]; salt: number }
+export const freshEasy = (lv: SaltEasyLevel): EasyPans => ({ v: Array(lv.pans).fill(-1), salt: 0 });
+
+export function easyCan(lv: SaltEasyLevel, p: EasyPans, a: EasyAct): boolean {
+  if (a.kind === 'fill') return p.v[a.pan] < 0;
+  if (a.kind === 'harvest') return p.v[a.pan] >= lv.ready;
+  return true;
+}
+
+// 做一件事、決定蓋不蓋草蓆，再讓天氣落下來；washed 是被雨沖掉的鹽田
+export function easyDay(lv: SaltEasyLevel, p: EasyPans, a: EasyAct, cover: boolean, day: number): { pans: EasyPans; washed: number[]; ok: boolean } {
+  if (!easyCan(lv, p, a)) return { pans: p, washed: [], ok: false };
+  const v = [...p.v];
+  let salt = p.salt;
+  if (a.kind === 'fill') v[a.pan] = 0;
+  if (a.kind === 'harvest') { v[a.pan] = -1; salt += 1; }
+  const sky = lv.days[day];
+  const washed: number[] = [];
+  if (!cover) {
+    v.forEach((x, i) => {
+      if (x < 0) return;
+      if (sky === 'sun') v[i] = Math.min(lv.ready, x + 1);
+      if (sky === 'rain') { v[i] = -1; washed.push(i); }
+    });
+  }
+  return { pans: { v, salt }, washed, ok: true };
+}
+
+export function easyActs(lv: SaltEasyLevel): EasyAct[] {
+  const out: EasyAct[] = [];
+  for (let i = 0; i < lv.pans; i++) out.push({ kind: 'harvest', pan: i });
+  for (let i = 0; i < lv.pans; i++) out.push({ kind: 'fill', pan: i });
+  out.push({ kind: 'wait' });
+  return out;
+}
+export interface EasyDayPlan { act: EasyAct; cover: boolean }
+const ripe = (lv: SaltEasyLevel, p: EasyPans) => p.salt + p.v.filter((x) => x >= lv.ready).length;
+
+// 最多收得到幾籃（最後一天過完還在田裡的鹽也算，隔天早上收），和每天建議做的事；from/start 給「今天該做什麼」的提示用
+// noCover：假裝沒有草蓆（測試用：證明不會蓋草蓆就收不夠）
+export function saltEasyBest(lv: SaltEasyLevel, from = 0, start: EasyPans = freshEasy(lv), noCover = false): { salt: number; plan: EasyDayPlan[] } {
+  const memo = new Map<string, { salt: number; plan: EasyDayPlan[] }>();
+  const go = (day: number, p: EasyPans): { salt: number; plan: EasyDayPlan[] } => {
+    if (day === lv.days.length) return { salt: ripe(lv, p), plan: [] };
+    const k = `${day}|${p.v.join(',')}|${p.salt}`;
+    const hit = memo.get(k);
+    if (hit) return hit;
+    let best = { salt: -1, plan: [] as EasyDayPlan[] };
+    for (const cover of noCover ? [false] : [false, true]) {
+      for (const act of easyActs(lv)) {
+        const r = easyDay(lv, p, act, cover, day);
+        if (!r.ok) continue;
+        const sub = go(day + 1, r.pans);
+        if (sub.salt > best.salt) best = { salt: sub.salt, plan: [{ act, cover }, ...sub.plan] };
+      }
+    }
+    memo.set(k, best);
+    return best;
+  };
+  return go(from, start);
+}
+
+// 照計畫跑完；回傳收得到的籃數
+export function saltEasyRun(lv: SaltEasyLevel, plan: readonly EasyDayPlan[]): number | null {
+  let p = freshEasy(lv);
+  for (let d = 0; d < lv.days.length; d++) {
+    const x = plan[d] ?? { act: { kind: 'wait' }, cover: false };
+    const r = easyDay(lv, p, x.act, x.cover, d);
+    if (!r.ok) return null;
+    p = r.pans;
+  }
+  return ripe(lv, p);
+}
+
 // ── 4 蓋學堂：孔廟的配置 ─────────────────────────
 // 格子由上（北，後面）到下（南，前面），中間那一直排是中軸線。每個建築有它的規則，全部放對才算完成。
 export type Bld = 'hall' | 'gate' | 'panchi' | 'eastWing' | 'westWing' | 'school';

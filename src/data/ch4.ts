@@ -6,7 +6,7 @@
 // 年代寫「大約」，照國小社會課本的說法。文字是初稿，上正式站前請社會科老師審。
 // 平埔族村社的寫法（土地、獵場、和漢人的關係）上正式站前要請熟悉平埔族歷史的人審。
 
-import type { CampLevel, GrainLevel, PondLevel, SaltLevel, TempleLevel, Bld, Sky } from '../core/tuntian';
+import type { CampLevel, GrainLevel, PondLevel, SaltLevel, SaltEasyLevel, TempleLevel, Bld, Sky } from '../core/tuntian';
 import type { Card, Line } from './babao-chapter';
 
 const BASE = import.meta.env.BASE_URL;
@@ -343,3 +343,23 @@ export const QUESTIONS4: Question4[] = [
     why: '1666 年建成的臺南孔廟是臺灣第一座孔廟，也是很早的官方學校。',
   },
 ];
+
+// ── 3 曬鹽（故事版）──
+// 三格鹽田，每天只做一件事（引海水、收鹽），草蓆另外決定蓋不蓋。第一天小蓮先示範。原本兩人兩件事、移池的版本留作再挑戰。
+export const SALT_EASY: SaltEasyLevel = { days: [...'sssrsscssrss'].map((x) => SKY[x]), pans: 3, need: 4, ready: 3 };
+export const SALT_EASY_INTRO: Line[] = [
+  { who: 'tick', mood: 'happy', text: '吃飯也要有鹽！我們跟著陳永華到海邊的瀨口。' },
+  { who: 'chen', text: '我是陳永華。以前這裡做鹽，是用大鍋煮海水，叫做「煎鹽」，要燒好多柴。' },
+  { who: 'chen', text: '我們改成在海邊築鹽田，引海水進來，讓太陽曬 3 個晴天，水乾了就結出鹽。這叫「曬鹽」。' },
+  { who: 'xlian', mood: 'worried', text: '可是下雨的話，鹽田就被雨水沖掉，要從頭來！' },
+  { who: 'chen', text: '所以要看天氣。下雨天把草蓆蓋上；晴天把草蓆拿開，才曬得到太陽。12 天裡收 4 籃鹽。' },
+];
+export const SALT_EASY_SAY = {
+  demo: { who: 'xlian', mood: 'happy', text: '第一天我先做：今天會出太陽，先把海水引進第一格鹽田！接下來換你，一天做一件事。' } as Line,
+  washed: { who: 'xlian', mood: 'sad', text: '下雨了……沒蓋草蓆的鹽田被沖掉了。' } as Line,
+  shade: { who: 'chen', text: '今天出太陽，可是草蓆蓋著，鹽田曬不到。' } as Line,
+  short: (n: number) => ({ who: 'chen', text: `12 天過去，只收了 ${n} 籃鹽。再看一次天氣：下雨那天要蓋草蓆。` }) as Line,
+  hint: { who: 'chen', text: '明天要下雨的話，今天先把能收的鹽收起來；下雨那天，記得蓋草蓆。' } as Line,
+  spot: { who: 'xlian', mood: 'thinking', text: '發亮的是陳先生建議今天做的事！' } as Line,
+  good: { who: 'chen', text: '鹽收夠了！晴天曬、雨天蓋，看天吃飯，也要會安排。' } as Line,
+};

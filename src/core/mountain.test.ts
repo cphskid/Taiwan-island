@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { calendarCheck, deerRun, farmYear, rotSolve, simulate, type RuleId } from './mountain';
-import { CHORES, DEER, ROT, RULES } from '../data/ch2';
+import { calendarCheck, deerRun, farmYear, rotSolve, ruleHunts, ruleRun, simulate, type RuleId } from './mountain';
+import { CHORES, DEER, HUNT_DEMO_OPEN, ROT, RULES } from '../data/ch2';
 import { fresh2, pickProgress2, stars2 } from './save2';
 
 describe('輪耕', () => {
@@ -34,6 +34,22 @@ describe('狩獵', () => {
   });
   it('打太少就餓肚子', () => {
     expect(deerRun(DEER, [[0, 0, 2, 2], [0, 0, 2, 2]]).hungry).toBe(true);
+  });
+});
+
+describe('狩獵（故事版：訂獵季）', () => {
+  it('春天不打，只要留一季上山就過關', () => {
+    for (const open of [[false, true, true, true], [false, false, true, true], [false, false, false, true], [false, true, false, false]]) {
+      expect(ruleRun(DEER, open).ok).toBe(true);
+    }
+  });
+  it('春天也打，鹿群會變少（夥伴示範的「想打就打」也是）', () => {
+    expect(ruleRun(DEER, HUNT_DEMO_OPEN).fewer).toBe(true);
+    expect(ruleRun(DEER, [true, false, false, false]).ok).toBe(false);
+  });
+  it('一季都不開就餓肚子；每年打的加起來剛好是 need', () => {
+    expect(ruleRun(DEER, [false, false, false, false]).hungry).toBe(true);
+    expect(ruleHunts(DEER, [false, true, true, true]).reduce((a, b) => a + b, 0)).toBe(DEER.need);
   });
 });
 

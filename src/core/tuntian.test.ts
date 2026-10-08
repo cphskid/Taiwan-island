@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
-  campSolutions, canDo, checkCamps, checkTemple, doAct, freshPans, grainSolutions, pondSolutions, runGrain, runPond, saltBest, saltRun, weather,
-  type Crop, type SaltAct,
+  campSolutions, canDo, checkCamps, checkTemple, doAct, freshPans, grainSolutions, pondSolutions, runGrain, runPond, saltBest, saltRun, weather, saltEasyBest, saltEasyRun, easyDay, freshEasy,
+  type Crop, type SaltAct, type EasyAct,
 } from './tuntian';
-import { CAMPS, CAMP_NAMES, GRAIN, POND, SALT, TEMPLE } from '../data/ch4';
+import { CAMPS, CAMP_NAMES, GRAIN, POND, SALT, SALT_EASY, TEMPLE } from '../data/ch4';
 import { fresh4, pickProgress4, stars4 } from './save4';
 
 const crops = (rice: number, potato: number): Crop[] => {
@@ -78,6 +78,36 @@ describe('曬鹽', () => {
   it('從半路開始也算得出建議', () => {
     const mid = saltBest(SALT, 4, { e: [0, 0], c: -1, salt: 1 });
     expect(mid.plan.length).toBe(SALT.days.length - 4);
+  });
+});
+
+describe('曬鹽（故事版）', () => {
+  it('看天氣做得到目標以上，而且還有餘裕', () => {
+    const best = saltEasyBest(SALT_EASY);
+    expect(best.salt).toBeGreaterThanOrEqual(SALT_EASY.need + 1);
+    expect(saltEasyRun(SALT_EASY, best.plan)).toBe(best.salt);
+  });
+  it('小蓮示範第一天（引海水進第一格）以後，還是收得到目標', () => {
+    const d0 = easyDay(SALT_EASY, freshEasy(SALT_EASY), { kind: 'fill', pan: 0 }, false, 0);
+    expect(saltEasyBest(SALT_EASY, 1, d0.pans).salt).toBeGreaterThanOrEqual(SALT_EASY.need);
+  });
+  it('不看天氣、從來不蓋草蓆，收不到目標', () => {
+    expect(saltEasyBest(SALT_EASY, 0, undefined, true).salt).toBeLessThan(SALT_EASY.need);
+    let p = freshEasy(SALT_EASY);
+    for (let d = 0; d < SALT_EASY.days.length; d++) {
+      const i = p.v.findIndex((x) => x >= SALT_EASY.ready), j = p.v.findIndex((x) => x < 0);
+      const a: EasyAct = i >= 0 ? { kind: 'harvest', pan: i } : j >= 0 ? { kind: 'fill', pan: j } : { kind: 'wait' };
+      p = easyDay(SALT_EASY, p, a, false, d).pans;
+    }
+    expect(p.salt).toBeLessThan(SALT_EASY.need);
+  });
+  it('雨天蓋草蓆就沒事；晴天蓋著曬不到', () => {
+    const p = { v: [2, -1, -1], salt: 0 };
+    const rain = SALT_EASY.days.indexOf('rain'), sun = SALT_EASY.days.indexOf('sun');
+    expect(easyDay(SALT_EASY, p, { kind: 'wait' }, false, rain).pans.v[0]).toBe(-1);
+    expect(easyDay(SALT_EASY, p, { kind: 'wait' }, true, rain).pans.v[0]).toBe(2);
+    expect(easyDay(SALT_EASY, p, { kind: 'wait' }, true, sun).pans.v[0]).toBe(2);
+    expect(easyDay(SALT_EASY, p, { kind: 'wait' }, false, sun).pans.v[0]).toBe(3);
   });
 });
 

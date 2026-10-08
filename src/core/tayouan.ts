@@ -323,3 +323,26 @@ export function harborSolve(h: Harbor): { id: string; by: number }[] | null {
   }
   return null;
 }
+
+// ── 鹿群與鹿皮（故事版）─────────────────────────────
+// 先生小鹿、再收鹿皮：每年春天鹿群多「鹿群 ÷ birthDiv」群小鹿（草原最多 cap 群，多的跑掉），畫面上小鹿會發亮；
+// 小朋友點鹿決定收幾群。只收發亮的那些，鹿群就不會變少。不用算：看得到的小鹿就是可以收的量。
+export interface HerdEasyYear { start: number; fawns: number; grown: number; take: number; after: number }
+export function herdEasyGrow(lv: HerdLevel, n: number): { fawns: number; grown: number } {
+  const grown = Math.min(lv.cap, n + Math.floor(n / lv.birthDiv));
+  return { fawns: grown - n, grown };
+}
+export function herdEasyRun(lv: HerdLevel, takes: readonly number[]): { years: HerdEasyYear[]; total: number; end: number; enough: boolean; fewer: boolean; ok: boolean } {
+  let n = lv.start;
+  const years: HerdEasyYear[] = [];
+  for (const t of takes) {
+    const g = herdEasyGrow(lv, n);
+    const take = Math.min(t, g.grown);
+    years.push({ start: n, ...g, take, after: g.grown - take });
+    n = g.grown - take;
+  }
+  const total = years.reduce((a, y) => a + y.take, 0);
+  const enough = total >= lv.need;
+  const fewer = n < lv.start;
+  return { years, total, end: n, enough, fewer, ok: years.length === lv.years && enough && !fewer };
+}

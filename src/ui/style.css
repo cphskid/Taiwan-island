@@ -2346,3 +2346,67 @@ button.v-chip{cursor:pointer}
 }
 .map-stuck .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .map-stuck .btn.ghost{position:static;transform:none;opacity:1;pointer-events:auto;z-index:auto;background:#fff;color:var(--wood-2);border:3px solid #c9a46b;box-shadow:none}
+
+/* ⭐⭐⭐ 再挑戰（故事版過關後的進階版） */
+.challenge-offer>small{color:#b8860b;font-size:16px;font-weight:900}
+.challenge-tag{position:absolute;left:12px;top:56px;z-index:5;display:flex;align-items:center;gap:8px;background:rgba(255,250,235,.95);border:3px solid var(--gold);border-radius:14px;padding:4px 6px 4px 10px;box-shadow:0 3px 8px rgba(0,0,0,.2)}
+.challenge-tag b{color:#b8860b;font-size:15px}
+.challenge-tag .btn{min-height:34px;padding:2px 12px;font-size:15px}
+@media (max-height:500px){.challenge-tag{top:44px}}
+
+/* 第二章狩獵（故事版）：訂獵季 */
+.hunt-rule{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.hunt-toggle{border:3px solid #c9a46b;border-radius:14px;background:#f3ece0;padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px;font:900 17px var(--f);color:var(--ink);cursor:pointer}
+.hunt-toggle small{font-size:12px;color:#3a8a3a}
+.hunt-toggle em{font-style:normal;font-size:14px;color:#7a6a55}
+.hunt-toggle.on{background:#fff2d0;border-color:#d9822b}
+.hunt-toggle.on em{color:#b5541c}
+.hunt-toggle.hint{box-shadow:0 0 0 4px var(--gold)}
+.hunt-toggle:disabled{cursor:default;opacity:.8}
+.hunt-season .hunt-icons{min-height:24px;display:flex;flex-wrap:wrap;justify-content:center;font-size:13px;color:#9c8466;font-weight:700}
+.hunt-season .hunt-icons img{width:24px;height:24px;object-fit:contain}
+.hunt-season.closed{opacity:.75}
+
+/* 第三章鹿皮（故事版）：點草原上的鹿收鹿皮 */
+.herd-easy-head{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.herd-easy-head>b{font-size:19px}
+.herd-easy-head .herd-n em{font-style:normal;font-size:14px;color:#2e8b3a;margin-left:4px}
+.herd-want{font-weight:900;color:#8a5a2b;background:#fff2d0;border-radius:10px;padding:2px 8px;font-size:14px}
+.herd-field{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;padding:8px;border-radius:14px;background:linear-gradient(#cfe9a6,#a9d37c);min-height:110px}
+.herd-deer{width:46px;height:46px;border-radius:12px;border:2px solid transparent;background:rgba(255,255,255,.35);padding:2px;cursor:pointer;animation:pop .3s ease-out}
+.herd-deer img{width:100%;height:100%;object-fit:contain}
+.herd-deer.fawn{background:rgba(255,246,170,.9);border-color:#f0c419;box-shadow:0 0 10px 2px rgba(255,220,80,.85)}
+.herd-deer.fawn img{transform:scale(.8)}
+.herd-deer.on{background:#f3dfc0;border-color:#a0622d;box-shadow:none}
+.herd-deer.hint{animation:pulse .6s infinite alternate}
+.herd-deer:disabled{cursor:default}
+.herd-history{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:13px;font-weight:700;text-align:center}
+.herd-history span{border-radius:10px;background:#f3ece0;padding:3px}
+.herd-history .yes{background:#e3f6dc;color:#2e8b3a}.herd-history .no{background:#ffe1d8;color:#b33}
+@media (max-height:500px){.herd-deer{width:34px;height:34px}.herd-field{min-height:80px;padding:4px}}
+
+/* 第四章曬鹽（故事版）：三格鹽田、草蓆開關 */
+.salt-easy-pans{grid-template-columns:repeat(3,1fr)}
+.ch4-act.hint,.salt-mat.hint{box-shadow:0 0 0 4px var(--gold);animation:pulse .6s infinite alternate}
+.salt-mat{border:3px solid #a0783c;border-radius:14px;background:#fff6d8;padding:4px 12px;font:900 16px var(--f);color:var(--ink);cursor:pointer}
+.salt-mat.on{background:repeating-linear-gradient(45deg,#d9b56a 0 6px,#c49a4c 6px 12px);color:#3d2b14}
+.salt-mat:disabled{opacity:.6;cursor:default}
+
+/* 第六章茶葉的旅程（故事版） */
+.tea-journey{width:min(960px,100%);padding:10px 14px;display:flex;flex-direction:column;gap:10px}
+.tea-road{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.tea-slot{position:relative;min-height:84px;border:3px dashed #c9a46b;border-radius:14px;background:#fffaf0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;text-align:center}
+.tea-slot em{position:absolute;left:4px;top:2px;font-style:normal;font-weight:900;font-size:13px;color:#9c8466}
+.tea-slot span{font-size:26px;color:#d6c3a0;font-weight:900}
+.tea-slot img{width:46px;height:46px;object-fit:contain;animation:pop .3s}
+.tea-slot b{font-size:13px}
+.tea-slot.on{border-style:solid;border-color:#3fbf5a;background:#f2fff0}
+.tea-slot.next{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold)}
+.tea-cards{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.tea-card{width:128px;border:3px solid var(--wood-2);border-radius:14px;background:#fff;padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-family:var(--f);color:var(--ink);text-align:center}
+.tea-card img{width:56px;height:56px;object-fit:contain}
+.tea-card b{font-size:15px}
+.tea-card small{font-size:12px;line-height:1.3;color:#6b5a45}
+.tea-card.bad{animation:shake .25s linear 2;border-color:#c0392b}
+.tea-card.hint{box-shadow:0 0 0 4px var(--gold);animation:pulse .6s infinite alternate}
+@media (max-height:500px){.tea-slot{min-height:60px}.tea-slot img{width:32px;height:32px}.tea-card{width:104px;padding:3px}.tea-card img{width:38px;height:38px}.tea-card small{display:none}}

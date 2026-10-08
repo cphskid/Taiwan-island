@@ -275,3 +275,19 @@ export const homeLines2 = (k: Picks2): Line[] => [
     ? { who: 'elder', text: '鹿群還在，規矩也還在。以後的孩子，也會看到森林裡的鹿。' }
     : { who: 'elder', text: '商人說還會再來。孩子，記住我們的規矩，下一次要靠你們守住。' },
 ];
+
+// ── 3 狩獵（故事版）：訂獵季的規矩 ──
+// 夥伴先照「想打就打」走一年給你看，再由你決定哪幾季可以上山。原本的「每季打幾隻」留作再挑戰。
+export const HUNT_DEMO_OPEN = [true, true, true, true];
+export const HUNT_EASY_INTRO: Line[] = [
+  { who: 'hunter', text: '獵場裡大約有 20 隻鹿。部落一年要打 5 隻，才有肉吃、有皮做衣服。' },
+  { who: 'ani', mood: 'thinking', text: '以前有人說，想打就打，一年四季都上山。我們先照這樣過一年看看。' },
+];
+export const HUNT_EASY_SAY = {
+  demo: { who: 'ani', mood: 'sad', text: '春天也去打獵，懷著小鹿的母鹿受驚，生的小鹿只剩一半，鹿變少了……' } as Line,
+  rule: { who: 'hunter', text: '換你訂規矩：一年裡，哪幾季可以上山打獵？點季節切換。' } as Line,
+  none: { who: 'hunter', text: '一季都不能打，大家要餓肚子了。至少要留一季上山。' } as Line,
+  spring: { who: 'ani', mood: 'sad', text: '春天上山，母鹿又受驚了，小鹿只剩一半……' } as Line,
+  hint: { who: 'elder', text: '春天是母鹿生小鹿的時候。那一季，讓山林安靜下來。' } as Line,
+  good: { who: 'hunter', text: '春天不打，鹿群生得好；秋冬上山，肉也夠吃。這就是祖先傳下來的獵季規矩。' } as Line,
+};

@@ -33,12 +33,12 @@ export const CHOICES6: Record<Pick6, Choice6> = {
     after: [
       [
         { who: 'chun', mood: 'worried', text: '……你、你幫我說話了？' },
-        { who: 'teaboss', text: '哼，說得好聽。好，你們排給我看，天黑前全部烘好，今晚大家就回家睡覺。' },
-        { who: 'chun', mood: 'determined', text: '謝謝你！那我們一定要排好！' },
+        { who: 'teaboss', text: '哼，說得好聽。好吧，只要天黑前全部烘好，今晚大家就回家睡覺。' },
+        { who: 'chun', mood: 'determined', text: '謝謝你！那我們大家一起趕快做！' },
       ],
       [
         { who: 'chun', mood: 'determined', text: '……沒關係，我很會揀茶，熬夜也可以。' },
-        { who: 'tick', mood: 'thinking', text: '如果天黑前就能全部烘好，阿春就不用熬夜了。我們把順序排好吧！' },
+        { who: 'tick', mood: 'thinking', text: '揀茶女孩好辛苦……如果天黑前就能全部烘好，阿春就不用熬夜了。' },
       ],
     ],
     recap: ['茶行：幫阿春跟老闆說話', '茶行：讓阿春自己決定要不要熬夜'],
@@ -371,3 +371,25 @@ export const QUESTIONS6: Question6[] = [
     why: '馬偕先學會當地人的話，再用醫療和教育幫助大家；他的學生有漢人，也有原住民族。不同文化的人互相學習。',
   },
 ];
+
+// ── 2 茶葉出口（故事版）：一片茶葉的旅程 ──
+// 七張卡排先後順序，第一張阿春先放。原本四批茶的揀茶、烘焙排程留作再挑戰。
+export interface TeaStep { id: string; name: string; img: string; text: string; why: string }
+export const TEA_STEPS: TeaStep[] = [
+  { id: 'pick', name: '茶園採茶', img: 'o-11-teabush', text: '在臺北附近山上的茶園，採下嫩嫩的茶葉。', why: '一切從山上的茶園開始。' },
+  { id: 'carry', name: '挑到大稻埕', img: 'o-10-dadaocheng', text: '農家先把茶葉做成粗茶，挑下山、坐船送到大稻埕的茶行。', why: '茶葉要先送到大稻埕的茶行，才有揀茶女和焙籠。' },
+  { id: 'sort', name: '揀茶', img: 'f-08a-sort', text: '揀茶女把茶梗、黃葉一根一根挑掉。', why: '進焙籠以前，要先把茶梗、黃葉揀乾淨。' },
+  { id: 'roast', name: '焙茶', img: 'g-07-roast', text: '揀好的茶放進焙籠，用炭火慢慢烘乾，茶才香、才放得久。', why: '茶要烘乾才能裝箱，不然在船上會發霉。' },
+  { id: 'box', name: '裝箱', img: 'g-07-chest', text: '烘好的茶裝進木箱，貼上洋行的標籤。', why: '烘好的茶要先裝進木箱，才能上船。' },
+  { id: 'port', name: '運到淡水港', img: 'o-10-tamsui', text: '茶箱沿著淡水河運到淡水港。', why: '大輪船停在淡水港，茶箱要先運過去。' },
+  { id: 'ship', name: '坐大輪船出國', img: 'o-09-steamer', text: '洋行用大輪船把茶運到國外，像美國。', why: '這是最後一站：茶出國了！' },
+];
+export const TEA_EASY_INTRO: Line[] = [
+  { who: 'merchant', text: '臺灣出口最多的是茶、糖、樟腦。北部的茶最有名，我們洋行要把茶賣到美國去。' },
+  { who: 'chun', mood: 'thinking', text: '一片茶葉要走好長的路，才會到外國人的杯子裡。你知道它是怎麼走的嗎？' },
+];
+export const TEA_EASY_SAY = {
+  demo: { who: 'chun', mood: 'happy', text: '第一站我先放：茶園採茶！接下來換你，一張一張點，排出茶葉的旅程。' } as Line,
+  wrong: (got: TeaStep, want: TeaStep) => ({ who: 'chun', mood: 'thinking', text: `「${got.name}」還太早喔。${want.why}` }) as Line,
+  good: { who: 'merchant', text: 'Wonderful！採茶、揀茶、焙茶、裝箱、上船，這就是福爾摩沙茶的旅程。' } as Line,
+};

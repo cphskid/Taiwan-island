@@ -1,24 +1,31 @@
 import { useEffect, useRef, useState } from 'react';
-import { herdRun } from '../../core/tayouan';
-import { DEER_INTRO, DEER_SAY, HERD, HERD_DEMO, art3 } from '../../data/ch3';
+import { herdEasyGrow, herdEasyRun, herdRun } from '../../core/tayouan';
+import { DEER_EASY_INTRO, DEER_EASY_SAY, DEER_INTRO, DEER_SAY, HERD, HERD_DEMO, HERD_EASY, HERD_EASY_DEMAND, art3 } from '../../data/ch3';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
+import { ChallengeOffer, ChallengeTag } from '../Challenge';
 import { NewCards3, type Step3Props } from '../Ch3';
 import { Decide3 } from './Story3';
 import { jingle, sfx } from '../../audio';
 
-type Phase = 'intro' | 'plan' | 'good' | 'choice' | 'cards';
+type Phase = 'intro' | 'herd' | 'offer' | 'cIntro' | 'challenge' | 'good' | 'choice' | 'cards';
 const DEER_IMG = `${import.meta.env.BASE_URL}img/ch2/deer.webp`;
 
-// 步驟 3 鹿皮的代價：四年裡收夠鹿皮，四年後鹿群不能比現在少（接第二章的鹿群）
+// 步驟 3 鹿皮的代價（接第二章的鹿群）：故事版是每年先長出發亮的小鹿，再點鹿收鹿皮，只收小鹿那麼多鹿群就不會少；
+// 第一年烏瑪先收給你看。原本「四年各收幾群」的規劃，過關後可以選⭐⭐⭐再挑戰
 export function Deer({ p, set, next, oops }: Step3Props) {
   const [phase, setPhase] = useState<Phase>('intro');
+  const toGood = () => setPhase('good');
   return (
     <div className="scene ch3-plain">
       <img className="scene-bg" src={art3('s-14')} alt="" />
-      {phase === 'intro' && <Talk lines={DEER_INTRO} onDone={() => setPhase('plan')} />}
-      {(phase === 'plan' || phase === 'good') && <HerdPlan oops={oops} onDone={() => setPhase('good')} />}
+      {phase === 'intro' && <Talk lines={DEER_EASY_INTRO} onDone={() => setPhase('herd')} />}
+      {phase === 'herd' && <HerdEasy oops={oops} onDone={() => setPhase('offer')} />}
+      {phase === 'offer' && <ChallengeOffer text="四年要收到 18 群鹿皮，鹿群還不能變少：要先讓鹿長多，再收。你排得出來嗎？" onTry={() => setPhase('cIntro')} onSkip={toGood} />}
+      {phase === 'cIntro' && <Talk lines={DEER_INTRO} onDone={() => setPhase('challenge')} />}
+      {phase === 'challenge' && <HerdPlan oops={() => {}} onDone={toGood} />}
+      {phase === 'challenge' && <ChallengeTag onQuit={toGood} />}
       {phase === 'good' && <Talk lines={[DEER_SAY.good]} onDone={() => setPhase('choice')} />}
       {phase === 'choice' && <Decide3 id="deer" set={set} onDone={() => setPhase('cards')} />}
       {phase === 'cards' && <NewCards3 ids={['deerskin', 'siraya']} p={p} set={set} onDone={next} />}
@@ -26,6 +33,106 @@ export function Deer({ p, set, next, oops }: Step3Props) {
   );
 }
 
+// 故事版：草原上一隻鹿圖＝一群鹿。每年先長出小鹿（發亮），點鹿收鹿皮，再過一年
+function HerdEasy({ oops, onDone }: { oops: () => void; onDone: () => void }) {
+  const lv = HERD_EASY;
+  const [takes, setTakes] = useState<number[]>([]); // 已經過完的年
+  const [picked, setPicked] = useState<number[]>([]); // 今年點了哪幾隻
+  const [demo, setDemo] = useState(true); // 第一年烏瑪示範
+  const [fails, setFails] = useState(0);
+  const [over, setOver] = useState(false); // 四年過完但沒過關
+  const [won, setWon] = useState(false);
+  const [say, setSay] = useState<Line | null>(null);
+  const alive = useRef(true);
+  useEffect(() => () => { alive.current = false; }, []);
+  const run = herdEasyRun(lv, takes);
+  const year = takes.length;
+  const n = year ? run.end : lv.start;
+  const g = herdEasyGrow(lv, n);
+  const busy = demo || won || over;
+
+  // 第一年：烏瑪一隻一隻點發亮的小鹿，收完再過一年
+  useEffect(() => {
+    if (!demo) return;
+    const fawns = Array.from({ length: g.fawns }, (_, k) => n + k);
+    let k = 0;
+    const tick = () => {
+      if (!alive.current) return;
+      if (k < fawns.length) { sfx('SE-07'); k += 1; setPicked(fawns.slice(0, k)); setTimeout(tick, 450); return; }
+      setTimeout(() => {
+        if (!alive.current) return;
+        sfx('SE-103'); setTakes([fawns.length]); setPicked([]); setDemo(false); setSay(DEER_EASY_SAY.demo);
+      }, 700);
+    };
+    const t = setTimeout(tick, 900);
+    return () => clearTimeout(t);
+  }, [demo]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const tap = (i: number) => {
+    if (busy) return;
+    const on = picked.includes(i);
+    sfx(on ? 'SE-02' : 'SE-07');
+    setSay(null);
+    setPicked(on ? picked.filter((x) => x !== i) : [...picked, i]);
+  };
+  const endYear = () => {
+    if (busy) return;
+    const t = [...takes, picked.length];
+    sfx('SE-103');
+    setTakes(t);
+    setPicked([]);
+    setSay(picked.length > g.fawns ? DEER_EASY_SAY.over : null);
+    if (t.length < lv.years) return;
+    const r = herdEasyRun(lv, t);
+    if (r.ok) { jingle('MU-13'); setWon(true); setSay(DEER_EASY_SAY.good); setTimeout(() => alive.current && onDone(), 2000); return; }
+    sfx('SE-71'); oops();
+    const f = fails + 1;
+    setFails(f);
+    setOver(true);
+    setSay(f >= 2 ? DEER_EASY_SAY.hint : r.fewer ? DEER_EASY_SAY.fewer : DEER_EASY_SAY.short);
+  };
+  const again = () => { sfx('SE-02'); setTakes(takes.slice(0, 1)); setPicked([]); setOver(false); setSay(DEER_EASY_SAY.pick); };
+  const shownN = over || won ? run.end : g.grown;
+  return (
+    <div className="ch3-herd-wrap">
+      <Goal floating text={demo ? '先看烏瑪收第一年的鹿皮。' : `點鹿收鹿皮：四年收到 ${lv.need} 群，鹿群不能比 ${lv.start} 群少。發亮的是今年剛生的小鹿。`} />
+      <div className="ch3-herd panel herd-easy">
+        <div className="herd-easy-head">
+          <b>{over || won ? '四年過完了' : `第 ${year + 1} 年${demo ? '（烏瑪示範）' : ''}`}</b>
+          {!(over || won) && <span className="herd-n"><img src={DEER_IMG} alt="" />草原上 {g.grown} 群<em>（今年生了 {g.fawns} 群小鹿）</em></span>}
+          {!(over || won) && <span className="herd-want">商館想要 {HERD_EASY_DEMAND} 群</span>}
+        </div>
+        <div className="herd-field">
+          {Array.from({ length: shownN }, (_, i) => {
+            const fawn = !(over || won) && i >= n;
+            const on = picked.includes(i);
+            return (
+              <button key={`${year}-${i}`} className={`herd-deer ${fawn ? 'fawn' : ''} ${on ? 'on' : ''} ${fails >= 2 && fawn && !on ? 'hint' : ''}`} disabled={busy} onClick={() => tap(i)}>
+                <img src={on ? art3('g-05-hides') : DEER_IMG} alt={on ? '鹿皮' : '鹿'} />
+              </button>
+            );
+          })}
+        </div>
+        <div className="herd-history">
+          {Array.from({ length: lv.years }, (_, y) => (
+            <span key={y} className={y < takes.length ? (run.years[y].take > run.years[y].fawns ? 'no' : 'yes') : ''}>
+              第 {y + 1} 年{y < takes.length ? `：收 ${run.years[y].take} 群 → 剩 ${run.years[y].after} 群` : y === year ? '：進行中' : ''}
+            </span>
+          ))}
+        </div>
+        <div className="ch3-herd-foot">
+          <span className={`hides ${run.total + picked.length >= lv.need ? 'ok' : ''}`}><img src={art3('g-05-hides')} alt="" />鹿皮 {run.total + picked.length} / {lv.need} 群</span>
+          {over
+            ? <button className="btn orange" onClick={again}>從第 2 年再來</button>
+            : !won && <button className="btn green" disabled={busy} onClick={endYear}>收 {picked.length} 群鹿皮，過一年 ▶</button>}
+        </div>
+      </div>
+      <Say line={say} />
+    </div>
+  );
+}
+
+// ⭐⭐⭐ 再挑戰：四年裡收夠鹿皮，四年後鹿群不能比現在少
 function HerdPlan({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const [takes, setTakes] = useState<number[]>(() => Array(HERD.years).fill(0));
   const [shown, setShown] = useState(0); // 演到第幾年（0 = 還沒開始）

@@ -414,3 +414,23 @@ export const TRADE_DEMO: { buy?: Good; sell?: Good; sail?: PortId }[] = [
   { sell: 'silk' }, { sell: 'silk' }, { sell: 'silk' }, { sell: 'silk' },
 ];
 export const HERD_DEMO = [0, 5, 5, 8];
+
+// ── 3 鹿皮的代價（故事版）──
+// 每年先長出小鹿（發亮），再點鹿收鹿皮。只收發亮的小鹿那麼多，鹿群就不會變少。第一年烏瑪先示範。原本的四年規劃留作再挑戰。
+export const HERD_EASY: HerdLevel = { start: 20, cap: 25, birthDiv: 4, years: 4, need: 16, maxTake: 25 };
+export const HERD_EASY_DEMAND = 10; // 商館每年想要的
+export const DEER_EASY_INTRO: Line[] = [
+  { who: 'uma', text: '我叫烏瑪，住在新港社。這片草原上大約有 20 群鹿，一群大概一百隻。' },
+  { who: 'clerk', text: '日本人很喜歡臺灣的鹿皮。公司每年想要 10 群的鹿皮，越多越好！' },
+  { who: 'siraya', text: '我們的規矩是：每年春天生出多少小鹿，就只收那麼多。這樣草原上的鹿永遠不會少。' },
+  { who: 'uma', mood: 'happy', text: '第一年我收給你們看！發亮的是今年剛生的小鹿。' },
+];
+export const DEER_EASY_SAY = {
+  demo: { who: 'uma', text: '今年生了 5 群小鹿，我就只收 5 群。你看，鹿群還是 20 群。接下來換你！' } as Line,
+  pick: { who: 'uma', mood: 'thinking', text: '點鹿收鹿皮，再點一次放回去。發亮的是今年剛生的小鹿。' } as Line,
+  over: { who: 'uma', mood: 'worried', text: '收得比生出來的多，草原上的鹿變少了……' } as Line,
+  short: { who: 'clerk', text: '四年只有這麼一點？至少要 16 群的鹿皮。' } as Line,
+  fewer: { who: 'uma', mood: 'sad', text: '四年後鹿比一開始少了。這樣下去，草原會空掉的。' } as Line,
+  hint: { who: 'siraya', text: '每年只收發亮的那些，不多也不少。' } as Line,
+  good: { who: 'uma', mood: 'happy', text: '四年的鹿皮收夠了，草原上的鹿還是一樣多！' } as Line,
+};

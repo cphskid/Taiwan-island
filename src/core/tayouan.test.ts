@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
-  routeSolve, routeRun, routeStep, startShip, tradeBest, freshTrade, buy, sell, sail, tradeWon, herdRun, herdBest, herdSolutions,
+  routeSolve, routeRun, routeStep, startShip, tradeBest, freshTrade, buy, sell, sail, tradeWon, herdRun, herdBest, herdSolutions, herdEasyRun, herdEasyGrow,
   tracePath, decodeCheck, inside, parseHarbor, harborSolve, slide, harborFree, type RouteAction, type TradeState, type Good,
 } from './tayouan';
-import { DEED_LEGS, HARBORS, HERD, HERD_DEMAND, LAND_SPOTS, LAND_START, ROUTES, SECRET, TRADE, TRADE_DEMO, HERD_DEMO } from '../data/ch3';
+import { DEED_LEGS, HARBORS, HERD, HERD_DEMAND, LAND_SPOTS, LAND_START, ROUTES, SECRET, TRADE, TRADE_DEMO, HERD_DEMO, HERD_EASY, HERD_EASY_DEMAND } from '../data/ch3';
 import { fresh3, pickProgress3, stars3 } from './save3';
 
 describe('季風與航線', () => {
@@ -77,6 +77,26 @@ describe('鹿皮的代價', () => {
     expect(herdRun(HERD, [5, 5, 5, 5]).ok).toBe(false);
     expect(herdBest(HERD).total).toBeGreaterThanOrEqual(HERD.need);
     expect(herdSolutions(HERD).length).toBeLessThan(30); // 一萬多種收法裡只有十幾種過得了
+  });
+});
+
+describe('鹿皮的代價（故事版）', () => {
+  it('每年只收發亮的小鹿那麼多就過關', () => {
+    const takes: number[] = [];
+    let n = HERD_EASY.start;
+    for (let y = 0; y < HERD_EASY.years; y++) { const g = herdEasyGrow(HERD_EASY, n); takes.push(g.fawns); n = g.grown - g.fawns; }
+    const r = herdEasyRun(HERD_EASY, takes);
+    expect(r.ok).toBe(true);
+    expect(r.years[0].fawns).toBe(5); // 烏瑪示範的那一年：生 5 群、收 5 群
+  });
+  it('照商館要的每年收 10 群，鹿群變少', () => {
+    const r = herdEasyRun(HERD_EASY, Array(HERD_EASY.years).fill(HERD_EASY_DEMAND));
+    expect(r.fewer).toBe(true);
+  });
+  it('收太少，鹿皮不夠；收法很多種都過得了', () => {
+    expect(herdEasyRun(HERD_EASY, [5, 2, 2, 2]).enough).toBe(false);
+    expect(herdEasyRun(HERD_EASY, [5, 4, 4, 5]).ok).toBe(true);
+    expect(herdEasyRun(HERD_EASY, [5, 5, 3, 5]).ok).toBe(true);
   });
 });
 

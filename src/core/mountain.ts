@@ -112,3 +112,16 @@ export function simulate(rules: readonly RuleId[], rot: RotLevel, deer: DeerLeve
   const fewDeer = d < deer.start;
   return { years: out, hungry, fewDeer, ok: !hungry && !fewDeer };
 }
+
+// ── 打獵（故事版）：訂獵季的規矩 ───────────────────
+// 小朋友只決定「哪幾季可以上山」，每年要打的 need 隻平均分到那幾季（除不盡的多的給前面的季），再照 deerYear 跑。
+export function ruleHunts(lv: DeerLevel, open: readonly boolean[]): number[] {
+  const on = open.map((o, s) => (o ? s : -1)).filter((s) => s >= 0);
+  const hunts = [0, 0, 0, 0];
+  on.forEach((s, k) => { hunts[s] = Math.floor(lv.need / on.length) + (k < lv.need % on.length ? 1 : 0); });
+  return hunts;
+}
+export function ruleRun(lv: DeerLevel, open: readonly boolean[]) {
+  const hunts = ruleHunts(lv, open);
+  return deerRun(lv, Array.from({ length: lv.years }, () => hunts));
+}
