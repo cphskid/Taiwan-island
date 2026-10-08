@@ -2415,3 +2415,8 @@ button.v-chip{cursor:pointer}
 .tea-card.bad{animation:shake .25s linear 2;border-color:#c0392b}
 .tea-card.hint{box-shadow:0 0 0 4px var(--gold);animation:pulse .6s infinite alternate}
 @media (max-height:500px){.tea-slot{min-height:60px}.tea-slot img{width:32px;height:32px}.tea-card{width:104px;padding:3px}.tea-card img{width:38px;height:38px}.tea-card small{display:none}}
+
+/* 💬 回報（樂園共用的問題回報，src/ui/Report.tsx） */
+.report-btn{position:relative}
+.report-btn .tool-icon{font-size:18px}
+.report-dot{position:absolute;right:-3px;top:-3px;width:12px;height:12px;border-radius:50%;background:#e2553f;border:2px solid #fff}

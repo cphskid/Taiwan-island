@@ -5,6 +5,7 @@ import { Album, BOOK2 } from './Album';
 import { awardStamp, pushCloud } from '../net/cloud';
 import { ambience, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
+import { ReportButton } from './Report';
 import { CardPop } from './Talk';
 import { Opening2 } from './ch2/Opening2';
 import { Explore2 } from './ch2/Explore2';
@@ -70,6 +71,7 @@ export function Ch2({ onExit, album }: { onExit: () => void; album: readonly str
           </button>
         ))}
         <SoundToggle className="back-map" />
+        <ReportButton screen={`ch2-${p.step}`} />
         <button className="back-map album-btn" onClick={() => { sfx('SE-03'); setBook(true); }}>📖 圖鑑 {CARD_ORDER2.filter((id) => have.has(id)).length}/{CARD_ORDER2.length}</button>
       </nav>
       <div className="stage" key={p.step}>

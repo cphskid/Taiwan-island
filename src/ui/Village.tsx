@@ -14,6 +14,7 @@ import { sfx } from '../audio';
 import { Beacon, Goal } from './Guide';
 import { Say } from './Talk';
 import { SoundToggle } from './Sound';
+import { ReportButton } from './Report';
 
 // 現在篇「風與海的漁村」：開羅式建村經營。
 // 地圖可以拖、可以用兩指（或滑鼠滾輪、右下的＋－）縮放；第一次進來有新手教學帶著蓋三棟（時間先停著）。
@@ -314,6 +315,7 @@ export function Village({ onExit }: { onExit: () => void }) {
           {([0, 1, 2] as const).map((v) => <button key={v} className={speed === v ? 'on' : ''} aria-label={['暫停', '播放', '快轉'][v]} onClick={() => { sfx('SE-01'); setSpeed(v); }}>{['⏸', '▶', '⏩'][v]}</button>)}
         </div>
         <SoundToggle className="v-chip v-sound" />
+        <ReportButton className="v-chip v-sound" screen="village" />
       </header>
 
       {coach && (

@@ -6,6 +6,7 @@ import { awardStamp, pushCloud } from '../net/cloud';
 import { whoAmI } from '../net/park';
 import { ambience, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
+import { ReportButton } from './Report';
 import { CardPop } from './Talk';
 import { OpeningEnd } from './chEnd/OpeningEnd';
 import { TenMajor } from './chEnd/TenMajor';
@@ -74,6 +75,7 @@ export function ChEnd({ onExit, album }: { onExit: () => void; album: readonly s
           </button>
         ))}
         <SoundToggle className="back-map" />
+        <ReportButton screen={`end-${p.step}`} />
         <button className="back-map album-btn" onClick={() => { sfx('SE-03'); setBook(true); }}>📖 圖鑑 {CARD_ORDER_END.filter((id) => have.has(id)).length}/{CARD_ORDER_END.length}</button>
       </nav>
       <div className="stage" key={p.step}>

@@ -7,6 +7,7 @@ import { Album, BOOK1, BOOK2, BOOK3, BOOK4, BOOK5, BOOK6, BOOK7, BOOK_END } from
 import { CARD_ORDER } from '../data/babao-chapter';
 import { ambience, jingle, music, preload, sfx, type SeCode } from '../audio';
 import { SoundToggle } from './Sound';
+import { ReportButton } from './Report';
 import { NOW_LINES, NOW_ON, NOW_PLACES, NOW_URL, unlockNow, type Era, type NowPlace } from '../data/now';
 import { PARK_MAP } from '../net/park';
 
@@ -270,6 +271,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
             </button>
           )}
           <SoundToggle />
+          <ReportButton className="tool" screen={`map-${era}`} />
         </>}
       </div>
       {glasses && (
