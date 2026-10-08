@@ -32,6 +32,10 @@ alter table public.island_saves drop constraint if exists island_saves_slot_chec
 alter table public.island_saves add constraint island_saves_slot_check
   check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals'));
 
+-- 這章完整玩完過幾次（時光幣的重玩遞減用）。舊存檔過關的當作玩完一次。
+alter table public.island_saves add column if not exists clears smallint not null default 0;
+update public.island_saves set clears = 1 where done and clears = 0;
+
 alter table public.island_saves enable row level security;
 revoke all on public.island_saves from anon, authenticated;
 grant select on public.island_saves to authenticated;
@@ -74,10 +78,14 @@ begin
   v_step  := least(greatest(coalesce((p_data ->> 'reached')::numeric, 0), 0), 99)::smallint;
   v_stars := least(greatest(coalesce((p_data ->> 'stars')::numeric, 0), 0), 3)::smallint;
   v_done  := coalesce((p_data ->> 'done')::boolean, false);
-  insert into public.island_saves as s (student_id, slot, data, step, stars, done, done_at, updated_at)
-  values (v_me, p_slot, p_data - '_at', v_step, v_stars, v_done, case when v_done then now() end, now())
+  insert into public.island_saves as s (student_id, slot, data, step, stars, done, done_at, updated_at, clears)
+  values (v_me, p_slot, p_data - '_at', v_step, v_stars, v_done, case when v_done then now() end, now(),
+          case when v_done then 1 else 0 end)
   on conflict (student_id, slot) do update
-    set data       = excluded.data,
+    set -- 從「沒過關」變成「過關」＝又玩完一次（「從頭再玩」會把存檔的 done 變回 false）
+        clears     = s.clears + case when excluded.done and not coalesce((s.data ->> 'done')::boolean, false)
+                                     then 1 else 0 end,
+        data       = excluded.data,
         step       = greatest(s.step, excluded.step),
         stars      = greatest(s.stars, excluded.stars),
         done       = s.done or excluded.done,
@@ -258,6 +266,113 @@ update public.park_stamps set active = true
  where facility = 'island_pioneer' and code in ('ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end') and not active;
 
 -- -----------------------------------------------------------------------------
+-- 3c. 樂園時光幣：這個學生在這裡「該拿到哪些時光幣」（樂園的 park_coins.sql 會來叫）
+--     金額看樂園的費率表 park_coin_rates（輕 5、中 10、重 20、整章 30、每顆星 10、新結局 30、再挑戰 10），
+--     每一步是輕、中還是重看下面這張表；上線後用全體通關時間的中位數校正，改表就好。
+--     重玩整章遞減：二刷給「整章獎勵」（各步加整章通關，不含星星）的一半、三刷四分之一、四刷起不給。
+--     沒套樂園的 park_coins.sql 也沒關係：這支只是先放著，沒有人叫。
+-- -----------------------------------------------------------------------------
+create table if not exists public.island_step_tiers (
+  slot text not null,
+  step smallint not null,
+  name text not null,
+  tier text not null check (tier in ('light', 'medium', 'heavy')),
+  primary key (slot, step)
+);
+alter table public.island_step_tiers enable row level security;
+revoke all on public.island_step_tiers from anon, authenticated;
+grant select on public.island_step_tiers to anon, authenticated;
+drop policy if exists island_step_tiers_read on public.island_step_tiers;
+create policy island_step_tiers_read on public.island_step_tiers for select to anon, authenticated using (true);
+
+-- 每章 7 步：開場、5 關、結尾。開場和結尾是輕，倒數第二步是每章的大難題（重），撥雲找地點的探索是輕，其他是中。
+-- 只在第一次寫入；之後校正過的不會被蓋回去（名字會更新）。
+insert into public.island_step_tiers as t (slot, step, name, tier) values
+  ('ch1', 0, '開場', 'light'), ('ch1', 1, '打製石器', 'medium'), ('ch1', 2, '做陶器', 'medium'), ('ch1', 3, '磨石器', 'medium'),
+  ('ch1', 4, '煉鐵', 'medium'), ('ch1', 5, '考古', 'heavy'), ('ch1', 6, '結尾', 'light'),
+  ('ch2', 0, '開場', 'light'), ('ch2', 1, '認識山林', 'light'), ('ch2', 2, '輪耕', 'medium'), ('ch2', 3, '狩獵', 'medium'),
+  ('ch2', 4, '歲時祭儀', 'medium'), ('ch2', 5, '部落的規矩', 'heavy'), ('ch2', 6, '結尾', 'light'),
+  ('ch3', 0, '開場', 'light'), ('ch3', 1, '航線', 'medium'), ('ch3', 2, '貿易', 'medium'), ('ch3', 3, '鹿皮', 'medium'),
+  ('ch3', 4, '契約', 'medium'), ('ch3', 5, '北邊的城堡', 'heavy'), ('ch3', 6, '結尾', 'light'),
+  ('ch4', 0, '開場', 'light'), ('ch4', 1, '營盤', 'medium'), ('ch4', 2, '水埤', 'medium'), ('ch4', 3, '曬鹽', 'medium'),
+  ('ch4', 4, '孔廟與學堂', 'medium'), ('ch4', 5, '東寧的明天', 'heavy'), ('ch4', 6, '結尾', 'light'),
+  ('ch5', 0, '開場', 'light'), ('ch5', 1, '認識地形', 'light'), ('ch5', 2, '做竹蛇籠', 'medium'), ('ch5', 3, '導水', 'medium'),
+  ('ch5', 4, '分水', 'medium'), ('ch5', 5, '洪水', 'heavy'), ('ch5', 6, '豐收', 'light'),
+  ('ch6', 0, '開場', 'light'), ('ch6', 1, '開港', 'medium'), ('ch6', 2, '烘茶', 'medium'), ('ch6', 3, '鐵路', 'medium'),
+  ('ch6', 4, '醫館', 'medium'), ('ch6', 5, '火車', 'heavy'), ('ch6', 6, '結尾', 'light'),
+  ('ch7', 0, '開場', 'light'), ('ch7', 1, '縱貫鐵路', 'medium'), ('ch7', 2, '水庫', 'medium'), ('ch7', 3, '輪作', 'medium'),
+  ('ch7', 4, '日月潭', 'medium'), ('ch7', 5, '開通那天', 'heavy'), ('ch7', 6, '結尾', 'light'),
+  ('end', 0, '開場', 'light'), ('end', 1, '十大建設', 'medium'), ('end', 2, '鐵路', 'medium'), ('end', 3, '開會', 'medium'),
+  ('end', 4, '博物館', 'medium'), ('end', 5, '神秘旅人', 'heavy'), ('end', 6, '結尾', 'light')
+on conflict (slot, step) do update set name = excluded.name;
+
+create or replace function public.island_coin_sources(p_student uuid)
+returns table (source text, amount int, note text)
+language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare
+  r record;
+  v_ch text;
+  v_full int;
+  v_world jsonb;
+  v_m jsonb;
+  v_ends text[];
+  v_chal text[];
+  k int;
+  v_n int;
+  v_cname constant jsonb := '{"ch1":"第一章","ch2":"第二章","ch3":"第三章","ch4":"第四章","ch5":"第五章","ch6":"第六章","ch7":"第七章","end":"終章"}';
+begin
+  select data into v_world from public.island_saves where student_id = p_student and slot = 'world';
+  select data into v_m from public.island_saves where student_id = p_student and slot = 'medals';
+  v_ends := array(select jsonb_array_elements_text(case when jsonb_typeof(v_m -> 'endings') = 'array' then v_m -> 'endings' else '[]' end));
+  v_chal := array(select jsonb_array_elements_text(case when jsonb_typeof(v_m -> 'chal') = 'array' then v_m -> 'chal' else '[]' end));
+
+  -- 序章
+  if coalesce((v_world ->> 'prologue')::boolean, false) then
+    source := 'island:pro:clear'; amount := public.park_coin_rate('chapter'); note := '玩完序章'; return next;
+  end if;
+
+  for r in select s.slot, s.step, s.stars, s.done, s.clears from public.island_saves s
+            where s.student_id = p_student and s.slot in ('ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end') loop
+    v_ch := v_cname ->> r.slot;
+    -- 每一步第一次過（reached＝最遠走到第幾步，前面的都過了；過關＝最後一步也過了）
+    for source, amount, note in
+      select 'island:' || r.slot || ':s' || t.step, public.park_coin_rate(t.tier), v_ch || '「' || t.name || '」'
+        from public.island_step_tiers t
+       where t.slot = r.slot and (t.step < r.step or r.done)
+    loop return next; end loop;
+    if r.done then
+      source := 'island:' || r.slot || ':clear'; amount := public.park_coin_rate('chapter'); note := v_ch || '通關'; return next;
+    end if;
+    for k in 1 .. least(r.stars, 3) loop
+      source := 'island:' || r.slot || ':star' || k; amount := public.park_coin_rate('star'); note := v_ch || '第 ' || k || ' 顆星'; return next;
+    end loop;
+    -- 重玩：整章獎勵的一半、四分之一
+    if r.clears >= 2 then
+      select coalesce(sum(public.park_coin_rate(t.tier)), 0) + public.park_coin_rate('chapter') into v_full
+        from public.island_step_tiers t where t.slot = r.slot;
+      for k in 2 .. least(r.clears, 3) loop
+        source := 'island:' || r.slot || ':run' || k;
+        amount := (v_full / (case k when 2 then 2 else 4 end));
+        note := v_ch || '再玩一次（第 ' || k || ' 次）'; return next;
+      end loop;
+    end if;
+    -- 新結局：第一種結局算在通關裡，第二種起每種 30
+    v_n := (select count(distinct e) from unnest(v_ends) e where e like r.slot || ':%');
+    for k in 2 .. v_n loop
+      source := 'island:' || r.slot || ':end' || k; amount := public.park_coin_rate('ending'); note := v_ch || '看到新的結局'; return next;
+    end loop;
+  end loop;
+
+  -- ⭐⭐⭐再挑戰第一次過
+  for source, amount, note in
+    select 'island:chal:' || c, public.park_coin_rate('challenge'), '⭐⭐⭐再挑戰過關' from unnest(v_chal) c
+     where c ~ '^[a-z0-9]+:[a-z0-9-]+$'
+  loop return next; end loop;
+end;
+$$;
+revoke all on function public.island_coin_sources(uuid) from public, anon, authenticated;
+
+-- -----------------------------------------------------------------------------
 -- 4. 在樂園登記這個設施的網址與摘要函式（只補空的欄位，不動管理員改過的狀態）
 --    狀態（施工中／試營運／開放）請管理員在樂園後台的「設施」改。
 -- -----------------------------------------------------------------------------
@@ -269,3 +384,11 @@ update public.park_facilities
        summary_fn     = coalesce(summary_fn, 'island_class_summary'),
        updated_at     = now()
  where code = 'island_pioneer';
+
+-- 樂園套了 park_coins.sql（有 coins_fn 這一欄）才登記時光幣
+do $$ begin
+  if exists (select 1 from information_schema.columns
+              where table_schema = 'public' and table_name = 'park_facilities' and column_name = 'coins_fn') then
+    update public.park_facilities set coins_fn = 'island_coin_sources' where code = 'island_pioneer' and coins_fn is null;
+  end if;
+end $$;
