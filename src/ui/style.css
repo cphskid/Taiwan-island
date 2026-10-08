@@ -2437,3 +2437,37 @@ button.v-chip{cursor:pointer}
 .report-btn{position:relative}
 .report-btn .tool-icon{font-size:18px}
 .report-dot{position:absolute;right:-3px;top:-3px;width:12px;height:12px;border-radius:50%;background:#e2553f;border:2px solid #fff}
+/* 漁村小遊戲：海女趕海、廟會打鼓 */
+.v-dive,.v-drum{max-width:none;width:min(620px,94vw)}
+.v-reef{position:relative;aspect-ratio:10/7;border-radius:12px;overflow:hidden;background-size:400% auto;background-position:100% 91%;margin:6px 0;touch-action:none}
+.v-water{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(#5cc6e0cc,#1e7fa8ee);border-top:3px solid #e9fbff;transition:top .1s linear;pointer-events:none}
+.v-shell{position:absolute;translate:-50% -50%;font-size:30px;line-height:1;border:0;background:#fff8;border-radius:50%;width:46px;height:46px;cursor:pointer;z-index:2;transition:opacity .3s,filter .3s}
+.v-shell.dry{box-shadow:0 0 0 3px #ffe58a;animation:vbob 1.4s ease-in-out infinite}
+.v-shell.wet{opacity:.35;filter:blur(1px);background:none;cursor:default;z-index:0}
+@keyframes vbob{50%{translate:-50% -58%}}
+.v-pop{position:absolute;translate:-50% -50%;color:#fff;font-size:20px;text-shadow:0 2px 3px #000a;animation:vrise .9s ease-out forwards;pointer-events:none;z-index:3}
+@keyframes vrise{to{translate:-50% -160%;opacity:0}}
+.v-tide{position:absolute;right:8px;top:8px;background:#fffd;border-radius:10px;padding:2px 10px;font-weight:700;font-size:14px;z-index:3}
+.v-tide.up{background:#ffd7cf;color:#a3311a}
+.v-note{position:absolute;left:50%;bottom:10px;translate:-50% 0;background:#fffe;border-radius:10px;padding:4px 12px;font-size:14px;z-index:4;width:max-content;max-width:90%}
+.v-parade{position:relative;display:flex;align-items:flex-end;justify-content:center;gap:2px;height:110px}
+.v-parade img{height:62px;animation:vhop .5s ease-in-out infinite}
+.v-parade img.tp{height:104px;animation:none;margin-right:8px}
+.v-parade.ok img:not(.tp){animation:vyank .25s ease-out}
+.v-parade .boom{position:absolute;top:0;right:22%;font-size:40px;animation:vrise .5s ease-out forwards}
+@keyframes vhop{50%{translate:0 -6px}}
+.v-track{position:relative;height:64px;background:linear-gradient(#c9442b,#a3311a);border-radius:32px;margin:10px 0;overflow:hidden;touch-action:none;cursor:pointer}
+.v-track .ring{position:absolute;top:50%;width:52px;height:52px;translate:-50% -50%;border:4px solid #ffe58a;border-radius:50%;box-shadow:0 0 12px #ffe58a}
+.v-track .beat{position:absolute;top:50%;translate:-50% -50%;font-size:34px;font-style:normal;pointer-events:none}
+.v-track .beat.miss{opacity:.3}
+.v-drum .v-track+p+.btn,.v-dive .btn.big{margin:0 auto;display:flex}
+.v-reef{width:min(100%,calc(50vh * 10 / 7));margin:6px auto}
+.v-dive,.v-drum{max-height:96vh;overflow:auto}
+@media (max-height:600px){
+  .v-dive h2,.v-drum h2{margin:0;font-size:18px}
+  .v-dive p,.v-drum p{margin:4px 0;font-size:14px}
+  .v-dive .btn.big,.v-drum .btn.big{min-height:40px!important;font-size:18px}
+  .v-parade{height:70px}.v-parade img{height:42px}.v-parade img.tp{height:66px}
+  .v-track{height:52px;margin:6px 0}
+  .v-shell{width:36px;height:36px;font-size:22px}
+}

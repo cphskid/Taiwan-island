@@ -153,7 +153,7 @@ export const TAGS: Record<Kind, string> = {
 export const TUTORIAL: { kind: Kind; at: Pt; say: string }[] = [
   { kind: 'brick', at: { x: 700, y: 560 }, say: '阿海伯家太擠了（上面的 👥 3/2 是紅的），先蓋一間紅磚厝。' },
   { kind: 'pier', at: { x: 1060, y: 660 }, say: '有地方住了，接著要賺錢：在海灣邊蓋漁港碼頭，派人出海捕魚。' },
-  { kind: 'market', at: { x: 890, y: 545 }, say: '魚要賣掉才有錢。在碼頭旁邊蓋市場，擺在一起有加成。' },
+  { kind: 'market', at: { x: 910, y: 590 }, say: '魚要賣掉才有錢。在碼頭旁邊蓋市場，擺在一起有加成。' },
 ];
 export const TUTORIAL_END = '太棒了，村子開張了！時間會自己走，每個月底結算一次：碼頭捕魚、市場把魚賣成錢。點任何建築，可以看它在做什麼、誰在工作。右上角可以暫停或快轉。接下來照上面的 🎯 目標玩下去！';
 

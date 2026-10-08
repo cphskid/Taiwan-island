@@ -4,6 +4,7 @@
 
 import type { Pt } from './world';
 import { keyFor } from './owner';
+import { onRoad } from '../data/villageRoads';
 import {
   AREAS, BUILDINGS, COMBOS, COMBO_R, GOODS, NAMES, QUESTS, STAR_AT, areaAt, dist, isHouse, zoneAt,
   type Area, type Good, type Kind,
@@ -35,6 +36,9 @@ export interface Village {
   quests: string[]; // 完成的任務
   seineAt: number; // 上次牽罟是第幾個月（year*12+month）
   seines: number;
+  diveAt: number; // 上次跟海女去趕海是第幾個月
+  dives: number;
+  festAt: number; // 上次自己打鼓辦廟會是第幾個月
   typhoons: number; // 平安撐過幾次颱風
   festivals: number;
   tyYear: number; // 今年有沒有來過颱風（最後一次颱風的年）
@@ -49,7 +53,7 @@ export const freshVillage = (): Village => ({
   goods: { fish: 0, veg: 0, salt: 0, weed: 0 },
   b: [{ id: 1, kind: 'stilt', at: { x: 760, y: 440 }, worker: null }],
   people: [{ id: 2, name: '阿海伯' }, { id: 3, name: '春花姨' }, { id: 4, name: '小孫子', kid: true }],
-  next: 5, quests: [], seineAt: -1, seines: 0, typhoons: 0, festivals: 0, tyYear: 0, scared: 0, intro: false, tut: 0, done: false,
+  next: 5, quests: [], seineAt: -1, seines: 0, diveAt: -1, dives: 0, festAt: -1, typhoons: 0, festivals: 0, tyYear: 0, scared: 0, intro: false, tut: 0, done: false,
 });
 
 export const monthIndex = (s: Village) => s.year * 12 + s.month;
@@ -101,6 +105,7 @@ export function canPlace(s: Village, kind: Kind, at: Pt, ignore?: number): { ok:
     for (const dx of [-w, w]) { const zz = zoneAt({ x: at.x + dx, y: at.y }); if (zz === 'sea' || zz === 'stream') return { ok: false, why: '太靠近水了，往裡面一點' }; }
   }
   if (def.near && dist(at, def.near.at) > def.near.r) return { ok: false, why: def.near.text };
+  if (onRoad(at)) return { ok: false, why: '這是村子的大馬路，蓋了大家就走不過去' };
   for (const o of s.b) if (o.id !== ignore && dist(o.at, at) < footR(o.kind) + footR(kind)) return { ok: false, why: `跟${BUILDINGS[o.kind].name}疊在一起了` };
   return { ok: true };
 }
@@ -142,6 +147,28 @@ export const canSeine = (s: Village) => s.b.some((b) => b.kind === 'netshed') &&
 export const seineFish = (s: Village, good: number) => good * 3 + s.people.length;
 export const seine = (s: Village, good: number): Village => !canSeine(s) ? s
   : { ...s, seineAt: monthIndex(s), seines: s.seines + 1, goods: { ...s.goods, fish: s.goods.fish + seineFish(s, good) } };
+
+// ── 趕海（海女）：三到九月退潮時，跟海女下礁岩採石花菜；漲潮前要上岸 ──
+export const DIVE_MONTHS = [3, 4, 5, 6, 7, 8, 9];
+export const hasDiver = (s: Village) => s.b.some((b) => b.kind === 'divehut' && !b.broken && b.worker !== null);
+export const canDive = (s: Village) => hasDiver(s) && DIVE_MONTHS.includes(s.month) && s.weather !== 'typhoon' && s.diveAt !== monthIndex(s);
+export interface Haul { weed: number; fish: number; coins: number }
+// 沒在漲潮前上岸：東西掉一半（還好海女把你拉上來）
+export const diveHaul = (h: Haul, safe: boolean): Haul =>
+  safe ? h : { weed: Math.floor(h.weed / 2), fish: Math.floor(h.fish / 2), coins: Math.floor(h.coins / 2) };
+export function dive(s: Village, h: Haul, safe: boolean): Village {
+  if (!canDive(s)) return s;
+  const g = diveHaul(h, safe);
+  return { ...s, diveAt: monthIndex(s), dives: s.dives + 1, coins: s.coins + g.coins,
+    goods: { ...s.goods, weed: s.goods.weed + g.weed, fish: s.goods.fish + g.fish } };
+}
+
+// ── 廟會：三月媽祖生日，有廟、有人打鼓，就能自己來打鼓（打得好賺得多）；沒打就照舊自動辦一場小的 ──
+export const FEST_BASE = 20, FEST_HIT = 5, FEST_AUTO = 20;
+export const canFestival = (s: Village) => s.month === 3 && s.b.some((b) => b.kind === 'temple' && !b.broken && b.worker !== null) && s.festAt !== monthIndex(s);
+export const festivalCoins = (hits: number) => FEST_BASE + FEST_HIT * hits;
+export const festival = (s: Village, hits: number): Village => !canFestival(s) ? s
+  : { ...s, festAt: monthIndex(s), festivals: s.festivals + 1, coins: s.coins + festivalCoins(hits) };
 
 // ── 天氣 ──
 export function rollWeather(month: number, year: number, typhoonsThisYear: boolean, rnd: () => number): Weather {
@@ -193,10 +220,10 @@ export function advance(s0: Village, rnd: () => number = Math.random): { s: Vill
     earn(b, got);
   }
   // 三月媽祖生日：廟會
-  if (s.month === 3 && working('temple').length) {
-    s.festivals += 1; s.coins += 40;
-    r.pops.push({ id: working('temple')[0].id, text: '+40💰' });
-    r.news.push('三月媽祖生日，廟會好熱鬧！遊客都來了，村子評價上升。');
+  if (s.month === 3 && working('temple').length && s.festAt !== monthIndex(s0)) {
+    s.festivals += 1; s.coins += FEST_AUTO;
+    r.pops.push({ id: working('temple')[0].id, text: `+${FEST_AUTO}💰` });
+    r.news.push('三月媽祖生日，村裡辦了小小的廟會。明年自己來打鼓，會更熱鬧、賺更多！');
   }
 
   // 颱風

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  advance, assign, build, canPlace, canSeine, capacity, combosOf, freshVillage, idle, loadVillage, prepare, rating,
-  rollWeather, seine, stars, type Village,
+  advance, assign, build, canDive, canFestival, canPlace, canSeine, capacity, combosOf, dive, festival, festivalCoins,
+  freshVillage, idle, loadVillage, monthIndex, prepare, rating, rollWeather, seine, stars, type Village,
 } from './village';
 import { BUILDINGS, COVE, REEF, VH, VW, zoneAt, type Kind } from '../data/village';
 
@@ -46,7 +46,7 @@ describe('擺放', () => {
     expect(s.b).toHaveLength(2);
     expect(s.b[1].worker).toBe(2);
     expect(idle(s).map((p) => p.name)).toEqual(['春花姨']);
-    s = build(s, 'market', { x: 880, y: 560 });
+    s = build(s, 'market', { x: 910, y: 590 });
     s = build(s, 'garden', { x: 1300, y: 330 });
     expect(s.b[3].worker).toBeNull(); // 小孫子不用工作
     expect(assign(s, s.b[3].id)).toBe(s);
@@ -55,7 +55,7 @@ describe('擺放', () => {
     let s = rich();
     s = build(s, 'pier', { x: 1060, y: 660 });
     const before = rating(s);
-    s = build(s, 'market', { x: 900, y: 560 });
+    s = build(s, 'market', { x: 910, y: 590 });
     expect(combosOf(s, s.b[1]).map((c) => c.with.kind)).toContain('market');
     expect(rating(s)).toBeGreaterThan(before + BUILDINGS.market.appeal);
   });
@@ -65,7 +65,7 @@ describe('過一個月', () => {
   it('碼頭捕魚、市場賣錢、有空床就有人搬回來', () => {
     let s = rich();
     s = build(s, 'pier', { x: 1060, y: 660 });
-    s = build(s, 'market', { x: 900, y: 560 });
+    s = build(s, 'market', { x: 910, y: 590 });
     s = build(s, 'brick', { x: 700, y: 560 });
     const coins = s.coins;
     const { s: n, r } = advance(s, fixed(0.9));
@@ -119,6 +119,53 @@ describe('過一個月', () => {
   });
   it('存檔壞掉從頭來', () => {
     expect(loadVillage({ getItem: () => '{bad' }).month).toBe(4);
+  });
+});
+
+describe('大馬路、趕海、廟會', () => {
+  it('大馬路上不能蓋，路旁的空地可以', () => {
+    const s = freshVillage();
+    expect(canPlace(s, 'brick', { x: 890, y: 545 }).why).toMatch(/馬路/);
+    expect(canPlace(s, 'brick', { x: 1300, y: 445 }).why).toMatch(/馬路/);
+    expect(canPlace(s, 'brick', { x: 700, y: 560 }).ok).toBe(true);
+  });
+  const withHut = (month: number): Village => ({ ...rich(), month, b: [...freshVillage().b, { id: 9, kind: 'divehut', at: REEF, worker: 2 }] });
+  it('三到九月、有海女才能趕海，一個月一次', () => {
+    expect(canDive({ ...withHut(5), b: [{ id: 9, kind: 'divehut', at: REEF, worker: null }] })).toBe(false);
+    expect(canDive(withHut(12))).toBe(false);
+    expect(canDive({ ...withHut(8), weather: 'typhoon' })).toBe(false);
+    const s = dive(withHut(5), { weed: 8, fish: 4, coins: 12 }, true);
+    expect(s.goods.weed).toBe(8);
+    expect(s.coins).toBe(9999 + 12);
+    expect(canDive(s)).toBe(false);
+  });
+  it('沒在漲潮前上岸，收穫少一半', () => {
+    const s = dive(withHut(5), { weed: 9, fish: 4, coins: 12 }, false);
+    expect(s.goods.weed).toBe(4);
+    expect(s.goods.fish).toBe(2);
+    expect(s.dives).toBe(1);
+  });
+  const withTemple = (month: number, worker: number | null = 3): Village => ({ ...rich(), month, b: [...freshVillage().b, { id: 9, kind: 'temple', at: { x: 1300, y: 330 }, worker }] });
+  it('三月有廟、有鼓手才能辦廟會，打得越準賺越多', () => {
+    expect(canFestival(withTemple(4))).toBe(false);
+    expect(canFestival(withTemple(3, null))).toBe(false);
+    const s = festival(withTemple(3), 10);
+    expect(s.coins).toBe(9999 + festivalCoins(10));
+    expect(festivalCoins(10)).toBeGreaterThan(festivalCoins(0));
+    expect(s.festivals).toBe(1);
+    expect(s.festAt).toBe(monthIndex(s));
+    expect(canFestival(s)).toBe(false);
+  });
+  it('自己打過鼓，月底就不再自動辦一次；沒打就辦小的', () => {
+    const played = advance(festival(withTemple(3), 6), fixed(0.9)).s;
+    expect(played.festivals).toBe(1);
+    const auto = advance(withTemple(3), fixed(0.9)).s;
+    expect(auto.festivals).toBe(1);
+  });
+  it('舊存檔沒有趕海、廟會欄位也讀得到', () => {
+    const s = loadVillage({ getItem: () => JSON.stringify({ v: 1, intro: true, month: 3 }) });
+    expect(s.diveAt).toBe(-1);
+    expect(s.festAt).toBe(-1);
   });
 });
 

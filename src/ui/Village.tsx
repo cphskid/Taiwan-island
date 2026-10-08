@@ -4,7 +4,7 @@ import {
   VH, VW, VILLAGE_LINES, dist, vimg, type Good, type Kind,
 } from '../data/village';
 import {
-  PREPARE, REPAIR, WEATHER, advance, areaOpen, assign, build, canPlace, canSeine, capacity, checkQuests, combosOf, currentQuest,
+  PREPARE, REPAIR, WEATHER, advance, areaOpen, assign, build, canDive, canFestival, canPlace, canSeine, dive, festival, hasDiver, capacity, checkQuests, combosOf, currentQuest,
   demolish, freshVillage, idle, loadVillage, move, prepare, rating, repair, saveVillage, seine, seineFish, stars, threat, unassign,
   workerOf, type Bld, type MonthReport, type Village as V,
 } from '../core/village';
@@ -15,6 +15,7 @@ import { Beacon, Goal } from './Guide';
 import { Say } from './Talk';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
+import { Dive, Drum } from './VillageGames';
 
 // 現在篇「風與海的漁村」：開羅式建村經營。
 // 地圖可以拖、可以用兩指（或滑鼠滾輪、右下的＋－）縮放；第一次進來有新手教學帶著蓋三棟（時間先停著）。
@@ -25,7 +26,7 @@ const pct = (p: Pt) => ({ left: `${(p.x / VW) * 100}%`, top: `${(p.y / VH) * 100
 const wpct = (w: number) => `${(w / VW) * 100}%`;
 
 type Placing = { kind: Kind; id?: number; at: Pt } | null;
-type Alert = { kind: 'typhoon' | 'cold' } | null;
+type Alert = { kind: 'typhoon' | 'cold' | 'festival' } | null;
 type Cam = { x: number; y: number; z: number }; // 畫面中央是地圖上的哪一點、1 個地圖單位幾 px
 
 export function Village({ onExit }: { onExit: () => void }) {
@@ -39,6 +40,7 @@ export function Village({ onExit }: { onExit: () => void }) {
   const [pick, setPick] = useState<number | null>(null);
   const [alert, setAlert] = useState<Alert>(null);
   const [seining, setSeining] = useState(false);
+  const [game, setGame] = useState<'dive' | 'drum' | null>(null);
   const [say, setSay] = useState<string | null>(null);
   const [toast, setToast] = useState<string[]>([]);
   const [pops, setPops] = useState<{ key: number; id: number; text: string }[]>([]);
@@ -49,7 +51,7 @@ export function Village({ onExit }: { onExit: () => void }) {
 
   const tut = s.tut < TUTORIAL.length ? TUTORIAL[s.tut] : null; // 教學中：這一步要蓋哪一棟
   const tutEnd = s.tut === TUTORIAL.length; // 三棟蓋完，最後一段說明
-  const paused = speed === 0 || intro >= 0 || !!alert || seining || !!tut || tutEnd || restart;
+  const paused = speed === 0 || intro >= 0 || !!alert || seining || !!game || !!tut || tutEnd || restart;
 
   // ── 鏡頭 ──
   const stage = useRef<HTMLDivElement>(null);
@@ -143,6 +145,7 @@ export function Village({ onExit }: { onExit: () => void }) {
     report(r);
     const th = threat(n);
     if (th) { setAlert({ kind: th }); sfx('SE-04'); }
+    else if (canFestival(n)) { setAlert({ kind: 'festival' }); sfx('SE-03'); }
   }, [prog]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 一進來剛好碰上颱風／寒流月，也要先跳警報
@@ -340,6 +343,14 @@ export function Village({ onExit }: { onExit: () => void }) {
               🎣 牽罟{canSeine(s) ? '' : s.weather === 'typhoon' ? '（颱風）' : '（下個月）'}
             </button>
           )}
+          {hasDiver(s) && (
+            <button className="btn" disabled={!canDive(s)} onClick={(e) => { e.stopPropagation(); sfx('SE-03'); setGame('dive'); }}>
+              🌊 趕海{canDive(s) ? '' : s.weather === 'typhoon' ? '（颱風）' : s.month >= 3 && s.month <= 9 ? '（下個月）' : '（三月起）'}
+            </button>
+          )}
+          {canFestival(s) && (
+            <button className="btn" onClick={(e) => { e.stopPropagation(); sfx('SE-03'); setGame('drum'); }}>🥁 廟會</button>
+          )}
           <span className="v-point-wrap">
             <button className="btn green v-build" onClick={(e) => { e.stopPropagation(); sfx('SE-03'); setPick(null); setMenu(!menu); }}>🔨 蓋</button>
             {tStep === 'open' && <Point />}
@@ -416,7 +427,12 @@ export function Village({ onExit }: { onExit: () => void }) {
       {alert && (
         <div className="talk-cover">
           <div className="v-alert panel">
-            {alert.kind === 'typhoon' ? (
+            {alert.kind === 'festival' ? (
+              <>
+                <h2>🥁 媽祖生日到了！</h2>
+                <p>三月是媽祖生日，村裡要辦廟會遶境。廟裡的鼓手等你一起來打鼓，打得越好越熱鬧！</p>
+              </>
+            ) : alert.kind === 'typhoon' ? (
               <>
                 <h2>🌀 颱風警報！</h2>
                 <p>氣象局說這個月有颱風要來。要先做防颱準備嗎？把漁船拉上岸、綁好屋頂、堆沙包。</p>
@@ -428,14 +444,21 @@ export function Village({ onExit }: { onExit: () => void }) {
                 <p>虱目魚很怕冷，水溫太低會凍死。要先幫魚塭加深水、搭防風棚嗎？</p>
               </>
             )}
-            <div>
+            {alert.kind === 'festival' ? (
+              <div>
+                <button className="btn" onClick={() => { sfx('SE-02'); setAlert(null); }}>等一下</button>
+                <button className="btn green" onClick={() => { sfx('SE-03'); setAlert(null); setGame('drum'); }}>去打鼓</button>
+              </div>
+            ) : <div>
               <button className="btn" onClick={() => { sfx('SE-02'); setAlert(null); }}>先不要</button>
               <button className="btn green" disabled={s.coins < PREPARE} onClick={() => { sfx('SE-05'); setS(prepare(s)); setAlert(null); }}>做好準備（💰{PREPARE}）</button>
-            </div>
+            </div>}
           </div>
         </div>
       )}
 
+      {game === 'dive' && <Dive onDone={(h, safe) => { setGame(null); if (h) commit(dive(s, h, safe)); }} />}
+      {game === 'drum' && <Drum onDone={(hits) => { setGame(null); if (hits >= 0) commit(festival(s, hits)); }} />}
       {seining && <Seine people={s.people.length} fish={(gd) => seineFish(s, gd)}
         onDone={(good) => { setSeining(false); if (good >= 0) commit(seine(s, good)); }} />}
 
