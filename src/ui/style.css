@@ -2148,8 +2148,7 @@ img.flip{transform:scaleX(-1)}
 .v-flag.lack{color:#6b3f1f;border-color:#6b3f1f;background:#ffe9a8}
 .v-name{position:absolute;left:50%;bottom:-2px;translate:-50% 100%;font:700 .75em var(--f);font-style:normal;white-space:nowrap;color:#fff;background:rgba(40,30,20,.6);border-radius:8px;padding:0 6px;pointer-events:none}
 @keyframes vbob{50%{translate:-50% -5px}}
-.v-person{position:absolute;width:2.2%;translate:-50% -90%;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
-.v-person.flip{scale:-1 1}
+.v-person{position:absolute;left:0;top:0;width:2.2%;pointer-events:none;will-change:transform;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
 .v-fog{position:absolute;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(255,255,255,.75),rgba(240,246,255,.6) 60%,rgba(240,246,255,.35));backdrop-filter:blur(2px);pointer-events:none}
 .v-fog span{font:700 1em var(--f);color:#6b7c93;text-align:center;background:rgba(255,255,255,.75);padding:4px 10px;border-radius:12px}
 .v-ghost{position:absolute;translate:-50% -78%;pointer-events:none;opacity:.88}
@@ -2737,3 +2736,5 @@ button.v-chip{cursor:pointer}
 .pc-front:has(.pc-photo) span{display:none}
 .pc-spot .pc-noimg,.pc-front .pc-noimg{display:none}
 @media (orientation:portrait) and (max-width:760px){.pc-scene{aspect-ratio:4/3.4}}
+/* 漁村進場讀圖：蓋在村子上面，讀好才掀開 */
+.village .v-loading{position:absolute;z-index:30}

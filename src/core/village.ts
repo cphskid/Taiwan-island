@@ -75,7 +75,16 @@ export function combosOf(s: Village, b: Bld): { with: Bld; why: string }[] {
 }
 const mult = (s: Village, b: Bld) => 1 + 0.25 * combosOf(s, b).length;
 
+// 評價要把每兩棟比一次（建築多就很花時間），畫面一次會問好幾遍：同一份存檔只算一次
+const rated = new WeakMap<Village, number>();
 export function rating(s: Village): number {
+  const hit = rated.get(s);
+  if (hit !== undefined) return hit;
+  const r = rate(s);
+  rated.set(s, r);
+  return r;
+}
+function rate(s: Village): number {
   let r = 0, pairs = 0;
   for (const b of s.b) {
     if (!b.broken) r += BUILDINGS[b.kind].appeal;

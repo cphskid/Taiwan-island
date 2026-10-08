@@ -10,6 +10,7 @@ import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
 import { NOW_LINES, NOW_ON, NOW_PLACES, NOW_URL, unlockNow, type Era, type NowPlace } from '../data/now';
 import { PARK_MAP } from '../net/park';
+import { warm } from './warm';
 
 // 點到小人或動物的聲音
 const ACTOR_SE: Partial<Record<ActorDef['kind'], SeCode>> = { buffalo: 'SE-63', dog: 'SE-65', hen: 'SE-66' };
@@ -60,6 +61,8 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
   const [era, setEra] = useState<Era>(startNow && NOW_ON ? 'now' : 'past');
   const [eraWarp, setEraWarp] = useState(0); // 切換時的穿梭光，數字變了就重播
   const [place, setPlace] = useState<NowPlace | null>(null);
+  // 地點卡一打開就先抓那個地點的圖（排到最前面），按「出發！」時多半已經讀好了
+  useEffect(() => { if (place?.ready) warm(`${place.id}/`); }, [place]);
   const [bag, setBag] = useState(false);
   // 整篇通關的縮時：第幾章（0～7）、'all'＝拉遠看整座島的結算卡
   const [lapse, setLapse] = useState<number | 'all' | null>(null);

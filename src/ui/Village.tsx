@@ -1,10 +1,10 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPE, type WheelEvent as RWE } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPE, type WheelEvent as RWE } from 'react';
 import {
   AREAS, BUILDINGS, BUILD_ORDER, COMBOS, GOODS, JOB_ART, MONTH_SEASON, PLAZA, SEASON_NAME, STAR_AT, TAGS, TUTORIAL, TUTORIAL_END,
   VH, VW, VILLAGE_LINES, dist, vimg, type Good, type Kind,
 } from '../data/village';
 import {
-  PREPARE, REPAIR, WEATHER, advance, areaOpen, assign, build, canDive, canFestival, canPlace, canSeine, dive, festival, hasDiver, capacity, checkQuests, combosOf, currentQuest,
+  PREPARE, REPAIR, WEATHER, advance, assign, build, canDive, canFestival, canPlace, canSeine, dive, festival, hasDiver, capacity, checkQuests, combosOf, currentQuest,
   demolish, freshVillage, idle, loadVillage, move, prepare, rating, repair, saveVillage, seine, seineFish, stars, threat, unassign,
   workerOf, type Bld, type MonthReport, type Village as V,
 } from '../core/village';
@@ -16,11 +16,14 @@ import { Say } from './Talk';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
 import { Dive, Drum } from './VillageGames';
+import { holdWarm } from './warm';
 
 // 現在篇「風與海的漁村」：開羅式建村經營。
 // 地圖可以拖、可以用兩指（或滑鼠滾輪、右下的＋－）縮放；第一次進來有新手教學帶著蓋三棟（時間先停著）。
 // 之後一個月約 14 秒自己往前走（可暫停、可快轉）；蓋房子、派人、躲颱風；有網寮就能叫全村牽罟。
 // 進度每次變動都存在這台平板，有登入就同步到雲端的 village 那格。
+// 效能：時間條直接改長度、村民走路自己一層（Walkers），村子本身只在真的有變化時才重畫；
+// 一進來先把底圖和已經蓋好的建築圖讀好才掀開，不會只看到人在空地上走。
 const MONTH_MS = 14000;
 const pct = (p: Pt) => ({ left: `${(p.x / VW) * 100}%`, top: `${(p.y / VH) * 100}%` });
 const wpct = (w: number) => `${(w / VW) * 100}%`;
@@ -34,7 +37,9 @@ export function Village({ onExit }: { onExit: () => void }) {
   useEffect(() => { saveVillage(s); pushCloud('village', s); }, [s]);
   const [intro, setIntro] = useState(!s.intro ? 0 : -1);
   const [speed, setSpeed] = useState<0 | 1 | 2>(1);
-  const [prog, setProg] = useState(0); // 這個月走了多少（0～1）
+  const prog = useRef(0); // 這個月走了多少（0～1）：每格都在變，不放 state，免得整個村子每格重畫
+  const bar = useRef<HTMLElement>(null);
+  const [ready, setReady] = useState(0); // 進場讀圖進度（0～1），1＝讀好了
   const [placing, setPlacing] = useState<Placing>(null);
   const [menu, setMenu] = useState(false);
   const [pick, setPick] = useState<number | null>(null);
@@ -45,13 +50,12 @@ export function Village({ onExit }: { onExit: () => void }) {
   const [toast, setToast] = useState<string[]>([]);
   const [pops, setPops] = useState<{ key: number; id: number; text: string }[]>([]);
   const [restart, setRestart] = useState(false);
-  const [t, setT] = useState(0); // 動畫時間（村民走路）
   const live = useRef(s);
   live.current = s;
 
   const tut = s.tut < TUTORIAL.length ? TUTORIAL[s.tut] : null; // 教學中：這一步要蓋哪一棟
   const tutEnd = s.tut === TUTORIAL.length; // 三棟蓋完，最後一段說明
-  const paused = speed === 0 || intro >= 0 || !!alert || seining || !!game || !!tut || tutEnd || restart;
+  const paused = ready < 1 || speed === 0 || intro >= 0 || !!alert || seining || !!game || !!tut || tutEnd || restart;
 
   // ── 鏡頭 ──
   const stage = useRef<HTMLDivElement>(null);
@@ -124,29 +128,45 @@ export function Village({ onExit }: { onExit: () => void }) {
   };
 
   // ── 時間 ──
+  // 進場：底圖、已經蓋好的建築、村民的圖先讀好（最多等 8 秒），背景預熱這時先停
   useEffect(() => {
-    let raf = 0, last = performance.now(), acc = 0;
+    const urls = villageImages(live.current);
+    const release = holdWarm();
+    let done = 0, alive = true;
+    const one = (u: string) => new Promise<void>((ok) => {
+      const im = new Image();
+      im.src = u;
+      im.decode().catch(() => undefined).then(() => { done++; if (alive) setReady((r) => (r >= 1 ? r : Math.min(0.99, done / urls.length))); ok(); });
+    });
+    void Promise.race([Promise.all(urls.map(one)), new Promise((ok) => setTimeout(ok, 8000))]).then(() => { if (alive) setReady(1); release(); });
+    return () => { alive = false; release(); };
+  }, []);
+
+  const endMonth = useRef(() => {});
+  useEffect(() => {
+    let raf = 0, last = performance.now();
     const loop = (now: number) => {
       const dt = Math.min(100, now - last); last = now;
-      acc += dt;
-      if (acc > 60) { setT(now / 1000); acc = 0; }
-      if (!paused) setProg((p) => p + (dt * speed) / MONTH_MS);
+      if (!paused) {
+        prog.current += (dt * speed) / MONTH_MS;
+        if (prog.current >= 1) { prog.current = 0; endMonth.current(); }
+        if (bar.current) bar.current.style.width = `${Math.min(1, prog.current) * 100}%`;
+      }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, [paused, speed]);
 
-  useEffect(() => {
-    if (prog < 1) return;
-    setProg(0);
+  endMonth.current = () => {
+    if (bar.current) bar.current.style.width = '0%';
     const { s: n, r } = advance(live.current);
     setS(n);
     report(r);
     const th = threat(n);
     if (th) { setAlert({ kind: th }); sfx('SE-04'); }
     else if (canFestival(n)) { setAlert({ kind: 'festival' }); sfx('SE-03'); }
-  }, [prog]); // eslint-disable-line react-hooks/exhaustive-deps
+  };
 
   // 一進來剛好碰上颱風／寒流月，也要先跳警報
   useEffect(() => { const th = threat(s); if (th && !s.prepared && s.tut > TUTORIAL.length) setAlert({ kind: th }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -197,40 +217,6 @@ export function Village({ onExit }: { onExit: () => void }) {
     if (tut) flyTo({ x: tut.at.x + 80, y: tut.at.y - 40 });
   };
 
-  // 村民住哪一間、在哪裡工作
-  const homes = useMemo(() => {
-    const out = new Map<number, Bld>();
-    const houses = s.b.filter((b) => BUILDINGS[b.kind].home);
-    let i = 0;
-    for (const h of houses) for (let k = 0; k < (BUILDINGS[h.kind].home ?? 0) && i < s.people.length; k++) out.set(s.people[i++].id, h);
-    return out;
-  }, [s.b, s.people]);
-
-  const people = s.people.map((p, i) => {
-    const home = homes.get(p.id)?.at ?? PLAZA;
-    const job = s.b.find((b) => b.worker === p.id);
-    const ph = (t / 18 + i * 0.37) % 1;
-    let at: Pt, art: string, walking = false;
-    if (job) {
-      art = JOB_ART[BUILDINGS[job.kind].job!];
-      const w = { x: job.at.x + ((i % 3) - 1) * 30, y: job.at.y + 26 };
-      const h = { x: home.x + 20, y: home.y + 30 };
-      if (ph < 0.12) { at = lerp(h, w, ph / 0.12); walking = true; }
-      else if (ph < 0.82) at = { x: w.x + Math.sin(t * 0.8 + i) * 10, y: w.y };
-      else { at = lerp(w, h, (ph - 0.82) / 0.18); walking = true; }
-    } else {
-      art = p.kid ? 'v4-8' : i % 2 ? 'v4-4' : 'v4-1';
-      const a = t * (p.kid ? 0.5 : 0.18) + i * 1.7;
-      at = { x: PLAZA.x + Math.cos(a) * (p.kid ? 130 : 90 + i * 8), y: PLAZA.y + 40 + Math.sin(a) * 50 };
-      walking = true;
-    }
-    return { p, at, art, flip: walking && Math.cos(t * 0.18 + i) < 0 };
-  });
-  const tourists = s.b.filter((b) => b.kind === 'guesthouse' && b.worker !== null && !b.broken).flatMap((gh, j) => [0, 1].map((k) => {
-    const a = t * 0.12 + j + k * 3;
-    return { key: `${gh.id}-${k}`, at: { x: gh.at.x + Math.cos(a) * 160, y: gh.at.y + 60 + Math.sin(a) * 60 } };
-  }));
-
   const st = stars(s), rt = rating(s);
   const nextAt = STAR_AT[st] ?? null;
   const quest = currentQuest(s);
@@ -244,32 +230,28 @@ export function Village({ onExit }: { onExit: () => void }) {
   const tStep = !tut || intro >= 0 ? null
     : placing?.kind === tut.kind && !placing.id ? (check?.ok && dist(placing.at, tut.at) < 140 ? 'confirm' : 'place')
     : menu ? 'pick' : 'open';
-  const coach = !tut ? null
+  const coach = !tut || !tStep ? null
     : tStep === 'open' ? `${tut.say}點右下角的「🔨 蓋」。`
     : tStep === 'pick' ? `選「${BUILDINGS[tut.kind].name}」。`
     : tStep === 'place' ? `點地圖上發亮的地方，${BUILDINGS[tut.kind].name}就會移過去（也可以按住它拖）。`
     : '綠色代表這裡可以蓋，按「蓋在這裡」！';
 
-  const sprites = [
-    ...s.b.filter((b) => b.id !== placing?.id).map((b) => {
+  // 建築：只有村子、選到哪棟、放大縮小有變才重做（拖地圖、村民走路都不用重畫它們）
+  const placingNow = useRef(placing);
+  placingNow.current = placing;
+  const buildings = useMemo(() => s.b.filter((b) => b.id !== placing?.id).map((b) => {
       const d = BUILDINGS[b.kind], lack = d.job && b.worker === null && !b.broken;
-      return { y: b.at.y, el: (
+      return (
         <button key={`b${b.id}`} className={`v-bld ${b.broken ? 'broken' : ''} ${pick === b.id ? 'on' : ''}`}
           style={{ ...pct(b.at), width: wpct(d.width), zIndex: Math.round(b.at.y) }}
-          onClick={(e) => { e.stopPropagation(); if (placing || g.current.moved) return; sfx('SE-01'); setMenu(false); setPick(pick === b.id ? null : b.id); }}>
+          onClick={(e) => { e.stopPropagation(); if (placingNow.current || g.current.moved) return; sfx('SE-01'); setMenu(false); setPick(pick === b.id ? null : b.id); }}>
           <img src={vimg(d.art)} alt={d.name} draggable={false} />
           {b.broken && <i className="v-flag">💥 壞了</i>}
           {lack && <i className="v-flag lack">缺人</i>}
           {zoomedIn && <i className="v-name">{d.name}</i>}
         </button>
-      ) };
-    }),
-    ...people.map(({ p, at, art, flip }) => ({ y: at.y, el: (
-      <img key={`p${p.id}`} className={`v-person ${flip ? 'flip' : ''}`} src={vimg(art)} alt="" draggable={false}
-        style={{ ...pct(at), zIndex: Math.round(at.y) }} />
-    ) })),
-    ...tourists.map((x) => ({ y: x.at.y, el: <img key={x.key} className="v-person" src={vimg('v4-7')} alt="" style={{ ...pct(x.at), zIndex: Math.round(x.at.y) }} /> })),
-  ];
+      );
+    }), [s.b, pick, placing?.id, zoomedIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className={`village season-${season} w-${s.weather}`}>
@@ -280,8 +262,9 @@ export function Village({ onExit }: { onExit: () => void }) {
           fontSize: Math.max(10, Math.min(18, view.z * 22)),
         }}>
           <img className="v-bg" src={vimg('v1-bg')} alt="" draggable={false} />
-          {sprites.map((x) => x.el)}
-          {(Object.entries(AREAS) as [keyof typeof AREAS, (typeof AREAS)[keyof typeof AREAS]][]).filter(([k]) => !areaOpen(s, k)).map(([k, a]) => (
+          {buildings}
+          <Walkers b={s.b} people={s.people} z={view.z} />
+          {(Object.entries(AREAS) as [keyof typeof AREAS, (typeof AREAS)[keyof typeof AREAS]][]).filter(([k]) => st < AREAS[k].stars).map(([k, a]) => (
             <div key={k} className="v-fog" style={{ left: wpct(a.box[0]), top: `${(a.box[1] / VH) * 100}%`, width: wpct(a.box[2] - a.box[0]), height: `${((a.box[3] - a.box[1]) / VH) * 100}%`, zIndex: 3000 }}>
               <span>{a.name}<br />村子 {'⭐'.repeat(a.stars)} 就散開</span>
             </div>
@@ -302,7 +285,7 @@ export function Village({ onExit }: { onExit: () => void }) {
         <button className="v-chip v-back" onClick={() => { sfx('SE-02'); onExit(); }}>← 大地圖</button>
         <div className="v-chip v-date" title="時間">
           <span>{s.year > 1 ? `第${s.year}年 ` : ''}{s.month}月 {SEASON_NAME[season]} {WEATHER[s.weather].icon}</span>
-          <i className="v-month"><i style={{ width: `${Math.min(1, prog) * 100}%` }} /></i>
+          <i className="v-month"><i ref={bar} style={{ width: `${Math.min(1, prog.current) * 100}%` }} /></i>
         </div>
         <div className="v-chip v-res">
           <span title="錢">💰{s.coins}</span>
@@ -462,7 +445,7 @@ export function Village({ onExit }: { onExit: () => void }) {
       {seining && <Seine people={s.people.length} fish={(gd) => seineFish(s, gd)}
         onDone={(good) => { setSeining(false); if (good >= 0) commit(seine(s, good)); }} />}
 
-      {tutEnd && intro < 0 && (
+      {ready >= 1 && tutEnd && intro < 0 && (
         <div className="talk-cover" onClick={() => { sfx('SE-36'); setS({ ...s, tut: TUTORIAL.length + 1 }); }}>
           <div className="talk">
             <div className="face small tick"><img src={`${import.meta.env.BASE_URL}img/tick/happy.webp`} alt="" /></div>
@@ -475,7 +458,15 @@ export function Village({ onExit }: { onExit: () => void }) {
         </div>
       )}
 
-      {intro >= 0 && (
+      {ready < 1 && (
+        <div className="boot v-loading">
+          <img src={`${import.meta.env.BASE_URL}img/tick/wave.webp`} alt="" />
+          <p>漁村準備中… {Math.round(ready * 100)}%</p>
+          <div className="boot-bar"><i style={{ width: `${Math.round(ready * 100)}%` }} /></div>
+        </div>
+      )}
+
+      {ready >= 1 && intro >= 0 && (
         <div className="talk-cover" onClick={() => {
           sfx('SE-09');
           if (intro + 1 < VILLAGE_LINES.intro.length) setIntro(intro + 1);
@@ -496,6 +487,77 @@ export function Village({ onExit }: { onExit: () => void }) {
 }
 
 const lerp = (a: Pt, b: Pt, k: number): Pt => ({ x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k });
+
+// 進場要先讀好的圖：底圖、已經蓋的建築、村民（大地圖點「出發」前、直接開網址時也用這份）
+export function villageImages(s: V): string[] {
+  const arts = new Set(['v1-bg', 'v4-1', 'v4-4', 'v4-8']);
+  for (const b of s.b) {
+    const d = BUILDINGS[b.kind];
+    arts.add(d.art);
+    if (d.job && b.worker !== null) arts.add(JOB_ART[d.job]);
+    if (b.kind === 'guesthouse') arts.add('v4-7');
+  }
+  return [...arts].map(vimg);
+}
+
+// 走路用 transform 移動（不用 left/top），平板只要搬圖層、不用重新排版
+const walk = (at: Pt, z: number, flip: boolean) =>
+  ({ transform: `translate(${at.x * z}px,${at.y * z}px) translate(-50%,-90%)${flip ? ' scaleX(-1)' : ''}`, zIndex: Math.round(at.y) });
+
+// 村民和遊客走來走去：自己一層、自己計時（一秒約 16 次），不會帶著整個村子一起重畫
+const Walkers = memo(function Walkers({ b, people: ps, z }: { b: Bld[]; people: V['people']; z: number }) {
+  const [t, setT] = useState(() => performance.now() / 1000);
+  useEffect(() => {
+    let raf = 0, last = 0;
+    const loop = (now: number) => {
+      if (now - last > 60) { last = now; setT(now / 1000); }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // 村民住哪一間、在哪裡工作
+  const homes = useMemo(() => {
+    const out = new Map<number, Bld>();
+    let i = 0;
+    for (const h of b.filter((x) => BUILDINGS[x.kind].home)) for (let k = 0; k < (BUILDINGS[h.kind].home ?? 0) && i < ps.length; k++) out.set(ps[i++].id, h);
+    return out;
+  }, [b, ps]);
+
+  const people = ps.map((p, i) => {
+    const home = homes.get(p.id)?.at ?? PLAZA;
+    const job = b.find((x) => x.worker === p.id);
+    const ph = (t / 18 + i * 0.37) % 1;
+    let at: Pt, art: string, walking = false;
+    if (job) {
+      art = JOB_ART[BUILDINGS[job.kind].job!];
+      const w = { x: job.at.x + ((i % 3) - 1) * 30, y: job.at.y + 26 };
+      const h = { x: home.x + 20, y: home.y + 30 };
+      if (ph < 0.12) { at = lerp(h, w, ph / 0.12); walking = true; }
+      else if (ph < 0.82) at = { x: w.x + Math.sin(t * 0.8 + i) * 10, y: w.y };
+      else { at = lerp(w, h, (ph - 0.82) / 0.18); walking = true; }
+    } else {
+      art = p.kid ? 'v4-8' : i % 2 ? 'v4-4' : 'v4-1';
+      const a = t * (p.kid ? 0.5 : 0.18) + i * 1.7;
+      at = { x: PLAZA.x + Math.cos(a) * (p.kid ? 130 : 90 + i * 8), y: PLAZA.y + 40 + Math.sin(a) * 50 };
+      walking = true;
+    }
+    return { p, at, art, flip: walking && Math.cos(t * 0.18 + i) < 0 };
+  });
+  const tourists = b.filter((x) => x.kind === 'guesthouse' && x.worker !== null && !x.broken).flatMap((gh, j) => [0, 1].map((k) => {
+    const a = t * 0.12 + j + k * 3;
+    return { key: `${gh.id}-${k}`, at: { x: gh.at.x + Math.cos(a) * 160, y: gh.at.y + 60 + Math.sin(a) * 60 } };
+  }));
+  return (
+    <>
+      {people.map(({ p, at, art, flip }) => (
+        <img key={`p${p.id}`} className="v-person" src={vimg(art)} alt="" draggable={false} style={walk(at, z, flip)} />
+      ))}
+      {tourists.map((x) => <img key={x.key} className="v-person" src={vimg('v4-7')} alt="" draggable={false} style={walk(x.at, z, false)} />)}
+    </>
+  );
+});
 
 // 教學時指著按鈕的小箭頭
 function Point() {

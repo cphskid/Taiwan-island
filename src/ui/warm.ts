@@ -16,8 +16,9 @@ const MAX = 3;
 const later = (fn: () => void) =>
   'requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 1500 }) : setTimeout(fn, 120);
 
+let held = 0;
 function pump() {
-  while (running < MAX && queue.length) {
+  while (!held && running < MAX && queue.length) {
     const src = queue.shift()!;
     running++;
     later(() => {
@@ -28,14 +29,24 @@ function pump() {
   }
 }
 
-// dirs：public/img 底下的資料夾開頭，例如 'story/'、'ch1/'；排前面的先抓
+// dirs：public/img 底下的資料夾開頭，例如 'story/'、'ch1/'；排前面的先抓。
+// 後叫的插到最前面：換到新畫面時，新畫面的圖不用排在上一個畫面幾百張圖的後面。
 export function warm(...dirs: string[]) {
+  const add: string[] = [];
   for (const d of dirs) {
     for (const p of list) {
       if (!p.startsWith('img/' + d) || queued.has(p)) continue;
       queued.add(p);
-      queue.push(BASE + p);
+      add.push(BASE + p);
     }
   }
+  queue.unshift(...add);
   pump();
+}
+
+// 眼前的畫面正在等圖：背景預熱先停下來，不跟它搶網路；回傳的函式叫了就繼續
+export function holdWarm(): () => void {
+  held++;
+  let done = false;
+  return () => { if (done) return; done = true; held--; pump(); };
 }
