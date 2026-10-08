@@ -24,6 +24,7 @@ import { Prologue } from './Prologue';
 import { Village } from './Village';
 import { Town } from './Town';
 import { Sky } from './Sky';
+import { Isles } from './Isles';
 import { warm } from './warm';
 import { mapImageUrls } from '../render/worldmap';
 
@@ -59,11 +60,12 @@ function syncChapters(w: WorldSave): WorldSave {
   return got;
 }
 
-type Mode = { at: 'map'; back: ChapterId | null; now?: boolean } | { at: 'chapter'; id: ChapterId } | { at: 'prologue' } | { at: 'village' } | { at: 'town' } | { at: 'sky' };
+type Mode = { at: 'map'; back: ChapterId | null; now?: boolean } | { at: 'chapter'; id: ChapterId } | { at: 'prologue' } | { at: 'village' } | { at: 'town' } | { at: 'sky' } | { at: 'isles' };
 function initialMode(world: WorldSave): Mode {
   return location.search.includes('village') ? { at: 'village' }
     : /[?&]town\b/.test(location.search) ? { at: 'town' }
     : /[?&]sky\b/.test(location.search) ? { at: 'sky' }
+    : /[?&]isles\b/.test(location.search) ? { at: 'isles' }
     : location.search.includes('step=') ? { at: 'chapter', id: 'ch5' }
     : location.search.includes('ch1=') ? { at: 'chapter', id: 'ch1' }
     : location.search.includes('ch2=') ? { at: 'chapter', id: 'ch2' }
@@ -94,7 +96,7 @@ export function Island() {
   const at = mode.at === 'chapter' ? mode.id : mode.at;
   // 大地圖等地圖畫出來才開始抓，不跟地圖本身搶（最多等 10 秒）
   useEffect(() => {
-    const go = () => warm(...(at === 'prologue' ? ['story/', 'island/'] : at === 'village' ? ['village/', 'island/'] : at === 'town' ? ['town/', 'island/'] : at === 'sky' ? ['sky/', 'island/'] : at === 'map' ? ['island/', 'story/'] : at === 'ch5' ? ['island/', 'people/'] : [`${at}/`, 'story/']));
+    const go = () => warm(...(at === 'prologue' ? ['story/', 'island/'] : at === 'village' ? ['village/', 'island/'] : at === 'town' ? ['town/', 'island/'] : at === 'sky' ? ['sky/', 'island/'] : at === 'isles' ? ['isles/', 'island/'] : at === 'map' ? ['island/', 'story/'] : at === 'ch5' ? ['island/', 'people/'] : [`${at}/`, 'story/']));
     if (at !== 'map') return go();
     const t = setTimeout(go, 10000);
     const ready = () => { clearTimeout(t); go(); };
@@ -107,6 +109,7 @@ export function Island() {
       setWorld((w) => ({ ...w, prologue: true, tools: [...w.tools, ...['glasses', 'compass'].filter((t) => !w.tools.includes(t))] }));
       setMode({ at: 'map', back: null });
     }} />;
+  if (mode.at === 'isles') return <Isles onExit={() => setMode({ at: 'map', back: null, now: true })} />;
   if (mode.at === 'sky') return <Sky onExit={() => setMode({ at: 'map', back: null, now: true })} />;
   if (mode.at === 'town') return <Town onExit={() => setMode({ at: 'map', back: null, now: true })} />;
   if (mode.at === 'village') return <Village onExit={() => setMode({ at: 'map', back: null, now: true })} />;
@@ -121,5 +124,5 @@ export function Island() {
       : mode.id === 'end' ? <ChEnd album={world.cards} onExit={exit} />
       : <Chapter album={world.cards} onExit={exit} />;
   }
-  return <WorldMap world={world} setWorld={(fn) => setWorld((w) => fn(w))} back={mode.back} startNow={mode.now} onEnter={(id) => setMode({ at: 'chapter', id })} onPrologue={() => setMode({ at: 'prologue' })} onPlace={(id) => { if (id === 'village') setMode({ at: 'village' }); else if (id === 'town') setMode({ at: 'town' }); else if (id === 'sky') setMode({ at: 'sky' }); }} />;
+  return <WorldMap world={world} setWorld={(fn) => setWorld((w) => fn(w))} back={mode.back} startNow={mode.now} onEnter={(id) => setMode({ at: 'chapter', id })} onPrologue={() => setMode({ at: 'prologue' })} onPlace={(id) => { if (id === 'village') setMode({ at: 'village' }); else if (id === 'town') setMode({ at: 'town' }); else if (id === 'sky') setMode({ at: 'sky' }); else if (id === 'isles') setMode({ at: 'isles' }); }} />;
 }

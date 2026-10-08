@@ -2601,3 +2601,48 @@ button.v-chip{cursor:pointer}
 .port.r{translate:-15px -50%}
 .port.l{flex-direction:row-reverse;translate:calc(-100% + 15px) -50%}
 .port.r small,.port.l small{display:none}
+/* 現在篇「離島巡航」（版面沿用天空港的 .sky-view / .sky-map） */
+.isles{background:#4a9cc8}
+.isle-label{position:absolute;translate:-50% -50%;pointer-events:none;font:700 18px var(--f);white-space:nowrap}
+.isle-label.tw{color:#7a4a12;font-size:22px;letter-spacing:.2em}
+.isle-label.sea{color:#e8f7ff;text-shadow:0 1px 3px #0006;letter-spacing:.3em;opacity:.9}
+.isle-pin{position:absolute;translate:-50% -50%;display:flex;flex-direction:column;align-items:center;background:none;border:0;cursor:pointer;font:700 15px var(--f);color:#fff;text-shadow:0 1px 3px #000c;z-index:2}
+.isle-pin i{font-style:normal;width:44px;height:44px;border-radius:50%;background:#fff8e8;border:3px solid var(--wood-2);display:flex;align-items:center;justify-content:center;font-size:24px;text-shadow:none;box-shadow:0 0 0 6px rgba(255,255,255,.35),0 3px 8px rgba(0,0,0,.35);animation:tpin 2s ease-in-out infinite}
+.isle-pin.done i{background:#d9f5c9;border-color:#4aa834;animation:none}
+.isle-pin:disabled{cursor:default}
+.isle-boat{position:absolute;translate:-50% -60%;font-size:36px;z-index:3;pointer-events:none}
+.isle-boat.flip{scale:-1 1}
+.isle-port{position:absolute;translate:-50% 20%;background:#fff8e8;border:2px solid var(--wood-2);border-radius:10px;padding:0 8px;font:700 13px var(--f);color:#3a2412}
+.isle-event{min-height:0}
+.t-opts.row{grid-template-columns:repeat(3,1fr)}
+.t-opt.big{font-size:22px}
+.isle-sea{position:relative;height:min(46vh,300px);border-radius:16px;overflow:hidden;background:linear-gradient(#bfe9ff 0 28%,#3b8bb0 28%,#1e5f88);margin:6px 0}
+.isle-sea.under{background:linear-gradient(#6fd0e8,#1e7fa8 70%,#d8c08a 92%)}
+.isle-far{position:absolute;left:8%;top:14%;font-size:34px;opacity:.85}
+.isle-critter{position:absolute;translate:-50% -50%;font-size:40px;background:none;border:0;cursor:pointer;animation:pop .4s ease-out}
+.isle-critter.swim{animation:swim 3s ease-in-out infinite alternate}
+.isle-critter.coral{font-size:34px;animation:none}
+.isle-critter.shot{filter:drop-shadow(0 0 6px #ffe58a);opacity:.6}
+.isle-critter.shot::after{content:'📸';position:absolute;font-size:16px;right:-8px;top:-6px}
+@keyframes pop{from{scale:0}}
+@keyframes swim{to{translate:-30% -50%}}
+.isle-garden{position:relative;width:min(300px,60vh);aspect-ratio:1;margin:6px auto;border-radius:50%;background:radial-gradient(#9bd36a 0 55%,#d8c08a 56%)}
+.isle-garden .stone{position:absolute;translate:-50% -50%;width:15%;aspect-ratio:1;border-radius:30%;border:0;background:#c9b48a;font-size:22px;display:flex;align-items:center;justify-content:center}
+.isle-garden .stone.gap{background:rgba(255,255,255,.35);border:3px dashed #8a5a2a;cursor:pointer;animation:aim .6s ease-in-out infinite alternate}
+.isle-garden .veg{position:absolute;left:50%;top:50%;translate:-50% -50%;font-size:30px}
+.isle-garden .wind{position:absolute;right:-6%;top:-4%;font-size:40px;animation:tpin 1s ease-in-out infinite}
+.canoe{display:flex;gap:4px;justify-content:center;align-items:center;margin:8px auto;padding:6px 14px;border-radius:50% / 40%;background:#e9d8b4;width:fit-content}
+.canoe i,.canoe button{width:36px;height:36px;border-radius:8px;border:2px solid #5a3a1a}
+.canoe button{cursor:pointer;background:#fff8e8}
+.canoe .red{background:#c9442b}.canoe .white{background:#fff}.canoe .black{background:#222}
+.canoe.ref{transform:scale(.8)}
+.canoe span{margin-left:6px;font-size:22px}
+.isle-stamp .postmark{margin:8px auto 12px}
+.postmark{width:160px;height:160px;border-radius:50%;border:5px double #c9442b;color:#c9442b;display:flex;flex-direction:column;align-items:center;justify-content:center;rotate:-8deg;font-family:var(--f);animation:stampin .4s ease-out}
+.postmark b{font-size:20px;text-align:center;line-height:1.3}
+.postmark small{font-size:12px;letter-spacing:.1em}
+.postmark.small{width:104px;height:104px;animation:none}.postmark.small b{font-size:14px}
+.postmark.empty{border-color:#ccc;color:#aaa;rotate:0deg}
+@keyframes stampin{from{scale:2;opacity:0}}
+.stamps{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0}
+@media (max-height:600px){.isle-pin i{width:32px;height:32px;font-size:18px}.isle-pin{font-size:12px}.isle-label{font-size:13px}.isle-label.tw{font-size:15px}.isle-sea{height:42vh}.isle-critter{font-size:30px}}

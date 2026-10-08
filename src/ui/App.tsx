@@ -17,6 +17,7 @@ import { loadMedals, mergeMedals, saveMedals } from '../core/medals';
 import { loadVillage, pickVillage, saveVillage } from '../core/village';
 import { loadTown, pickTown, saveTown } from '../core/town';
 import { loadSky, pickSky, saveSky } from '../core/sky';
+import { loadIsles, pickIsles, saveIsles } from '../core/isles';
 import { Gate } from './Gate';
 
 const BASE = import.meta.env.BASE_URL;
@@ -142,6 +143,7 @@ async function syncSaves(who: Who) {
   saveVillage(pickVillage(loadVillage(), cloud.village as never));
   saveTown(pickTown(loadTown(), cloud.town as never));
   saveSky(pickSky(loadSky(), cloud.sky as never));
+  saveIsles(pickIsles(loadIsles(), cloud.isles as never));
   saveMedals(mergeMedals(loadMedals(), cloud.medals as never));
 }
 

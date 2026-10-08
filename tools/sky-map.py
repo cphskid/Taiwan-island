@@ -7,6 +7,10 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 LON0, LON1, LAT0, LAT1 = 88, 158, -4, 44   # 範圍（要跟 src/data/sky.ts 一樣）
+OUT, LANDTS = 'public/img/sky/map.webp', 'src/data/skyLand.ts'
+if len(sys.argv) > 2:  # 離島巡航：臺灣附近放大，要用 1:10m 才有小島（python3 tools/sky-map.py package/countries-10m.json isles）
+    LON0, LON1, LAT0, LAT1 = 116.6, 124.6, 21.0, 27.0
+    OUT, LANDTS = 'public/img/isles/map.webp', None
 W = 2000
 my = lambda lat: math.log(math.tan(math.pi / 4 + math.radians(lat) / 2))
 Y0, Y1 = my(LAT1), my(LAT0)
@@ -67,7 +71,8 @@ img = sea * (1 - L[..., None]) + landc * L[..., None]
 edge = np.clip(L - np.asarray(land.filter(ImageFilter.MinFilter(5)), float) / 255, 0, 1)
 img = img * (1 - edge[..., None] * 0.45) + np.array([60, 110, 70]) * (edge[..., None] * 0.45)
 img = img * (1 - (B * L * 0.5)[..., None]) + 255 * (B * L * 0.5)[..., None]
-Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).save('public/img/sky/map.webp', quality=85)
+Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)).save(OUT, quality=85)
+if not LANDTS: print(W, H); sys.exit()
 
 # 陸地格子：一格 10 地圖單位，「確定是陸地」才算（海岸邊留一點寬容）
 CELL = 10
@@ -82,7 +87,7 @@ for y in range(m.shape[0]):
             runs.append(f'{a}-{x - 1}')
         else: x += 1
     if runs: rows.append(f'{y}:' + ','.join(runs))
-open('src/data/skyLand.ts', 'w').write(f"""// 天空港地圖上哪裡是陸地（船不能開上去）。tools/sky-map.py 產生的，不要手改。
+open(LANDTS, 'w').write(f"""// 天空港地圖上哪裡是陸地（船不能開上去）。tools/sky-map.py 產生的，不要手改。
 // 一格 {CELL} 地圖單位；格式「列:起-訖,起-訖;…」。
 export const SKY_W = {W};
 export const SKY_H = {H};

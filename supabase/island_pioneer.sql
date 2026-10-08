@@ -17,7 +17,7 @@
 -- -----------------------------------------------------------------------------
 create table if not exists public.island_saves (
   student_id uuid not null references public.students(id) on delete cascade,
-  slot       text not null check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town', 'sky')),
+  slot       text not null check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town', 'sky', 'isles')),
   data       jsonb not null default '{}'::jsonb check (pg_column_size(data) < 32768),
   step       smallint not null default 0,
   stars      smallint not null default 0 check (stars between 0 and 3),
@@ -27,10 +27,10 @@ create table if not exists public.island_saves (
   primary key (student_id, slot)
 );
 
--- 現在篇的漁村（'village'）、規則小鎮（'town'）、天空港（'sky'）、成就勳章的紀錄（'medals'，src/core/medals.ts）是後來加的格子：舊表的檢查條件換成新的
+-- 現在篇的漁村（'village'）、規則小鎮（'town'）、天空港（'sky'）、離島巡航（'isles'）、成就勳章的紀錄（'medals'，src/core/medals.ts）是後來加的格子：舊表的檢查條件換成新的
 alter table public.island_saves drop constraint if exists island_saves_slot_check;
 alter table public.island_saves add constraint island_saves_slot_check
-  check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town', 'sky'));
+  check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town', 'sky', 'isles'));
 
 -- 這章完整玩完過幾次（時光幣的重玩遞減用）。舊存檔過關的當作玩完一次。
 alter table public.island_saves add column if not exists clears smallint not null default 0;
@@ -322,6 +322,7 @@ declare
   v_village jsonb;
   v_town jsonb;
   v_sky jsonb;
+  v_isles text[];
   v_q text[];
   v_d record;
   v_cname constant jsonb := '{"ch1":"第一章","ch2":"第二章","ch3":"第三章","ch4":"第四章","ch5":"第五章","ch6":"第六章","ch7":"第七章","end":"終章"}';
@@ -414,6 +415,16 @@ begin
       end loop;
     end if;
   end loop;
+
+  -- 現在篇：離島巡航。每蓋一個郵戳 10，七座都蓋滿再 30（島的代號要跟 src/data/isles.ts 一樣）
+  select array(select jsonb_array_elements_text(case when jsonb_typeof(data -> 'stamps') = 'array' then data -> 'stamps' else '[]' end))
+    into v_isles from public.island_saves where student_id = p_student and slot = 'isles';
+  v_isles := array(select i from unnest(coalesce(v_isles, '{}')) i
+                    where i = any(array['guishan', 'liuqiu', 'penghu', 'lanyu', 'ludao', 'kinmen', 'matsu']) group by i);
+  for source, amount, note in select 'island:isles:' || i, public.park_coin_rate('medium'), '離島郵戳' from unnest(v_isles) i loop return next; end loop;
+  if cardinality(v_isles) >= 7 then
+    source := 'island:isles:all'; amount := public.park_coin_rate('chapter'); note := '離島郵戳蓋滿'; return next;
+  end if;
 end;
 $$;
 revoke all on function public.island_coin_sources(uuid) from public, anon, authenticated;
