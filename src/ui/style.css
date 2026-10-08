@@ -2432,3 +2432,8 @@ button.v-chip{cursor:pointer}
 .medal-toast.out{transition:opacity .5s,transform .5s;opacity:0;transform:translate(-50%,-20px)}
 @keyframes toast-in{from{opacity:0;transform:translate(-50%,-20px)}to{opacity:1;transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.time-shard{animation:none}.medal-toast{animation:none}}
+
+/* 💬 回報（樂園共用的問題回報，src/ui/Report.tsx） */
+.report-btn{position:relative}
+.report-btn .tool-icon{font-size:18px}
+.report-dot{position:absolute;right:-3px;top:-3px;width:12px;height:12px;border-radius:50%;background:#e2553f;border:2px solid #fff}

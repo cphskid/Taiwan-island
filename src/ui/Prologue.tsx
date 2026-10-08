@@ -10,6 +10,7 @@ import type { Line } from '../data/babao-chapter';
 import { Say, Talk } from './Talk';
 import { ambience, jingle, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
+import { ReportButton } from './Report';
 import { Beacon, Goal, compass } from './Guide';
 
 type Phase = 'tower' | 'oops' | 'warp' | 'find' | 'drift' | 'land' | 'village' | 'end';
@@ -33,6 +34,7 @@ export function Prologue({ onDone }: { onDone: () => void }) {
           return <span key={name} className={`step ${i === at ? 'on' : ''} ${i <= at ? 'open' : ''}`}><i>{i}</i>{name}</span>;
         })}
         <SoundToggle className="back-map" />
+        <ReportButton screen={`prologue-${phase}`} />
         <button className="back-map" onClick={onDone}>跳過序章</button>
       </nav>
       <div className="stage">

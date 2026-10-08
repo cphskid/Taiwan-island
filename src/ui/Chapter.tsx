@@ -13,6 +13,7 @@ import { pushCloud } from '../net/cloud';
 import { chapterDone, Egg } from './Medal';
 import { ambience, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
+import { ReportButton } from './Report';
 
 // 關卡裡不放音樂，只放環境音：田野、溪邊；分水那一步照季節自己換，洪水是雨聲，豐收放短曲
 const AMB = ['SE-61', 'SE-61', 'SE-61', 'SE-62', null, 'SE-76', null] as const;
@@ -58,6 +59,7 @@ export function Chapter({ onExit, album }: { onExit: () => void; album: readonly
           </button>
         ))}
         <SoundToggle className="back-map" />
+        <ReportButton screen={`ch5-${p.step}`} />
         <button className="back-map album-btn" onClick={() => { sfx('SE-03'); setBook(true); }}>📖 圖鑑 {CARD_ORDER.filter((id) => have.has(id)).length}/{CARD_ORDER.length}</button>
       </nav>
       <div className="stage" key={p.step}>
