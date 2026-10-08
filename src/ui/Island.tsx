@@ -98,7 +98,7 @@ export function Island() {
   const at = mode.at === 'chapter' ? mode.id : mode.at;
   // 大地圖等地圖畫出來才開始抓，不跟地圖本身搶（最多等 10 秒）
   useEffect(() => {
-    const go = () => warm(...(at === 'prologue' ? ['story/', 'island/'] : at === 'village' ? ['village/', 'island/'] : at === 'town' ? ['town/', 'island/'] : at === 'sky' ? ['sky/', 'island/'] : at === 'isles' ? ['isles/', 'island/'] : at === 'postcard' ? ['tick/', 'island/'] : at === 'map' ? ['island/', 'story/'] : at === 'ch5' ? ['island/', 'people/'] : [`${at}/`, 'story/']));
+    const go = () => warm(...(at === 'prologue' ? ['story/', 'island/'] : at === 'village' ? ['village/', 'island/'] : at === 'town' ? ['town/', 'island/'] : at === 'sky' ? ['sky/', 'island/'] : at === 'isles' ? ['isles/', 'island/'] : at === 'postcard' ? ['postcard/', 'tick/'] : at === 'map' ? ['island/', 'story/'] : at === 'ch5' ? ['island/', 'people/'] : [`${at}/`, 'story/']));
     if (at !== 'map') return go();
     const t = setTimeout(go, 10000);
     const ready = () => { clearTimeout(t); go(); };

@@ -2736,3 +2736,4 @@ button.v-chip{cursor:pointer}
 .pc-front:has(.pc-photo){justify-content:flex-end;padding-bottom:10px}
 .pc-front:has(.pc-photo) span{display:none}
 .pc-spot .pc-noimg,.pc-front .pc-noimg{display:none}
+@media (orientation:portrait) and (max-width:760px){.pc-scene{aspect-ratio:4/3.4}}
