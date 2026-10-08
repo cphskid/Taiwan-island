@@ -46,6 +46,7 @@ body{background:var(--sky);color:var(--ink);font-family:var(--f);overflow:hidden
 /* 手機直拿的大地圖：滴答／小人的對話框用整個寬（原本最多 40%，直拿只剩一條窄縫、字一個一個往下排） */
 @media (orientation:portrait) and (max-width:760px){
   .world .say{left:10px;right:10px;max-width:none}
+  .world .say.mini{right:auto}
   .world .say p{font-size:15px}
 }
 
@@ -2709,3 +2710,8 @@ button.v-chip{cursor:pointer}
 @media (max-width:760px){.pc-spots{grid-template-columns:repeat(2,1fr)}.pc-sort{flex-direction:column}.pc-back,.pc-side{width:100%}}
 @media (max-height:600px){.pc-stage{inset:44px 0 0}.pc-spot{min-height:86px}.pc-spot i{font-size:32px}.pc-scene{width:min(860px,100%,150vh)}.pc-slot{min-height:80px}.pc-steps li{font-size:12px}.pc-post{width:min(420px,94vw)}}
 @media (max-height:600px) and (min-width:700px){.pc-write{flex-wrap:nowrap;align-items:flex-start}.pc-write .pc-post{width:min(400px,48vw)}.pc-write .pc-panel.small{width:46vw}.pc-write .pc-steps{display:none}.pc-front span{font-size:44px}}
+/* 規則小鎮：地區看板（zIndex 2000）不能蓋過彈出的面板 */
+.town>.talk-cover{z-index:3000}
+/* 「💬 問題回報」縮小一點，不搶其他按鈕的位置 */
+.v-hud .report-btn{font-size:13px;padding:4px 10px;gap:2px}
+.v-hud .report-btn .tool-icon{font-size:14px}

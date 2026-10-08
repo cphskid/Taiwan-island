@@ -52,7 +52,7 @@ export function ReportButton({ className = 'back-map', screen }: { className?: s
   if (!ready) return null;
   return (
     <button className={`${className} report-btn`} data-pfb onClick={() => window.ParkFeedback?.open()} aria-label="問題回報" title="問題回報">
-      <span className="tool-icon">💬</span>回報{n > 0 && <i className="report-dot" />}
+      <span className="tool-icon">💬</span>問題回報{n > 0 && <i className="report-dot" />}
     </button>
   );
 }
