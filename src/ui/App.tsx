@@ -15,6 +15,7 @@ import { loadEnd, pickProgressEnd, saveEnd } from '../core/saveEnd';
 import { loadCloud } from '../net/cloud';
 import { loadMedals, mergeMedals, saveMedals } from '../core/medals';
 import { loadVillage, pickVillage, saveVillage } from '../core/village';
+import { loadTown, pickTown, saveTown } from '../core/town';
 import { Gate } from './Gate';
 
 const BASE = import.meta.env.BASE_URL;
@@ -138,6 +139,7 @@ async function syncSaves(who: Who) {
   saveEnd(pickProgressEnd(loadEnd(), cloud.end as never));
   saveWorld(mergeWorld(loadWorld(), cloud.world as never));
   saveVillage(pickVillage(loadVillage(), cloud.village as never));
+  saveTown(pickTown(loadTown(), cloud.town as never));
   saveMedals(mergeMedals(loadMedals(), cloud.medals as never));
 }
 

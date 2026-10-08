@@ -17,7 +17,7 @@
 -- -----------------------------------------------------------------------------
 create table if not exists public.island_saves (
   student_id uuid not null references public.students(id) on delete cascade,
-  slot       text not null check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals')),
+  slot       text not null check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town')),
   data       jsonb not null default '{}'::jsonb check (pg_column_size(data) < 32768),
   step       smallint not null default 0,
   stars      smallint not null default 0 check (stars between 0 and 3),
@@ -27,10 +27,10 @@ create table if not exists public.island_saves (
   primary key (student_id, slot)
 );
 
--- 現在篇的漁村（'village'）、成就勳章的紀錄（'medals'，src/core/medals.ts）是後來加的格子：舊表的檢查條件換成新的
+-- 現在篇的漁村（'village'）、規則小鎮（'town'）、成就勳章的紀錄（'medals'，src/core/medals.ts）是後來加的格子：舊表的檢查條件換成新的
 alter table public.island_saves drop constraint if exists island_saves_slot_check;
 alter table public.island_saves add constraint island_saves_slot_check
-  check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals'));
+  check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town'));
 
 -- 這章完整玩完過幾次（時光幣的重玩遞減用）。舊存檔過關的當作玩完一次。
 alter table public.island_saves add column if not exists clears smallint not null default 0;
@@ -319,6 +319,10 @@ declare
   v_chal text[];
   k int;
   v_n int;
+  v_village jsonb;
+  v_town jsonb;
+  v_q text[];
+  v_d record;
   v_cname constant jsonb := '{"ch1":"第一章","ch2":"第二章","ch3":"第三章","ch4":"第四章","ch5":"第五章","ch6":"第六章","ch7":"第七章","end":"終章"}';
 begin
   select data into v_world from public.island_saves where student_id = p_student and slot = 'world';
@@ -368,6 +372,34 @@ begin
     select 'island:chal:' || c, public.park_coin_rate('challenge'), '⭐⭐⭐再挑戰過關' from unnest(v_chal) c
      where c ~ '^[a-z0-9]+:[a-z0-9-]+$'
   loop return next; end loop;
+
+  -- 現在篇：漁村任務（任務代號要跟 src/data/village.ts 的 QUESTS 一樣；不在清單上的不算）
+  select data into v_village from public.island_saves where student_id = p_student and slot = 'village';
+  v_q := array(select jsonb_array_elements_text(case when jsonb_typeof(v_village -> 'quests') = 'array' then v_village -> 'quests' else '[]' end));
+  for source, amount, note in
+    select 'island:village:' || q.id, public.park_coin_rate(q.tier), '漁村任務完成'
+      from (values ('house', 'light'), ('pier', 'light'), ('market', 'light'), ('star2', 'medium'), ('seine', 'medium'),
+                   ('typhoon', 'medium'), ('star3', 'medium'), ('festival', 'medium'), ('star4', 'heavy'), ('star5', 'chapter')) q(id, tier)
+     where q.id = any(v_q)
+  loop return next; end loop;
+
+  -- 現在篇：規則小鎮（案子代號要跟 src/data/town.ts 一樣）。破一案 10、一次判對再 10、一區解完 3 案 30
+  select data into v_town from public.island_saves where student_id = p_student and slot = 'town';
+  for v_d in
+    select d.id, d.cases, (select count(*) from unnest(d.cases) c where v_town -> 'solved' ->> c in ('1', '2')) n
+      from (values ('street', array['karaoke', 'seat', 'moon', 'temple']),
+                   ('kids', array['beer', 'game', 'job']),
+                   ('net', array['scam', 'photo', 'report'])) d(id, cases)
+  loop
+    for source, amount, note in
+      select 'island:town:' || c, public.park_coin_rate('medium'), '規則小鎮破案' from unnest(v_d.cases) c where v_town -> 'solved' ->> c in ('1', '2')
+      union all
+      select 'island:town:' || c || ':star', public.park_coin_rate('star'), '規則小鎮一次判對' from unnest(v_d.cases) c where v_town -> 'solved' ->> c = '2'
+    loop return next; end loop;
+    if v_d.n >= 3 then
+      source := 'island:town:' || v_d.id || ':clear'; amount := public.park_coin_rate('chapter'); note := '規則小鎮一區過關'; return next;
+    end if;
+  end loop;
 end;
 $$;
 revoke all on function public.island_coin_sources(uuid) from public, anon, authenticated;

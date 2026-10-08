@@ -165,7 +165,7 @@ export interface NowPlace {
 export const NOW_PLACES: NowPlace[] = [
   { id: 'village', name: '風與海的漁村', genre: '經營・建造', stars: 2, at: { x: 2470, y: 330 }, art: 'y3-1', width: 54, ready: true,
     blurb: '幫快沒人的小漁村蓋房子、分配工作、躲颱風，再叫全村一起牽罟，讓村子重新熱鬧起來。' },
-  { id: 'town', name: '規則小鎮', genre: '推理・偵探', stars: 2, at: { x: 1580, y: 900 }, art: 'y3-2', width: 49, ready: false,
+  { id: 'town', name: '規則小鎮', genre: '推理・偵探', stars: 2, at: { x: 1580, y: 900 }, art: 'y3-2', width: 49, ready: true,
     blurb: '當小鎮偵探：鄰居的糾紛是誰在管？手機訊息是不是詐騙？' },
   { id: 'sky', name: '天空港', genre: '調度・益智', stars: 1, at: { x: 1860, y: 500 }, art: 'y3-3', width: 49, ready: false,
     blurb: '當塔台調度員，畫出飛機和貨船的航線，看誰會飛過臺灣上空。' },
