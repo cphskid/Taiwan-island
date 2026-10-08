@@ -2557,3 +2557,47 @@ button.v-chip{cursor:pointer}
   .t-case img{height:56px}
 }
 @media (max-width:1100px){.t-board.judging{display:none}}
+/* 現在篇「天空港」（版面沿用規則小鎮的 .town / .t-map） */
+.sky{background:#3f8fbf}
+.sky-view{overflow:hidden}
+.sky-map{position:absolute;touch-action:none;cursor:crosshair}
+.sky-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.sky-svg .fir rect{fill:rgba(255,230,120,.12);stroke:#ffe58a;stroke-width:4;stroke-dasharray:14 10}
+.sky-svg .fir text{fill:#fff6c8;font:700 26px var(--f);paint-order:stroke;stroke:#2b5d7a;stroke-width:5px}
+.sky-svg .route{fill:none;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:2 14}
+.sky-svg .route.plane{stroke:#fff}
+.sky-svg .route.ship{stroke:#ffd27a}
+.sky-svg .route.drawing{stroke-dasharray:none;stroke-width:7;opacity:.9}
+.sky-svg .route.bad{stroke:#c9442b;stroke-dasharray:none;stroke-width:7}
+.sky-svg .ty-ring{fill:rgba(255,255,255,.12);stroke:#fff;stroke-width:3;stroke-dasharray:10 8}
+.sky .ty{position:absolute;translate:-50% -50%;font-size:min(10cqw,110px);animation:tyspin 3s linear infinite;pointer-events:none;opacity:.85}
+@keyframes tyspin{to{rotate:-360deg}}
+.port{position:absolute;translate:-50% -50%;display:flex;flex-direction:column;align-items:center;pointer-events:none;color:#fff;text-shadow:0 1px 3px #000c;line-height:1.1;z-index:2}
+.port i{font-style:normal;width:30px;height:30px;border-radius:50%;background:#3b8bb0;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:13px;text-shadow:none;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.port b{font-size:15px;margin-top:2px}
+.port small{font-size:11px}
+.port.home i{background:#f2b33d}
+.port.gate i{background:#5fb85a;font-size:16px}
+.port.aim i{box-shadow:0 0 0 6px rgba(255,229,138,.7),0 0 18px #ffe58a;animation:aim .6s ease-in-out infinite alternate}
+@keyframes aim{to{scale:1.25}}
+.veh{position:absolute;translate:-50% -50%;width:min(5cqw,52px);aspect-ratio:1;pointer-events:none;z-index:3}
+.veh svg{width:100%;height:100%;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35))}
+.veh em{position:absolute;left:50%;bottom:100%;translate:-50% 0;white-space:nowrap;font:700 12px var(--f);font-style:normal;background:#fffe;color:#3a2412;border-radius:8px;padding:0 6px}
+.veh.wait{animation:vwait 1s ease-in-out infinite}
+.veh.wait em{background:#ffe58a}
+@keyframes vwait{50%{scale:1.15}}
+.veh.hit svg{filter:drop-shadow(0 0 6px #c9442b);animation:vhit .3s linear 6}
+@keyframes vhit{50%{opacity:.4}}
+.sky-pop{position:absolute;translate:-50% -50%;color:#fff;font-size:16px;text-shadow:0 2px 3px #000c;white-space:nowrap;animation:vrise 1.2s ease-out forwards;pointer-events:none;z-index:4}
+.sky-toasts{position:absolute;left:50%;bottom:10px;translate:-50% 0;display:flex;flex-direction:column;gap:6px;align-items:center;z-index:12;pointer-events:none}
+.sky-toasts p{margin:0;background:rgba(255,248,232,.95);border:3px solid var(--wood-2);border-radius:14px;padding:4px 14px;font:700 16px var(--f);color:#3a2412;box-shadow:0 3px 8px rgba(0,0,0,.25);animation:tin .25s ease-out}
+@keyframes tin{from{translate:0 10px;opacity:0}}
+.sky-lv{font-style:normal;width:56px;height:56px;border-radius:50%;background:#3b8bb0;color:#fff;font-size:28px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.t-case:disabled{opacity:.55;cursor:default}
+.sky-end .stars{font-size:34px;margin:4px 0}
+.v-chip.bad{background:#ffe1d9}
+@media (max-height:600px){.port b{font-size:12px}.port i{width:22px;height:22px;font-size:10px}.sky-toasts p{font-size:13px}}
+.port.r,.port.l{flex-direction:row;gap:4px;align-items:center}
+.port.r{translate:-15px -50%}
+.port.l{flex-direction:row-reverse;translate:calc(-100% + 15px) -50%}
+.port.r small,.port.l small{display:none}

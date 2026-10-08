@@ -17,7 +17,7 @@
 -- -----------------------------------------------------------------------------
 create table if not exists public.island_saves (
   student_id uuid not null references public.students(id) on delete cascade,
-  slot       text not null check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town')),
+  slot       text not null check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town', 'sky')),
   data       jsonb not null default '{}'::jsonb check (pg_column_size(data) < 32768),
   step       smallint not null default 0,
   stars      smallint not null default 0 check (stars between 0 and 3),
@@ -27,10 +27,10 @@ create table if not exists public.island_saves (
   primary key (student_id, slot)
 );
 
--- 現在篇的漁村（'village'）、規則小鎮（'town'）、成就勳章的紀錄（'medals'，src/core/medals.ts）是後來加的格子：舊表的檢查條件換成新的
+-- 現在篇的漁村（'village'）、規則小鎮（'town'）、天空港（'sky'）、成就勳章的紀錄（'medals'，src/core/medals.ts）是後來加的格子：舊表的檢查條件換成新的
 alter table public.island_saves drop constraint if exists island_saves_slot_check;
 alter table public.island_saves add constraint island_saves_slot_check
-  check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town'));
+  check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town', 'sky'));
 
 -- 這章完整玩完過幾次（時光幣的重玩遞減用）。舊存檔過關的當作玩完一次。
 alter table public.island_saves add column if not exists clears smallint not null default 0;
@@ -321,6 +321,7 @@ declare
   v_n int;
   v_village jsonb;
   v_town jsonb;
+  v_sky jsonb;
   v_q text[];
   v_d record;
   v_cname constant jsonb := '{"ch1":"第一章","ch2":"第二章","ch3":"第三章","ch4":"第四章","ch5":"第五章","ch6":"第六章","ch7":"第七章","end":"終章"}';
@@ -398,6 +399,19 @@ begin
     loop return next; end loop;
     if v_d.n >= 3 then
       source := 'island:town:' || v_d.id || ':clear'; amount := public.park_coin_rate('chapter'); note := '規則小鎮一區過關'; return next;
+    end if;
+  end loop;
+
+  -- 現在篇：天空港。每關過關 10、每顆星 10（關卡 1～3，星星最多 3）
+  select data into v_sky from public.island_saves where student_id = p_student and slot = 'sky';
+  for v_d in select l.id, floor(least(3, greatest(0, (v_sky -> 'best' ->> l.id)::numeric)))::int n
+               from (values ('1'), ('2'), ('3')) l(id) where jsonb_typeof(v_sky -> 'best' -> l.id) = 'number'
+  loop
+    if v_d.n > 0 then
+      source := 'island:sky:' || v_d.id; amount := public.park_coin_rate('medium'); note := '天空港過關'; return next;
+      for k in 1 .. v_d.n loop
+        source := 'island:sky:' || v_d.id || ':star' || k; amount := public.park_coin_rate('star'); note := '天空港第 ' || k || ' 顆星'; return next;
+      end loop;
     end if;
   end loop;
 end;
