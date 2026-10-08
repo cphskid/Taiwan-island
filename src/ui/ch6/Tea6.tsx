@@ -5,6 +5,7 @@ import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
 import { ChallengeOffer, ChallengeTag } from '../Challenge';
+import { challengeDone } from '../Medal';
 import { NewCards6, type Step6Props } from '../Ch6';
 import { Decide6, Jump6 } from './Story6';
 import { jingle, sfx } from '../../audio';
@@ -26,7 +27,7 @@ export function Tea6({ p, set, next, oops }: Step6Props) {
       {phase === 'boss' && <Decide6 id="boss" set={set} onDone={() => setPhase('offer')} />}
       {phase === 'offer' && <ChallengeOffer text="幫阿春排四批茶的順序：揀茶桌和焙籠一次只能做一批，揀好的茶等太久會發霉，天黑前要全部烘好。" onTry={() => setPhase('cIntro')} onSkip={toDone} />}
       {phase === 'cIntro' && <Talk lines={TEA_INTRO} onDone={() => setPhase('plan')} />}
-      {phase === 'plan' && <><Schedule oops={() => {}} night={p.picks.boss === 1} onDone={toDone} /><ChallengeTag onQuit={toDone} /></>}
+      {phase === 'plan' && <><Schedule oops={() => {}} night={p.picks.boss === 1} onDone={() => { challengeDone('ch6:tea'); toDone(); }} /><ChallengeTag onQuit={toDone} /></>}
       {phase === 'done' && <Talk lines={TEA_DONE} onDone={() => setPhase('cards')} />}
       {phase === 'cards' && <NewCards6 ids={['c6-tea', 'c6-camphor']} p={p} set={set} onDone={next} />}
     </div>

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { addCardEnd, goToEnd, LAST_END, loadEnd, saveEnd, type ProgressEnd, type StepEnd } from '../core/saveEnd';
 import { CARD_ORDER_END, CARDS_END, STEPS_END } from '../data/chEnd';
 import { Album, BOOK_END } from './Album';
-import { awardStamp, pushCloud } from '../net/cloud';
+import { pushCloud } from '../net/cloud';
+import { chapterDone, Egg } from './Medal';
 import { whoAmI } from '../net/park';
 import { ambience, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
@@ -48,7 +49,7 @@ export function ChEnd({ onExit, album }: { onExit: () => void; album: readonly s
     return q !== null && q !== '' && jump >= 0 && jump <= LAST_END ? goToEnd(saved, jump as StepEnd) : saved;
   });
   useEffect(() => { saveEnd(p); pushCloud('end', p); }, [p]);
-  useEffect(() => { if (p.done) void awardStamp('end'); }, [p.done]);
+  useEffect(() => { if (p.done) chapterDone('end', p.picks); }, [p.done]);
   useEffect(() => { void whoAmI().then((w) => setName(w.kind === 'student' ? w.nickname : null)).catch(() => {}); }, []);
   useEffect(() => () => { music(null); ambience(null); }, []);
   useEffect(() => { ambience(AMB[p.step]); music(p.step === 0 ? 'MU-38' : null); }, [p.step]);
@@ -84,6 +85,7 @@ export function ChEnd({ onExit, album }: { onExit: () => void; album: readonly s
         {p.step === 4 && <Museum {...props} />}
         {p.step === 5 && <Traveler {...props} />}
         {p.step === 6 && <FinaleEnd {...props} />}
+        {p.step === 4 && <Egg ch="end" x="7%" y="80%" />}
       </div>
       {book && <Album have={[...have]} books={[BOOK_END]} onClose={() => setBook(false)} />}
     </div>

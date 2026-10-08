@@ -2415,3 +2415,20 @@ button.v-chip{cursor:pointer}
 .tea-card.bad{animation:shake .25s linear 2;border-color:#c0392b}
 .tea-card.hint{box-shadow:0 0 0 4px var(--gold);animation:pulse .6s infinite alternate}
 @media (max-height:500px){.tea-slot{min-height:60px}.tea-slot img{width:32px;height:32px}.tea-card{width:104px;padding:3px}.tea-card img{width:38px;height:38px}.tea-card small{display:none}}
+
+/* ---- 成就勳章（ui/Medal.tsx）：藏起來的時光碎片、拿到勳章的小通知 ---- */
+.time-shard{position:absolute;z-index:6;width:46px;height:46px;padding:0;border:0;background:none;cursor:pointer;opacity:.55;
+  transform:translate(-50%,-50%);animation:shard-blink 7s ease-in-out infinite;filter:drop-shadow(0 0 6px rgba(160,240,255,.7))}
+.time-shard img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.time-shard.pop{animation:shard-pop .9s ease-out forwards;opacity:1}
+@keyframes shard-blink{0%,86%,100%{opacity:.45;transform:translate(-50%,-50%) scale(1)}92%{opacity:1;transform:translate(-50%,-50%) scale(1.25)}}
+@keyframes shard-pop{0%{transform:translate(-50%,-50%) scale(1)}40%{transform:translate(-50%,-80%) scale(1.8)}100%{opacity:0;transform:translate(-50%,-140%) scale(.4)}}
+.medal-toast{position:fixed;z-index:200;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;
+  max-width:min(92vw,420px);padding:10px 16px;border-radius:16px;background:linear-gradient(135deg,#fff8dc,#ffe9a8);border:3px solid #e2a92a;
+  box-shadow:0 6px 18px rgba(0,0,0,.25);color:#5a3a00;animation:toast-in .4s ease-out;pointer-events:none}
+.medal-toast i{font-style:normal;font-size:30px}
+.medal-toast b{display:block;font-size:17px}
+.medal-toast small{display:block;font-size:13px;opacity:.85}
+.medal-toast.out{transition:opacity .5s,transform .5s;opacity:0;transform:translate(-50%,-20px)}
+@keyframes toast-in{from{opacity:0;transform:translate(-50%,-20px)}to{opacity:1;transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.time-shard{animation:none}.medal-toast{animation:none}}

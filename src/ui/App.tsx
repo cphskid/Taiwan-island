@@ -13,6 +13,7 @@ import { load7, pickProgress7, save7 } from '../core/save7';
 import { load3, pickProgress3, save3 } from '../core/save3';
 import { loadEnd, pickProgressEnd, saveEnd } from '../core/saveEnd';
 import { loadCloud } from '../net/cloud';
+import { loadMedals, mergeMedals, saveMedals } from '../core/medals';
 import { loadVillage, pickVillage, saveVillage } from '../core/village';
 import { Gate } from './Gate';
 
@@ -137,6 +138,7 @@ async function syncSaves(who: Who) {
   saveEnd(pickProgressEnd(loadEnd(), cloud.end as never));
   saveWorld(mergeWorld(loadWorld(), cloud.world as never));
   saveVillage(pickVillage(loadVillage(), cloud.village as never));
+  saveMedals(mergeMedals(loadMedals(), cloud.medals as never));
 }
 
 function WhoBadge({ who }: { who: Who }) {

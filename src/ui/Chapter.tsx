@@ -9,7 +9,8 @@ import { Flood } from './steps/Flood';
 import { Finale } from './steps/Finale';
 import { Album } from './Album';
 import { CARD_ORDER } from '../data/babao-chapter';
-import { awardStamp, pushCloud } from '../net/cloud';
+import { pushCloud } from '../net/cloud';
+import { chapterDone, Egg } from './Medal';
 import { ambience, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
 
@@ -33,7 +34,7 @@ export function Chapter({ onExit, album }: { onExit: () => void; album: readonly
     return jump >= 0 && jump <= LAST && location.search.includes('step=') ? goTo(saved, jump as Step) : saved;
   });
   useEffect(() => { save(p); pushCloud('ch5', p); }, [p]);
-  useEffect(() => { if (p.done) void awardStamp('ch5'); }, [p.done]);
+  useEffect(() => { if (p.done) chapterDone('ch5'); }, [p.done]);
   useEffect(() => { music(null); return () => ambience(null); }, []);
   useEffect(() => { if (p.step !== 4) ambience(AMB[p.step]); }, [p.step]);
 
@@ -67,6 +68,7 @@ export function Chapter({ onExit, album }: { onExit: () => void; album: readonly
         {p.step === 4 && <ShareStep {...props} />}
         {p.step === 5 && <Flood {...props} />}
         {p.step === 6 && <Finale {...props} />}
+        {p.step === 1 && <Egg ch="ch5" x="82%" y="22%" />}
       </div>
       {book && <Album have={[...have]} onClose={() => setBook(false)} />}
     </div>

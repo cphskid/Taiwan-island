@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { addCard4, goTo4, LAST4, load4, save4, type Progress4, type Step4 } from '../core/save4';
 import { CARD_ORDER4, CARDS4, STEPS4 } from '../data/ch4';
 import { Album, BOOK4 } from './Album';
-import { awardStamp, pushCloud } from '../net/cloud';
+import { pushCloud } from '../net/cloud';
+import { chapterDone, Egg } from './Medal';
 import { ambience, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
 import { CardPop } from './Talk';
@@ -45,7 +46,7 @@ export function Ch4({ onExit, album }: { onExit: () => void; album: readonly str
     return q !== null && q !== '' && jump >= 0 && jump <= LAST4 ? goTo4(saved, jump as Step4) : saved;
   });
   useEffect(() => { save4(p); pushCloud('ch4', p); }, [p]);
-  useEffect(() => { if (p.done) void awardStamp('ch4'); }, [p.done]);
+  useEffect(() => { if (p.done) chapterDone('ch4', p.picks); }, [p.done]);
   useEffect(() => () => { music(null); ambience(null); }, []);
   // 開場放這一章的主題曲，進關卡就只留環境音
   useEffect(() => { ambience(AMB[p.step]); music(p.step === 0 ? 'MU-34' : null); }, [p.step]);
@@ -81,6 +82,7 @@ export function Ch4({ onExit, album }: { onExit: () => void; album: readonly str
         {p.step === 4 && <School {...props} />}
         {p.step === 5 && <Future {...props} />}
         {p.step === 6 && <Finale4 {...props} />}
+        {p.step === 2 && <Egg ch="ch4" x="93%" y="14%" />}
       </div>
       {book && <Album have={[...have]} books={[BOOK4]} onClose={() => setBook(false)} />}
     </div>

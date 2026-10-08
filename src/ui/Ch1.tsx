@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { goTo1, LAST1, load1, save1, type Progress1, type Step1 } from '../core/save1';
 import { CARD_ORDER1, STEPS1 } from '../data/ch1';
 import { Album, BOOK1 } from './Album';
-import { awardStamp, pushCloud } from '../net/cloud';
+import { pushCloud } from '../net/cloud';
+import { chapterDone, Egg } from './Medal';
 import { ambience, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
 import { Opening1 } from './ch1/Opening1';
@@ -34,7 +35,7 @@ export function Ch1({ onExit, album }: { onExit: () => void; album: readonly str
     return q !== null && q !== '' && jump >= 0 && jump <= LAST1 ? goTo1(saved, jump as Step1) : saved;
   });
   useEffect(() => { save1(p); pushCloud('ch1', p); }, [p]);
-  useEffect(() => { if (p.done) void awardStamp('ch1'); }, [p.done]);
+  useEffect(() => { if (p.done) chapterDone('ch1', p.picks); }, [p.done]);
   useEffect(() => () => { music(null); ambience(null); }, []);
   // 開場放史前探索曲，進關卡就只留環境音
   useEffect(() => { ambience(AMB[p.step]); music(p.step === 0 ? 'MU-18' : null); }, [p.step]);
@@ -70,6 +71,7 @@ export function Ch1({ onExit, album }: { onExit: () => void; album: readonly str
         {p.step === 4 && <Iron {...props} />}
         {p.step === 5 && <Dig {...props} />}
         {p.step === 6 && <Finale1 {...props} />}
+        {p.step === 5 && <Egg ch="ch1" x="6%" y="30%" />}
       </div>
       {book && <Album have={[...have]} books={[BOOK1]} onClose={() => setBook(false)} />}
     </div>

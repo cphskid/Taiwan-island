@@ -5,6 +5,7 @@ import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
 import { ChallengeOffer, ChallengeTag } from '../Challenge';
+import { challengeDone } from '../Medal';
 import { NewCards, type Step2Props } from '../Ch2';
 import { jingle, sfx } from '../../audio';
 import { Decide2, Passage } from './Story2';
@@ -26,7 +27,7 @@ export function Hunt({ p, set, next, oops }: Step2Props) {
       {phase === 'rule' && <HuntRule oops={oops} onDone={() => setPhase('offer')} />}
       {phase === 'offer' && <ChallengeOffer text="用你訂的規矩，自己決定每一季打幾隻鹿，兩年都要有肉吃、鹿不能變少。" onTry={() => setPhase('cIntro')} onSkip={toFawn} />}
       {phase === 'cIntro' && <Talk lines={HUNT_INTRO} onDone={() => setPhase('challenge')} />}
-      {phase === 'challenge' && <><HuntPlan oops={() => {}} onDone={toFawn} /><ChallengeTag onQuit={toFawn} /></>}
+      {phase === 'challenge' && <><HuntPlan oops={() => {}} onDone={() => { challengeDone('ch2:hunt'); toFawn(); }} /><ChallengeTag onQuit={toFawn} /></>}
       {phase === 'fawn' && <Decide2 id="fawn" set={set} onDone={() => setPhase('cards')} />}
       {phase === 'cards' && <NewCards ids={['deer']} p={p} set={set} onDone={next} />}
     </div>

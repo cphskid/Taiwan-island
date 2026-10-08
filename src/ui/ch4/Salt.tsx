@@ -5,6 +5,7 @@ import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
 import { ChallengeOffer, ChallengeTag } from '../Challenge';
+import { challengeDone } from '../Medal';
 import { NewCards, type Step4Props } from '../Ch4';
 import { jingle, sfx } from '../../audio';
 
@@ -28,7 +29,7 @@ export function Salt({ p, set, next, oops }: Step4Props) {
       {phase === 'easy' && <SaltEasy oops={oops} onDone={() => setPhase('offer')} />}
       {phase === 'offer' && <ChallengeOffer text="兩個人每天做兩件事：海水先在蒸發池曬成鹵水，再移到結晶池結鹽，草蓆只有一張。12 天收 4 籃！" onTry={() => setPhase('cIntro')} onSkip={toDone} />}
       {phase === 'cIntro' && <Talk lines={SALT_INTRO} onDone={() => setPhase('challenge')} />}
-      {phase === 'challenge' && <><SaltPlan onDone={toDone} /><ChallengeTag onQuit={toDone} /></>}
+      {phase === 'challenge' && <><SaltPlan onDone={() => { challengeDone('ch4:salt'); toDone(); }} /><ChallengeTag onQuit={toDone} /></>}
       {phase === 'done' && <Talk lines={SALT_DONE} onDone={() => setPhase('cards')} />}
       {phase === 'cards' && <NewCards ids={['c4-chen', 'c4-salt']} p={p} set={set} onDone={next} />}
     </div>

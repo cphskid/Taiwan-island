@@ -1,3 +1,4 @@
+import { chapterDone, Egg } from './Medal';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SEASONS, sail, shortest, type Leg, type Outcome, type Pos, type Season } from '../core/drift';
 import {
@@ -39,7 +40,8 @@ export function Prologue({ onDone }: { onDone: () => void }) {
         {phase === 'find' && <Find onFound={() => showFact(FACTS.where, () => setPhase('drift'))} />}
         {phase === 'drift' && <Drift onDone={() => showFact(FACTS.wind, () => setPhase('land'))} />}
         {phase === 'land' && <Land showFact={showFact} onDone={() => setPhase('village')} />}
-        {(phase === 'village' || phase === 'end') && <Village done={phase === 'end'} onChosen={() => showFact(FACTS.village, () => setPhase('end'))} onEnd={onDone} />}
+        {(phase === 'village' || phase === 'end') && <Village done={phase === 'end'} onChosen={() => showFact(FACTS.village, () => setPhase('end'))} onEnd={() => { chapterDone('pro', { done: 1 }); onDone(); }} />}
+        {phase === 'land' && <Egg ch="pro" x="86%" y="22%" />}
       </div>
       {fact && (
         <div className="talk-cover" onClick={() => { const t = fact.then; setFact(null); t(); }}>

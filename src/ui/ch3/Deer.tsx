@@ -5,6 +5,7 @@ import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
 import { Goal } from '../Guide';
 import { ChallengeOffer, ChallengeTag } from '../Challenge';
+import { challengeDone } from '../Medal';
 import { NewCards3, type Step3Props } from '../Ch3';
 import { Decide3 } from './Story3';
 import { jingle, sfx } from '../../audio';
@@ -24,7 +25,7 @@ export function Deer({ p, set, next, oops }: Step3Props) {
       {phase === 'herd' && <HerdEasy oops={oops} onDone={() => setPhase('offer')} />}
       {phase === 'offer' && <ChallengeOffer text="四年要收到 18 群鹿皮，鹿群還不能變少：要先讓鹿長多，再收。你排得出來嗎？" onTry={() => setPhase('cIntro')} onSkip={toGood} />}
       {phase === 'cIntro' && <Talk lines={DEER_INTRO} onDone={() => setPhase('challenge')} />}
-      {phase === 'challenge' && <HerdPlan oops={() => {}} onDone={toGood} />}
+      {phase === 'challenge' && <HerdPlan oops={() => {}} onDone={() => { challengeDone('ch3:deer'); toGood(); }} />}
       {phase === 'challenge' && <ChallengeTag onQuit={toGood} />}
       {phase === 'good' && <Talk lines={[DEER_SAY.good]} onDone={() => setPhase('choice')} />}
       {phase === 'choice' && <Decide3 id="deer" set={set} onDone={() => setPhase('cards')} />}

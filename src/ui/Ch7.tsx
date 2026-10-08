@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { addCard7, goTo7, LAST7, load7, save7, type Progress7, type Step7 } from '../core/save7';
 import { CARD_ORDER7, CARDS7, STEPS7 } from '../data/ch7';
 import { Album, BOOK7 } from './Album';
-import { awardStamp, pushCloud } from '../net/cloud';
+import { pushCloud } from '../net/cloud';
+import { chapterDone, Egg } from './Medal';
 import { ambience, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
 import { CardPop } from './Talk';
@@ -45,7 +46,7 @@ export function Ch7({ onExit, album }: { onExit: () => void; album: readonly str
     return q !== null && q !== '' && jump >= 0 && jump <= LAST7 ? goTo7(saved, jump as Step7) : saved;
   });
   useEffect(() => { save7(p); pushCloud('ch7', p); }, [p]);
-  useEffect(() => { if (p.done) void awardStamp('ch7'); }, [p.done]);
+  useEffect(() => { if (p.done) chapterDone('ch7', p.picks); }, [p.done]);
   useEffect(() => () => { music(null); ambience(null); }, []);
   // 開場放這一章的主題曲，進關卡就只留環境音
   useEffect(() => { ambience(AMB[p.step]); music(p.step === 0 ? 'MU-37' : null); }, [p.step]);
@@ -81,6 +82,7 @@ export function Ch7({ onExit, album }: { onExit: () => void; album: readonly str
         {p.step === 4 && <SunMoon {...props} />}
         {p.step === 5 && <OpenDay {...props} />}
         {p.step === 6 && <Finale7 {...props} />}
+        {p.step === 4 && <Egg ch="ch7" x="6%" y="30%" />}
       </div>
       {book && <Album have={[...have]} books={[BOOK7]} onClose={() => setBook(false)} />}
     </div>

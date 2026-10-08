@@ -17,7 +17,7 @@
 -- -----------------------------------------------------------------------------
 create table if not exists public.island_saves (
   student_id uuid not null references public.students(id) on delete cascade,
-  slot       text not null check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village')),
+  slot       text not null check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals')),
   data       jsonb not null default '{}'::jsonb check (pg_column_size(data) < 32768),
   step       smallint not null default 0,
   stars      smallint not null default 0 check (stars between 0 and 3),
@@ -27,10 +27,10 @@ create table if not exists public.island_saves (
   primary key (student_id, slot)
 );
 
--- 現在篇的漁村（'village'）是後來加的格子：舊表的檢查條件換成新的
+-- 現在篇的漁村（'village'）、成就勳章的紀錄（'medals'，src/core/medals.ts）是後來加的格子：舊表的檢查條件換成新的
 alter table public.island_saves drop constraint if exists island_saves_slot_check;
 alter table public.island_saves add constraint island_saves_slot_check
-  check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village'));
+  check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals'));
 
 alter table public.island_saves enable row level security;
 revoke all on public.island_saves from anon, authenticated;
@@ -162,13 +162,93 @@ grant execute on function public.island_class_detail(text) to authenticated;
 
 -- -----------------------------------------------------------------------------
 -- 3b. 樂園護照：這個學生「該拿到哪些章」（樂園 P4 的 park_passport.sql 會來叫）
---     一章過關＝那一章的章（ch5…；終章是 end）。樂園打開時自己補蓋，
+--     一章過關＝那一章的章（ch5…；終章是 end），其他勳章見底下。樂園打開時自己補蓋，
 --     遊戲裡叫 park_award_stamp 也要對得上這裡才蓋得下去。只給樂園的函式叫，不開給學生。
 -- -----------------------------------------------------------------------------
+-- 2026-10-08 成就勳章：每章 5 格（通關、收集、精通、劇情、彩蛋），序章 2 格，過去篇全破 1 枚；現在篇先佔位（即將開放）。
+-- 通關章 ch1…end 的定義在樂園的 park_passport.sql，這裡補上分類；其他勳章在這裡登記。
+-- 新章第一次寫入時，現在篇的（v-…）是「即將開放」，其他直接開放；重跑只更新名稱、提示與分類，不動 active。
+insert into public.park_stamps as s (facility, code, name, hint, art, sort, active, kind, rarity, era, grp) values
+  ('island_pioneer', 'pro', '認識臺灣', '玩完序章', 'img/stamp/island-pro.webp', 1, true, 'clear', 'bronze', 'past', 'pro'),
+  ('island_pioneer', 'pro-egg', '海邊的碎片', '認識臺灣的地形時，往右上角的天空看看，有東西一閃一閃。', 'img/stamp/time-shard.webp', 5, true, 'egg', 'rainbow', 'past', 'pro'),
+  ('island_pioneer', 'ch1-card', '火光圖鑑全收集', '這章的時光圖鑑 12 張全部拿到', 'img/stamp/island-ch1.webp', 12, true, 'collect', 'silver', 'past', 'ch1'),
+  ('island_pioneer', 'ch1-star', '火光精通', '這章拿到三顆星', 'img/stamp/island-ch1.webp', 13, true, 'master', 'gold', 'past', 'ch1'),
+  ('island_pioneer', 'ch1-end', '火光的另一個結局', '做不一樣的選擇，看過兩種結局', 'img/stamp/island-ch1.webp', 14, true, 'story', 'silver', 'past', 'ch1'),
+  ('island_pioneer', 'ch1-egg', '考古坑裡的怪東西', '考古的時候，坑邊有一樣不屬於那個時代的東西。', 'img/stamp/time-shard.webp', 15, true, 'egg', 'rainbow', 'past', 'ch1'),
+  ('island_pioneer', 'ch2-card', '山林圖鑑全收集', '這章的時光圖鑑 12 張全部拿到', 'img/stamp/island-ch2.webp', 22, true, 'collect', 'silver', 'past', 'ch2'),
+  ('island_pioneer', 'ch2-star', '山林精通', '這章拿到三顆星，再過「狩獵」的⭐⭐⭐再挑戰', 'img/stamp/island-ch2.webp', 23, true, 'master', 'gold', 'past', 'ch2'),
+  ('island_pioneer', 'ch2-end', '山林的另一個結局', '做不一樣的選擇，看過兩種結局', 'img/stamp/island-ch2.webp', 24, true, 'story', 'silver', 'past', 'ch2'),
+  ('island_pioneer', 'ch2-egg', '樹梢上的閃光', '認識山林時，往高處看，樹梢上有光。', 'img/stamp/time-shard.webp', 25, true, 'egg', 'rainbow', 'past', 'ch2'),
+  ('island_pioneer', 'ch3-card', '大航海圖鑑全收集', '這章的時光圖鑑 12 張全部拿到', 'img/stamp/island-ch3.webp', 32, true, 'collect', 'silver', 'past', 'ch3'),
+  ('island_pioneer', 'ch3-star', '大航海精通', '這章拿到三顆星，再過「鹿皮」的⭐⭐⭐再挑戰', 'img/stamp/island-ch3.webp', 33, true, 'master', 'gold', 'past', 'ch3'),
+  ('island_pioneer', 'ch3-end', '大航海的另一個結局', '做不一樣的選擇，看過兩種結局', 'img/stamp/island-ch3.webp', 34, true, 'story', 'silver', 'past', 'ch3'),
+  ('island_pioneer', 'ch3-egg', '航線上的光點', '看季風和航線的時候，海的那一邊有光點。', 'img/stamp/time-shard.webp', 35, true, 'egg', 'rainbow', 'past', 'ch3'),
+  ('island_pioneer', 'ch4-card', '東寧圖鑑全收集', '這章的時光圖鑑 12 張全部拿到', 'img/stamp/island-ch4.webp', 42, true, 'collect', 'silver', 'past', 'ch4'),
+  ('island_pioneer', 'ch4-star', '東寧精通', '這章拿到三顆星，再過「曬鹽」的⭐⭐⭐再挑戰', 'img/stamp/island-ch4.webp', 43, true, 'master', 'gold', 'past', 'ch4'),
+  ('island_pioneer', 'ch4-end', '東寧的另一個結局', '做不一樣的選擇，看過兩種結局', 'img/stamp/island-ch4.webp', 44, true, 'story', 'silver', 'past', 'ch4'),
+  ('island_pioneer', 'ch4-egg', '水埤邊的倒影', '開水埤那天，田邊有東西在發亮。', 'img/stamp/time-shard.webp', 45, true, 'egg', 'rainbow', 'past', 'ch4'),
+  ('island_pioneer', 'ch5-card', '八堡圳圖鑑全收集', '這章的時光圖鑑 12 張全部拿到', 'img/stamp/island-ch5.webp', 52, true, 'collect', 'silver', 'past', 'ch5'),
+  ('island_pioneer', 'ch5-star', '八堡圳精通', '這章拿到三顆星', 'img/stamp/island-ch5.webp', 53, true, 'master', 'gold', 'past', 'ch5'),
+  ('island_pioneer', 'ch5-end', '神秘旅人的紙條', '找到神秘旅人留下的紙條', 'img/stamp/island-ch5.webp', 54, true, 'story', 'silver', 'past', 'ch5'),
+  ('island_pioneer', 'ch5-egg', '河邊的怪石頭', '認識地形的時候，雲霧外面的天空有一塊會發光的石頭。', 'img/stamp/time-shard.webp', 55, true, 'egg', 'rainbow', 'past', 'ch5'),
+  ('island_pioneer', 'ch6-card', '開港圖鑑全收集', '這章的時光圖鑑 12 張全部拿到', 'img/stamp/island-ch6.webp', 62, true, 'collect', 'silver', 'past', 'ch6'),
+  ('island_pioneer', 'ch6-star', '開港精通', '這章拿到三顆星，再過「烘茶」的⭐⭐⭐再挑戰', 'img/stamp/island-ch6.webp', 63, true, 'master', 'gold', 'past', 'ch6'),
+  ('island_pioneer', 'ch6-end', '開港的另一個結局', '做不一樣的選擇，看過兩種結局', 'img/stamp/island-ch6.webp', 64, true, 'story', 'silver', 'past', 'ch6'),
+  ('island_pioneer', 'ch6-egg', '碼頭邊的光', '港口開了，碼頭旁邊有東西在閃。', 'img/stamp/time-shard.webp', 65, true, 'egg', 'rainbow', 'past', 'ch6'),
+  ('island_pioneer', 'ch7-card', '縱貫圖鑑全收集', '這章的時光圖鑑 12 張全部拿到', 'img/stamp/island-ch7.webp', 72, true, 'collect', 'silver', 'past', 'ch7'),
+  ('island_pioneer', 'ch7-star', '縱貫精通', '這章拿到三顆星', 'img/stamp/island-ch7.webp', 73, true, 'master', 'gold', 'past', 'ch7'),
+  ('island_pioneer', 'ch7-end', '縱貫的另一個結局', '做不一樣的選擇，看過兩種結局', 'img/stamp/island-ch7.webp', 74, true, 'story', 'silver', 'past', 'ch7'),
+  ('island_pioneer', 'ch7-egg', '湖心的光', '日月潭發電那天，湖邊有一點光。', 'img/stamp/time-shard.webp', 75, true, 'egg', 'rainbow', 'past', 'ch7'),
+  ('island_pioneer', 'end-card', '今天的島嶼圖鑑全收集', '這章的時光圖鑑 12 張全部拿到', 'img/stamp/island-end.webp', 82, true, 'collect', 'silver', 'past', 'end'),
+  ('island_pioneer', 'end-star', '今天的島嶼精通', '這章拿到三顆星', 'img/stamp/island-end.webp', 83, true, 'master', 'gold', 'past', 'end'),
+  ('island_pioneer', 'end-end', '今天的島嶼的另一個結局', '做不一樣的選擇，看過兩種結局', 'img/stamp/island-end.webp', 84, true, 'story', 'silver', 'past', 'end'),
+  ('island_pioneer', 'end-egg', '沒有說明牌的展品', '博物館裡，有一件展品沒有說明牌。', 'img/stamp/time-shard.webp', 85, true, 'egg', 'rainbow', 'past', 'end'),
+  ('island_pioneer', 'past', '時光守護者', '過去篇七章和終章全部過關', 'img/stamp/island-past.webp', 100, true, 'era', 'rainbow', 'past', null),
+  ('island_pioneer', 'v-village', '漁村開張', '現在篇：把漁村經營起來', 'img/stamp/island-village.webp', 201, false, 'clear', 'bronze', 'now', 'v-village'),
+  ('island_pioneer', 'v-village-egg', '漁村的時光碎片', '現在篇的漁村藏著一塊時光碎片', 'img/stamp/time-shard.webp', 205, false, 'egg', 'rainbow', 'now', 'v-village')
+on conflict (facility, code) do update
+  set name = excluded.name, hint = excluded.hint, art = excluded.art, sort = excluded.sort,
+      kind = excluded.kind, rarity = excluded.rarity, era = excluded.era, grp = excluded.grp;
+update public.park_stamps set kind = 'clear', rarity = 'bronze', era = 'past', grp = code,
+       sort = case code when 'end' then 81 else substr(code, 3)::int * 10 + 1 end
+ where facility = 'island_pioneer' and code in ('ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end');
+
 create or replace function public.island_earned_stamps(p_student uuid)
 returns setof text language sql stable security definer set search_path = public, pg_temp as $$
-  select s.slot from public.island_saves s
-   where s.student_id = p_student and s.done and s.slot not in ('world', 'village');
+  with s as (select slot, data, stars, done from public.island_saves where student_id = p_student),
+  m as (select coalesce((select data from s where slot = 'medals'), '{}'::jsonb) as d),
+  -- 每章：圖鑑幾張、精通要過的⭐⭐⭐再挑戰（src/core/medals.ts 的 CHALLENGES 要一樣）、有沒有選擇分支
+  ch(slot, cards, chal, branch) as (values
+    ('ch1', 12, '{}'::text[], true), ('ch2', 12, '{ch2:hunt}', true), ('ch3', 12, '{ch3:deer}', true),
+    ('ch4', 12, '{ch4:salt}', true), ('ch5', 12, '{}', false), ('ch6', 12, '{ch6:tea}', true),
+    ('ch7', 12, '{}', true), ('end', 12, '{}', true)),
+  st as (
+    select ch.slot, ch.cards, ch.chal, ch.branch, s.data, coalesce(s.stars, 0) as stars, coalesce(s.done, false) as done
+      from ch left join s on s.slot = ch.slot
+  ),
+  lists as (
+    select array(select jsonb_array_elements_text(case when jsonb_typeof(m.d -> 'endings') = 'array' then m.d -> 'endings' else '[]' end)) as endings,
+           array(select jsonb_array_elements_text(case when jsonb_typeof(m.d -> 'chal') = 'array' then m.d -> 'chal' else '[]' end)) as chal,
+           array(select jsonb_array_elements_text(case when jsonb_typeof(m.d -> 'eggs') = 'array' then m.d -> 'eggs' else '[]' end)) as eggs
+      from m
+  )
+  -- 通關
+  select slot from st where done
+  -- 收集：這章的圖鑑全拿到
+  union all select slot || '-card' from st
+   where jsonb_typeof(data -> 'cards') = 'array' and jsonb_array_length(data -> 'cards') >= cards
+  -- 精通：三顆星，而且這章的⭐⭐⭐再挑戰都過了
+  union all select st.slot || '-star' from st, lists where st.done and st.stars >= 3 and st.chal <@ lists.chal
+  -- 劇情：看過兩種結局（第五章沒有分支：找到神秘旅人的紙條）
+  union all select st.slot || '-end' from st, lists
+   where (st.branch and (select count(distinct e) from unnest(lists.endings) e where e like st.slot || ':%') >= 2)
+      or (not st.branch and coalesce((st.data ->> 'note')::boolean, false))
+  -- 彩蛋：找到那一章的時光碎片
+  union all select e || '-egg' from lists, unnest(lists.eggs) e where e in ('pro', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end')
+  -- 序章：真的玩到最後（跳過序章不算）
+  union all select 'pro' from lists where 'pro:done1' = any(lists.endings)
+  -- 過去篇全破
+  union all select 'past' from st having count(*) filter (where done) = 8;
 $$;
 revoke all on function public.island_earned_stamps(uuid) from public, anon, authenticated;
 

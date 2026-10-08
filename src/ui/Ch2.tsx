@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { addCard2, goTo2, LAST2, load2, save2, type Progress2, type Step2 } from '../core/save2';
 import { CARD_ORDER2, CARDS2, STEPS2 } from '../data/ch2';
 import { Album, BOOK2 } from './Album';
-import { awardStamp, pushCloud } from '../net/cloud';
+import { pushCloud } from '../net/cloud';
+import { chapterDone, Egg } from './Medal';
 import { ambience, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
 import { CardPop } from './Talk';
@@ -45,7 +46,7 @@ export function Ch2({ onExit, album }: { onExit: () => void; album: readonly str
     return q !== null && q !== '' && jump >= 0 && jump <= LAST2 ? goTo2(saved, jump as Step2) : saved;
   });
   useEffect(() => { save2(p); pushCloud('ch2', p); }, [p]);
-  useEffect(() => { if (p.done) void awardStamp('ch2'); }, [p.done]);
+  useEffect(() => { if (p.done) chapterDone('ch2', p.picks); }, [p.done]);
   useEffect(() => { music(null); return () => ambience(null); }, []);
   useEffect(() => { ambience(AMB[p.step]); }, [p.step]);
 
@@ -80,6 +81,7 @@ export function Ch2({ onExit, album }: { onExit: () => void; album: readonly str
         {p.step === 4 && <Calendar {...props} />}
         {p.step === 5 && <Rules {...props} />}
         {p.step === 6 && <Finale2 {...props} />}
+        {p.step === 1 && <Egg ch="ch2" x="30%" y="30%" />}
       </div>
       {book && <Album have={[...have]} books={[BOOK2]} onClose={() => setBook(false)} />}
     </div>

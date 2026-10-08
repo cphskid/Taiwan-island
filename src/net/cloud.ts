@@ -6,7 +6,7 @@
 
 import { db, FACILITY } from './park';
 
-export type Slot = 'world' | 'ch1' | 'ch2' | 'ch3' | 'ch4' | 'ch5' | 'ch6' | 'ch7' | 'end' | 'village';
+export type Slot = 'world' | 'ch1' | 'ch2' | 'ch3' | 'ch4' | 'ch5' | 'ch6' | 'ch7' | 'end' | 'village' | 'medals';
 type Saved = Partial<Record<Slot, Record<string, unknown>>>;
 
 let enabled = false;
@@ -54,12 +54,21 @@ if (typeof document !== 'undefined') {
   window.addEventListener('pagehide', () => { if (pending.size) void flush(); });
 }
 
-// 樂園護照蓋章（樂園 P4 提供 park_award_stamp；還沒裝就算了，下次過關再補蓋）
-export async function awardStamp(stamp: string) {
-  if (!db || !enabled) return;
+// 等一下就要蓋勳章：先把還沒送的存檔送出去，樂園才算得到剛做到的事
+export async function flushNow() {
+  if (pending.size) await flush();
+}
+
+export interface Award { ok: boolean; new?: boolean; name?: string; art?: string }
+
+// 樂園護照蓋章（樂園 P4 提供 park_award_stamp；還沒裝就算了，下次過關再補蓋）。
+// 回傳樂園的結果（new＝這次才蓋上），不能蓋時回 null。
+export async function awardStamp(stamp: string): Promise<Award | null> {
+  if (!db || !enabled) return null;
   try {
-    await db.rpc('park_award_stamp', { p_facility: FACILITY, p_stamp: stamp });
+    const { data, error } = await db.rpc('park_award_stamp', { p_facility: FACILITY, p_stamp: stamp });
+    return error ? null : (data as Award);
   } catch {
-    /* 樂園還沒有護照：不影響遊戲 */
+    return null; /* 樂園還沒有護照：不影響遊戲 */
   }
 }
