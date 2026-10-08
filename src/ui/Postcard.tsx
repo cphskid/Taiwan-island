@@ -9,6 +9,14 @@ import { ReportButton } from './Report';
 // 現在篇「景點明信片」：探究四步驟。① 挑景點 ② 到現場收四張資料卡（歷史卡要切到「過去」）
 // ③ 把卡放進明信片背面的四格 ④ 選一個好辦法、寫一句話給遊客，寄出。
 const TICK = `${import.meta.env.BASE_URL}img/tick/`;
+// 景點的寫實照片（現在、過去各一張）。還沒有照片時，退回底色＋大圖示。
+const photo = (id: string, past = false) => `${import.meta.env.BASE_URL}img/postcard/${id}-${past ? 'past' : 'now'}.webp`;
+function Photo({ spot, past = false, className = '' }: { spot: Spot; past?: boolean; className?: string }) {
+  const src = photo(spot.id, past);
+  const [bad, setBad] = useState<string | null>(null);
+  if (bad === src) return <span className={`pc-noimg ${className}`}>{spot.icon}</span>;
+  return <img className={`pc-photo ${className}`} src={src} alt={`${spot.name}${past ? '以前' : ''}的照片`} onError={() => setBad(src)} draggable={false} />;
+}
 const STEP_NAMES = ['發現問題', '蒐集資料', '整理分析', '行動省思'];
 // 現場的四個「🔍」放哪裡（%）
 const HOT: Record<CardKind, { left: string; top: string }> = {
@@ -48,7 +56,7 @@ export function Postcard({ onExit }: { onExit: () => void }) {
           <div className="pc-spots">
             {SPOTS.map((sp) => (
               <button key={sp.id} className="pc-spot" style={{ background: sp.sky }} onClick={() => { sfx('SE-03'); setPh({ at: 'field', spot: sp, got: [], past: false, open: null }); }}>
-                <i>{sp.icon}</i><b>{sp.name}</b><small>{sp.where}</small>{sentOf(sp.id) && <em>✉️ 寄過了</em>}
+                <Photo spot={sp} /><i>{sp.icon}</i><b>{sp.name}</b><small>{sp.where}</small>{sentOf(sp.id) && <em>✉️ 寄過了</em>}
               </button>
             ))}
           </div>
@@ -141,12 +149,14 @@ function Tick({ text, worried = false }: { text: string; worried?: boolean }) {
 // ② 蒐集資料：在景點上找 🔍。現在看得到特色、維護、問題；切到「過去」才看得到歷史
 function Field({ ph, set }: { ph: Extract<Phase, { at: 'field' }>; set: (p: Phase) => void }) {
   const { spot, got, past, open } = ph;
+  const [zoom, setZoom] = useState(false);
   const here = CARD_ORDER.filter((k) => (k === 'history') === past);
   const need = past ? '回到「現在」繼續找！' : got.includes('history') ? '' : '還少一張歷史卡……切到「過去」看看！';
   return <>
     <div className={`pc-scene ${past ? 'past' : ''}`} style={{ background: spot.sky }}>
-      <span className="pc-big">{spot.icon}</span>
+      <Photo spot={spot} past={past} className="pc-big" />
       <b className="pc-name">{spot.name}{past ? '・很久以前' : ''}</b>
+      <button className="pc-zoom" onClick={() => { sfx('SE-03'); setZoom(true); }} aria-label="放大照片">🔎 放大</button>
       {here.map((k) => <button key={k} className={`pc-hot ${got.includes(k) ? 'got' : ''}`} style={HOT[k]} onClick={() => { sfx('SE-05'); set({ ...ph, open: k }); }}>{got.includes(k) ? CARD_KINDS[k].icon : '🔍'}</button>)}
       <button className="pc-time" onClick={() => { sfx('SE-09'); set({ ...ph, past: !past, open: null }); }}>{past ? '⏩ 回到現在' : '⏪ 切到過去'}</button>
     </div>
@@ -155,6 +165,12 @@ function Field({ ph, set }: { ph: Extract<Phase, { at: 'field' }>; set: (p: Phas
       <small>{got.length === 4 ? '四張資料卡都收到了！' : here.every((k) => got.includes(k)) ? need : `點 🔍 收集資料卡（${got.length}/4）`}</small>
       {got.length === 4 && <button className="btn green" onClick={() => { sfx('SE-03'); set({ at: 'sort', spot, placed: [], hold: null, miss: null }); }}>整理資料 →</button>}
     </div>
+    {zoom && (
+      <div className="talk-cover t-cover pc-light" onClick={() => setZoom(false)}>
+        <Photo spot={spot} past={past} className="pc-lightimg" />
+        <small>{spot.name}{past ? '・很久以前' : ''}（AI 繪製的示意照片）・點一下關掉</small>
+      </div>
+    )}
     {open && (
       <div className="talk-cover t-cover" onClick={() => set({ ...ph, open: null })}>
         <div className="panel pc-panel pc-found" onClick={(e) => e.stopPropagation()}>
@@ -203,7 +219,7 @@ function Sort({ ph, set }: { ph: Extract<Phase, { at: 'sort' }>; set: (p: Phase)
 // 明信片：正面景點、背面四格摘要＋一句話
 function Card({ spot, msg, plan, stamped = false }: { spot: Spot; msg: string; plan: string; stamped?: boolean }) {
   return <div className="pc-post">
-    <div className="pc-front" style={{ background: spot.sky }}><span>{spot.icon}</span><b>{spot.name}</b><small>來自臺灣・{spot.where}</small></div>
+    <div className="pc-front" style={{ background: spot.sky }}><Photo spot={spot} /><span>{spot.icon}</span><b>{spot.name}</b><small>來自臺灣・{spot.where}</small></div>
     <div className="pc-note">
       <p className="pc-msg">{msg}</p>
       <p className="pc-plan">💡 {plan}</p>

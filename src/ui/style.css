@@ -2715,3 +2715,24 @@ button.v-chip{cursor:pointer}
 /* 「💬 問題回報」縮小一點，不搶其他按鈕的位置 */
 .v-hud .report-btn{font-size:13px;padding:4px 10px;gap:2px}
 .v-hud .report-btn .tool-icon{font-size:14px}
+/* 景點明信片的寫實照片：有照片時蓋掉底色和大圖示 */
+.pc-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.pc-spot{overflow:hidden}
+.pc-spot>*:not(.pc-photo){position:relative;z-index:1}
+.pc-spot:has(.pc-photo) i{display:none}
+.pc-spot:has(.pc-photo){justify-content:flex-end;padding-bottom:6px}
+.pc-scene .pc-photo.pc-big{position:absolute;inset:0;translate:none;left:0;top:0;opacity:1}
+.pc-scene .pc-noimg.pc-big{position:absolute;left:50%;top:48%;translate:-50% -50%;font-size:min(140px,22vh);opacity:.9}
+.pc-scene>*:not(.pc-photo){z-index:1}
+.pc-scene.past:has(.pc-photo){filter:none}
+.pc-zoom{position:absolute;left:12px;bottom:12px;border:0;border-radius:999px;padding:6px 14px;font:700 15px var(--f);background:#fffe;color:#3a2412;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.3)}
+.pc-scene:not(:has(.pc-photo)) .pc-zoom{display:none}
+.pc-light{flex-direction:column;justify-content:center;gap:8px;background:rgba(0,0,0,.85)!important}
+.pc-light .pc-lightimg{position:static;width:auto;height:auto;max-width:96vw;max-height:84vh;border-radius:10px;object-fit:contain}
+.pc-light small{color:#fff;font-size:14px}
+.pc-light .pc-noimg{font-size:120px}
+.pc-front{position:relative;overflow:hidden}
+.pc-front>*:not(.pc-photo){position:relative;z-index:1}
+.pc-front:has(.pc-photo){justify-content:flex-end;padding-bottom:10px}
+.pc-front:has(.pc-photo) span{display:none}
+.pc-spot .pc-noimg,.pc-front .pc-noimg{display:none}
