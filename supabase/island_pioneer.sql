@@ -231,8 +231,18 @@ insert into public.park_stamps as s (facility, code, name, hint, art, sort, acti
   ('island_pioneer', 'end-end', '今天的島嶼的另一個結局', '做不一樣的選擇，看過兩種結局', 'img/stamp/island-end.webp', 84, true, 'story', 'silver', 'past', 'end'),
   ('island_pioneer', 'end-egg', '沒有說明牌的展品', '博物館裡，有一件展品沒有說明牌。', 'img/stamp/time-shard.webp', 85, true, 'egg', 'rainbow', 'past', 'end'),
   ('island_pioneer', 'past', '時光守護者', '過去篇七章和終章全部過關', 'img/stamp/island-past.webp', 100, true, 'era', 'rainbow', 'past', null),
-  ('island_pioneer', 'v-village', '漁村開張', '現在篇：把漁村經營起來', 'img/stamp/island-village.webp', 201, false, 'clear', 'bronze', 'now', 'v-village'),
-  ('island_pioneer', 'v-village-egg', '漁村的時光碎片', '現在篇的漁村藏著一塊時光碎片', 'img/stamp/time-shard.webp', 205, false, 'egg', 'rainbow', 'now', 'v-village')
+  ('island_pioneer', 'v-village', '漁村開張', '把漁村經營到兩顆星', 'img/stamp/island-village.webp', 201, true, 'clear', 'bronze', 'now', 'v-village'),
+  ('island_pioneer', 'v-village-star', '五星漁村', '漁村升到五顆星', 'img/stamp/island-village.webp', 203, true, 'master', 'gold', 'now', 'v-village'),
+  ('island_pioneer', 'v-village-egg', '漁村的時光碎片', '現在篇的漁村藏著一塊時光碎片', 'img/stamp/time-shard.webp', 205, false, 'egg', 'rainbow', 'now', 'v-village'),
+  ('island_pioneer', 'v-town', '小鎮偵探', '規則小鎮破完一整區的案子', 'img/stamp/island-town.webp', 211, true, 'clear', 'bronze', 'now', 'v-town'),
+  ('island_pioneer', 'v-town-star', '小鎮神探', '規則小鎮每一案都一次就判對', 'img/stamp/island-town.webp', 213, true, 'master', 'gold', 'now', 'v-town'),
+  ('island_pioneer', 'v-sky', '塔台新手', '天空港過第一關', 'img/stamp/island-sky.webp', 221, true, 'clear', 'bronze', 'now', 'v-sky'),
+  ('island_pioneer', 'v-sky-star', '王牌調度員', '天空港三關都拿到三顆星', 'img/stamp/island-sky.webp', 223, true, 'master', 'gold', 'now', 'v-sky'),
+  ('island_pioneer', 'v-isles', '登上第一座離島', '離島巡航蓋到第一個郵戳', 'img/stamp/island-isles.webp', 231, true, 'clear', 'bronze', 'now', 'v-isles'),
+  ('island_pioneer', 'v-isles-all', '離島達人', '七座離島的郵戳全部蓋滿', 'img/stamp/island-isles.webp', 232, true, 'collect', 'silver', 'now', 'v-isles'),
+  ('island_pioneer', 'v-post', '時空導遊', '寄出第一張景點明信片', 'img/stamp/island-post.webp', 241, true, 'clear', 'bronze', 'now', 'v-post'),
+  ('island_pioneer', 'v-post-all', '明信片收藏家', '六個景點都寄過明信片', 'img/stamp/island-post.webp', 242, true, 'collect', 'silver', 'now', 'v-post'),
+  ('island_pioneer', 'now', '今日臺灣探險家', '現在篇五個地方都拿到第一枚勳章', 'img/stamp/island-now.webp', 300, true, 'era', 'rainbow', 'now', null)
 on conflict (facility, code) do update
   set name = excluded.name, hint = excluded.hint, art = excluded.art, sort = excluded.sort,
       kind = excluded.kind, rarity = excluded.rarity, era = excluded.era, grp = excluded.grp;
@@ -252,6 +262,37 @@ returns setof text language sql stable security definer set search_path = public
   st as (
     select ch.slot, ch.cards, ch.chal, ch.branch, s.data, coalesce(s.stars, 0) as stars, coalesce(s.done, false) as done
       from ch left join s on s.slot = ch.slot
+  ),
+  -- 現在篇每個地方的勳章
+  nw as (
+    select (select data from s where slot = 'village') as vil, (select data from s where slot = 'town') as town,
+           (select data from s where slot = 'sky') as sky, (select data from s where slot = 'isles') as isl, (select data from s where slot = 'post') as post
+  ),
+  nq as (
+    select array(select jsonb_array_elements_text(case when jsonb_typeof(vil -> 'quests') = 'array' then vil -> 'quests' else '[]' end)) as quests,
+           (select count(distinct i) from jsonb_array_elements_text(case when jsonb_typeof(isl -> 'stamps') = 'array' then isl -> 'stamps' else '[]' end) i
+             where i in ('guishan', 'liuqiu', 'penghu', 'lanyu', 'ludao', 'kinmen', 'matsu')) as stamps,
+           (select count(distinct x ->> 'spot') from jsonb_array_elements(case when jsonb_typeof(post -> 'sent') = 'array' then post -> 'sent' else '[]' end) x
+             where x ->> 'spot' in ('taroko', 'sunmoon', 'qingshui', 'market', 'persimmon', 'tower')) as cards,
+           exists (select 1 from (values (array['karaoke', 'seat', 'moon', 'temple']), (array['beer', 'game', 'job']), (array['scam', 'photo', 'report'])) d(cases)
+                    where (select count(*) from unnest(d.cases) c where town -> 'solved' ->> c in ('1', '2')) >= 3) as town_clear,
+           (select bool_and(town -> 'solved' ->> c = '2') from unnest(array['karaoke', 'seat', 'moon', 'temple', 'beer', 'game', 'job', 'scam', 'photo', 'report']) c) as town_star,
+           case when jsonb_typeof(sky -> 'best' -> '1') = 'number' then (sky -> 'best' ->> '1')::numeric else 0 end as sky1,
+           (select bool_and(jsonb_typeof(sky -> 'best' -> l) = 'number' and (sky -> 'best' ->> l)::numeric >= 3) from unnest(array['1', '2', '3']) l) as sky_star
+      from nw
+  ),
+  now_m(x) as (
+    select 'v-village' from nq where 'star2' = any(quests)
+    union all select 'v-village-star' from nq where 'star5' = any(quests)
+    union all select 'v-town' from nq where town_clear
+    union all select 'v-town-star' from nq where coalesce(town_star, false)
+    union all select 'v-sky' from nq where sky1 >= 1
+    union all select 'v-sky-star' from nq where coalesce(sky_star, false)
+    union all select 'v-isles' from nq where stamps >= 1
+    union all select 'v-isles-all' from nq where stamps >= 7
+    union all select 'v-post' from nq where cards >= 1
+    union all select 'v-post-all' from nq where cards >= 6
+    union all select 'now' from nq where 'star2' = any(quests) and town_clear and sky1 >= 1 and stamps >= 1 and cards >= 1
   ),
   lists as (
     select array(select jsonb_array_elements_text(case when jsonb_typeof(m.d -> 'endings') = 'array' then m.d -> 'endings' else '[]' end)) as endings,
@@ -275,7 +316,9 @@ returns setof text language sql stable security definer set search_path = public
   -- 序章：真的玩到最後（跳過序章不算）
   union all select 'pro' from lists where 'pro:done1' = any(lists.endings)
   -- 過去篇全破
-  union all select 'past' from st having count(*) filter (where done) = 8;
+  union all select 'past' from st having count(*) filter (where done) = 8
+  -- 現在篇（代號要跟 src/data 的 village/town/sky/isles/postcard 一樣）
+  union all select x from now_m;
 $$;
 revoke all on function public.island_earned_stamps(uuid) from public, anon, authenticated;
 
@@ -283,6 +326,9 @@ revoke all on function public.island_earned_stamps(uuid) from public, anon, auth
 -- 打開後學生下次進樂園，park_my_profile 會照 island_earned_stamps 自動補蓋已過關的章。
 update public.park_stamps set active = true
  where facility = 'island_pioneer' and code in ('ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end') and not active;
+-- 現在篇的地方都做好了（2026-10-08），勳章打開（漁村的時光碎片還沒做，先關著）
+update public.park_stamps set active = true
+ where facility = 'island_pioneer' and era = 'now' and code <> 'v-village-egg' and not active;
 
 -- -----------------------------------------------------------------------------
 -- 3c. 樂園時光幣：這個學生在這裡「該拿到哪些時光幣」（樂園的 park_coins.sql 會來叫）
