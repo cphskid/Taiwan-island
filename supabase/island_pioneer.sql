@@ -17,7 +17,7 @@
 -- -----------------------------------------------------------------------------
 create table if not exists public.island_saves (
   student_id uuid not null references public.students(id) on delete cascade,
-  slot       text not null check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town', 'sky', 'isles')),
+  slot       text not null check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town', 'sky', 'isles', 'post')),
   data       jsonb not null default '{}'::jsonb check (pg_column_size(data) < 32768),
   step       smallint not null default 0,
   stars      smallint not null default 0 check (stars between 0 and 3),
@@ -27,10 +27,10 @@ create table if not exists public.island_saves (
   primary key (student_id, slot)
 );
 
--- 現在篇的漁村（'village'）、規則小鎮（'town'）、天空港（'sky'）、離島巡航（'isles'）、成就勳章的紀錄（'medals'，src/core/medals.ts）是後來加的格子：舊表的檢查條件換成新的
+-- 現在篇的漁村（'village'）、規則小鎮（'town'）、天空港（'sky'）、離島巡航（'isles'）、景點明信片（'post'）、成就勳章的紀錄（'medals'，src/core/medals.ts）是後來加的格子：舊表的檢查條件換成新的
 alter table public.island_saves drop constraint if exists island_saves_slot_check;
 alter table public.island_saves add constraint island_saves_slot_check
-  check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town', 'sky', 'isles'));
+  check (slot in ('world', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'end', 'village', 'medals', 'town', 'sky', 'isles', 'post'));
 
 -- 這章完整玩完過幾次（時光幣的重玩遞減用）。舊存檔過關的當作玩完一次。
 alter table public.island_saves add column if not exists clears smallint not null default 0;
@@ -167,6 +167,25 @@ end;
 $$;
 revoke all on function public.island_class_detail(text) from public, anon, authenticated;
 grant execute on function public.island_class_detail(text) to authenticated;
+
+-- 現在篇「景點明信片」：學生寄出的明信片（景點、選的辦法、寫給遊客的話），老師細節頁顯示
+create or replace function public.island_class_postcards(p_code text)
+returns table (student_id uuid, nickname text, sent jsonb)
+language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare v_code text := upper(btrim(coalesce(p_code, '')));
+begin
+  if not public.is_teacher_of(v_code) then raise exception '這不是你的班'; end if;
+  return query
+    select st.id, st.nickname, s.data -> 'sent'
+      from public.park_class_members m
+      join public.students st on st.id = m.student_id
+      join public.island_saves s on s.student_id = st.id and s.slot = 'post'
+     where m.class_code = v_code and jsonb_typeof(s.data -> 'sent') = 'array' and jsonb_array_length(s.data -> 'sent') > 0
+     order by st.nickname, st.login_id;
+end;
+$$;
+revoke all on function public.island_class_postcards(text) from public, anon, authenticated;
+grant execute on function public.island_class_postcards(text) to authenticated;
 
 -- -----------------------------------------------------------------------------
 -- 3b. 樂園護照：這個學生「該拿到哪些章」（樂園 P4 的 park_passport.sql 會來叫）
@@ -323,6 +342,7 @@ declare
   v_town jsonb;
   v_sky jsonb;
   v_isles text[];
+  v_post text[];
   v_q text[];
   v_d record;
   v_cname constant jsonb := '{"ch1":"第一章","ch2":"第二章","ch3":"第三章","ch4":"第四章","ch5":"第五章","ch6":"第六章","ch7":"第七章","end":"終章"}';
@@ -424,6 +444,16 @@ begin
   for source, amount, note in select 'island:isles:' || i, public.park_coin_rate('medium'), '離島郵戳' from unnest(v_isles) i loop return next; end loop;
   if cardinality(v_isles) >= 7 then
     source := 'island:isles:all'; amount := public.park_coin_rate('chapter'); note := '離島郵戳蓋滿'; return next;
+  end if;
+
+  -- 現在篇：景點明信片。每個景點寄出第一張 10，六個都寄過再 30（景點代號要跟 src/data/postcard.ts 一樣）
+  select array(select x ->> 'spot' from jsonb_array_elements(case when jsonb_typeof(data -> 'sent') = 'array' then data -> 'sent' else '[]' end) x)
+    into v_post from public.island_saves where student_id = p_student and slot = 'post';
+  v_post := array(select i from unnest(coalesce(v_post, '{}')) i
+                   where i = any(array['taroko', 'sunmoon', 'qingshui', 'market', 'persimmon', 'tower']) group by i);
+  for source, amount, note in select 'island:post:' || i, public.park_coin_rate('medium'), '寄出明信片' from unnest(v_post) i loop return next; end loop;
+  if cardinality(v_post) >= 6 then
+    source := 'island:post:all'; amount := public.park_coin_rate('chapter'); note := '六個景點都寄過明信片'; return next;
   end if;
 end;
 $$;

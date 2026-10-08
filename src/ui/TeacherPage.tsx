@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { db, PARK_URL, whoAmI, type Who } from '../net/park';
-import { classDetail, myClasses, type ClassInfo } from '../net/teacher';
+import { classDetail, classPostcards, myClasses, type ClassInfo, type PostRow } from '../net/teacher';
+import { SPOTS } from '../data/postcard';
 import { classReport, toCsv, type DetailRow } from '../core/report';
 import { CARD_ORDER, QUESTIONS } from '../data/babao-chapter';
 import { STEPS } from '../core/save';
@@ -26,6 +27,11 @@ const DEMO: DetailRow[] = [
   { student_id: '5', nickname: '大雄', step: null, stars: null, done: null, done_at: null, updated_at: null, broken: 0, answers: [], cards: 0 },
 ];
 
+const DEMO_POST: PostRow[] = [
+  { student_id: '1', nickname: '小明', sent: [{ spot: 'taroko', plan: SPOTS[0].plans[0].text, msg: '來太魯閣記得戴安全帽！', at: '2026-10-01T03:40:00Z' }] },
+  { student_id: '2', nickname: '小華', sent: [{ spot: 'market', plan: SPOTS[3].plans[0].text, msg: '夜市的雞排超好吃，記得自備餐具', at: '2026-10-01T03:45:00Z' }] },
+];
+
 type State =
   | { at: 'loading' }
   | { at: 'denied'; why: string }
@@ -39,6 +45,7 @@ export function TeacherPage() {
   const [code, setCode] = useState<string>(() => new URLSearchParams(location.search).get('class')?.toUpperCase() ?? '');
   const [rows, setRows] = useState<DetailRow[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [posts, setPosts] = useState<PostRow[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -57,8 +64,10 @@ export function TeacherPage() {
     if (state.at !== 'ready' || !code) return;
     setRows(null);
     setErr(null);
-    if (state.demo) { setRows(DEMO); return; }
+    setPosts([]);
+    if (state.demo) { setRows(DEMO); setPosts(DEMO_POST); return; }
     classDetail(code).then(setRows, (e: Error) => setErr(e.message));
+    classPostcards(code).then(setPosts);
   }, [code, state.at]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const parkTeacher = PARK_URL ? `${PARK_URL}teacher.html` : null;
@@ -164,6 +173,29 @@ export function TeacherPage() {
             </ul>
             <p className="tp-note">圖鑑卡與章末「真的是這樣嗎？」的出處，整理在下面的「內容出處」；學生畫面不顯示出處，免得像在讀課本。如有和課本不一致的地方，請回報給管理員。</p>
           </section>
+
+          {posts.length > 0 && (
+            <section className="panel tp-sec">
+              <h2>現在篇：學生寄出的明信片</h2>
+              <p className="tp-note">學生挑一個景點，收集特色、歷史、政府怎麼維護、遇到的問題，再選一個對策、寫一句話給遊客。可以挑幾張上課分享。</p>
+              <div className="tp-table-wrap">
+                <table className="tp-table">
+                  <thead><tr><th>暱稱</th><th>景點</th><th>寫給遊客的話</th><th>選的辦法</th><th>寄出</th></tr></thead>
+                  <tbody>
+                    {posts.flatMap((r) => r.sent.map((x) => (
+                      <tr key={`${r.student_id}-${x.spot}`}>
+                        <td>{r.nickname}</td>
+                        <td>{SPOTS.find((s) => s.id === x.spot)?.name ?? x.spot}</td>
+                        <td style={{ textAlign: 'left' }}>{x.msg}</td>
+                        <td style={{ textAlign: 'left' }}>{x.plan}</td>
+                        <td>{when(x.at)}</td>
+                      </tr>
+                    )))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
 
           <Sources />
         </>

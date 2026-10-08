@@ -21,3 +21,11 @@ export async function classDetail(code: string): Promise<DetailRow[]> {
   }
   return ((data ?? []) as DetailRow[]).map((r) => ({ ...r, answers: Array.isArray(r.answers) ? r.answers : [] }));
 }
+
+export interface PostRow { student_id: string; nickname: string; sent: { spot: string; plan: string; msg: string; at: string }[] }
+export async function classPostcards(code: string): Promise<PostRow[]> {
+  if (!db) return [];
+  const { data, error } = await db.rpc('island_class_postcards', { p_code: code });
+  if (error) return []; // 還沒套新版 SQL 時就先不顯示
+  return ((data ?? []) as PostRow[]).map((r) => ({ ...r, sent: Array.isArray(r.sent) ? r.sent : [] }));
+}

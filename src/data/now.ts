@@ -171,7 +171,7 @@ export const NOW_PLACES: NowPlace[] = [
     blurb: '當塔台調度員，畫出飛機和貨船的航線，看誰會飛過臺灣上空。' },
   { id: 'isles', name: '離島巡航', genre: '探索・收集', stars: 1, at: { x: 1190, y: 3010 }, art: 'y3-4', width: 46, ready: true,
     blurb: '搭船去小琉球、綠島、蘭嶼、澎湖，一座島蓋一個郵戳。' },
-  { id: 'postcard', name: '景點明信片', genre: '探索・創作', stars: 1, at: { x: 2420, y: 1330 }, art: 'y3-5', width: 38, ready: false,
+  { id: 'postcard', name: '景點明信片', genre: '探索・創作', stars: 1, at: { x: 2420, y: 1330 }, art: 'y3-5', width: 38, ready: true,
     blurb: '當時空導遊：挑一個景點，收集資料，寄一張明信片給遊客。' },
 ];
 
