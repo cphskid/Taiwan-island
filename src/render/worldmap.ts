@@ -141,12 +141,16 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   host.appendChild(app.canvas);
 
   const tex: Record<string, Texture> = {};
+  // 離開地圖時要放掉的圖：大地圖解開後有快 200MB（m01 一張就 40MB），iPad 記憶體被佔住，
+  // 接著進漁村、小鎮、明信片時大張的底圖就解不出來（畫面只剩小人物）。
+  const loaded = new Set<string>();
+  const made: Texture[] = [];
   // 一張圖讀失敗或 20 秒還沒好，就先用空白貼圖，不讓整張地圖卡住
   const loadTex = (names: Iterable<string>) =>
     Promise.all([...names].filter((n) => !tex[n]).map(async (n) => {
       mapStatus.pending.add(n);
       const t = await Promise.race([
-        Assets.load<Texture>(isl(n)).catch(() => null),
+        (loaded.add(isl(n)), Assets.load<Texture>(isl(n)).catch(() => null)),
         new Promise<null>((ok) => setTimeout(() => ok(null), 20000)),
       ]);
       mapStatus.pending.delete(n);
@@ -166,7 +170,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       const url = isl(`island/atlas/${pg.file.replace(/\.webp$/, '')}`);
       mapStatus.pending.add(url);
       const t = await Promise.race([
-        Assets.load<Texture>(url).catch(() => null),
+        (loaded.add(url), Assets.load<Texture>(url).catch(() => null)),
         new Promise<null>((ok) => setTimeout(() => ok(null), 20000)),
       ]);
       mapStatus.pending.delete(url);
@@ -185,6 +189,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   mapStatus.stage = '把地圖畫出來';
   let destroyed = false;
   const puff = puffTexture();
+  made.push(puff);
 
   const world = new Container();
   app.stage.addChild(world);
@@ -292,7 +297,10 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
     g.globalCompositeOperation = 'destination-in';
     g.imageSmoothingEnabled = true;
     g.drawImage(m, 0, 0, c.width, c.height);
+    const old = made.indexOf(relief.texture);
+    if (old >= 0) { made.splice(old, 1); relief.texture.destroy(true); }
     relief.texture = Texture.from(c);
+    made.push(relief.texture);
     relief.width = MAP.width;
     relief.height = MAP.height;
   };
@@ -856,6 +864,8 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
       el.removeEventListener('wheel', wheel);
       destroyed = true;
       app.destroy(true, { children: true });
+      for (const t of made) t.destroy(true);
+      void Assets.unload([...loaded]).catch(() => {});
     },
   };
 }
