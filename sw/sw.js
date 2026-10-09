@@ -61,16 +61,21 @@ async function fromCacheOrNet(req) {
   return res;
 }
 
+// 網頁每次都跟網路確認是不是最新（no-cache：沒換只回 304，很快），不然瀏覽器暫存最多 10 分鐘，
+// 剛推新版時會拿到舊網頁、去找已經不在的舊程式檔，畫面一片白。
+// 網路一時失敗（換 Wi-Fi、Safari 偶發的 Load failed）先再試一次，再不行用存的；
+// 都沒有就交還給瀏覽器自己開，不讓 Service Worker 變成「無法打開網頁」的原因。
 async function page(req) {
   void fetchManifest(); // 跟網頁一起抓，等一下要讀圖時就是最新的
   const c = await caches.open(CACHE);
   const key = new URL(req.url).pathname;
+  const get = () => fetch(req, { cache: 'no-cache' });
   try {
-    const res = await fetch(req);
+    const res = await get().catch(() => new Promise((ok) => setTimeout(ok, 300)).then(get));
     if (res.ok) c.put(key, res.clone()).catch(() => {});
     return res;
-  } catch (err) {
-    return (await c.match(key)) ?? (await c.match(BASE)) ?? Promise.reject(err);
+  } catch {
+    return (await c.match(key)) ?? (await c.match(BASE)) ?? fetch(req);
   }
 }
 
