@@ -21,25 +21,35 @@ export interface Veh {
   bump: number; // 剛擦撞過（秒），這段時間不重複算
 }
 
-export const spawn = (id: number, kind: Kind, from: string, to: string, k = 0): Veh => {
-  const p = portById(from).at;
-  return { id, kind, from, to, at: { x: p.x + 18 * Math.cos(k * 2.4), y: p.y + 18 * Math.sin(k * 2.4) }, heading: 0, path: null, done: false, firSeen: false, seas: [], bump: 0 };
+// off：離港口多遠（地圖單位），畫面依螢幕大小排開；沒給就繞著港口小小一圈
+export const spawn = (id: number, kind: Kind, from: string, to: string, k = 0, off?: Pt): Veh => {
+  const p = portById(from).at, o = off ?? { x: 18 * Math.cos(k * 2.4), y: 18 * Math.sin(k * 2.4) };
+  return { id, kind, from, to, at: { x: p.x + o.x, y: p.y + o.y }, heading: 0, path: null, done: false, firSeen: false, seas: [], bump: 0 };
 };
 
 // 畫好的線能不能用：船不能經過陸地（港口附近一小段不管），要畫到目的地附近
-export function checkPath(v: Veh, pts: Pt[]): { ok: boolean; why?: string } {
+// arrive：多近算到；slack：在陸地上連續走不到多遠不算（只擦過海岸）（手機上地圖縮很小、手指又粗，畫面會依螢幕放寬這兩個）
+export function checkPath(v: Veh, pts: Pt[], arrive = ARRIVE, slack = 0): { ok: boolean; why?: string } {
   if (pts.length < 2) return { ok: false, why: '線太短了' };
   const to = portById(v.to).at, from = portById(v.from).at;
   const end = pts[pts.length - 1];
-  if (Math.hypot(end.x - to.x, end.y - to.y) > ARRIVE) return { ok: false, why: `要把線拉到「${portById(v.to).name}」喔` };
+  if (Math.hypot(end.x - to.x, end.y - to.y) > arrive) {
+    const near = PORTS.filter((p) => p.id !== v.to && p.id !== v.from).map((p) => ({ p, d: Math.hypot(end.x - p.at.x, end.y - p.at.y) }))
+      .filter((x) => x.d <= arrive).sort((a, b) => a.d - b.d)[0];
+    const goal = portById(v.to);
+    const tag = goal.gate ? '綠色箭頭' : '發亮的圈圈';
+    return { ok: false, why: near ? `這班要去「${goal.name}」，不是「${near.p.name}」喔（看${tag}）` : `線要拉到「${goal.name}」的${tag}裡喔` };
+  }
   if (v.kind === 'ship') {
+    let run = 0; // 連續在陸地上走了多遠：只擦過海岸一小段（不到 slack）放過，橫越陸地不行
     for (let i = 1; i < pts.length; i++) {
       const a = pts[i - 1], b = pts[i];
-      const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 5));
-      for (let k = 0; k <= n; k++) {
+      const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 5)), seg = Math.hypot(b.x - a.x, b.y - a.y) / n;
+      for (let k = 1; k <= n; k++) {
         const p = { x: a.x + ((b.x - a.x) * k) / n, y: a.y + ((b.y - a.y) * k) / n };
-        if (Math.hypot(p.x - from.x, p.y - from.y) < 40 || Math.hypot(p.x - to.x, p.y - to.y) < 40) continue;
-        if (isLand(p)) return { ok: false, why: '船不能開上陸地！沿著海畫' };
+        if (Math.hypot(p.x - from.x, p.y - from.y) < Math.max(40, slack * 2) || Math.hypot(p.x - to.x, p.y - to.y) < Math.max(40, arrive)) { run = 0; continue; }
+        run = isLand(p) ? run + seg : 0;
+        if (isLand(p) && run >= slack) return { ok: false, why: '船不能開上陸地！沿著海畫' };
       }
     }
   }

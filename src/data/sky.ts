@@ -19,13 +19,14 @@ export interface Port {
   dir?: string; // 在臺灣的哪個方向（第一關教方位）
   gate?: string; // 地圖邊上的出口：往哪一洲、經過哪個洋
   home?: boolean; // 臺灣的機場、港口
-  side?: 'r' | 'l'; // 名字寫在旁邊（臺灣的兩個靠很近）
+  side?: 'r' | 'l' | 't' | 'tr'; // 名字寫在旁邊或上面（臺灣的兩個靠很近、地圖邊上的出口才不會被切掉）
+  wait?: [number, number][]; // 在這裡等的交通工具排在哪（螢幕上的 px，離港口多遠）：臺灣兩個港口一次會有好幾班在等，要排開才分得清
 }
 
 // 港口放在岸邊外一點點（船才開得到）；機場用城市的位置
 export const PORTS: Port[] = [
-  { id: 'tpe', name: '桃園機場', country: '臺灣', kind: 'air', at: geo(121.2, 25.1), home: true, side: 'r' },
-  { id: 'khh', name: '高雄港', country: '臺灣', kind: 'sea', at: geo(120.05, 22.55), home: true, side: 'l' },
+  { id: 'tpe', name: '桃園機場', country: '臺灣', kind: 'air', at: geo(121.2, 25.1), home: true, side: 'r', wait: [[96, 4], [96, 44], [96, 84]] },
+  { id: 'khh', name: '高雄港', country: '臺灣', kind: 'sea', at: geo(120.05, 22.55), home: true, side: 'l', wait: [[-30, 50], [-30, 90], [-30, 130]] },
   { id: 'tyo', name: '東京', country: '日本', kind: 'both', at: geo(139.85, 35.3), dir: '東北方' },
   { id: 'sel', name: '首爾', country: '韓國', kind: 'air', at: geo(126.98, 37.55), dir: '北方' },
   { id: 'pus', name: '釜山', country: '韓國', kind: 'sea', at: geo(129.1, 34.95), dir: '北方' },
@@ -36,9 +37,9 @@ export const PORTS: Port[] = [
   { id: 'bkk', name: '曼谷', country: '泰國', kind: 'air', at: geo(100.5, 13.75), dir: '西南方' },
   { id: 'sin', name: '新加坡', country: '新加坡', kind: 'both', at: geo(104.0, 1.15), dir: '西南方' },
   // 地圖邊上的出口（第三關）
-  { id: 'eu', name: '往歐洲、非洲', country: '印度洋', kind: 'both', at: geo(89.5, 5.5), gate: '經過麻六甲海峽進入印度洋，再往西到歐洲、非洲' },
-  { id: 'am', name: '往美洲', country: '太平洋', kind: 'both', at: geo(156.5, 33), gate: '橫越太平洋，往東到美洲' },
-  { id: 'oc', name: '往大洋洲', country: '太平洋', kind: 'both', at: geo(146, -2.5), gate: '往南越過赤道，到澳洲和紐西蘭' },
+  { id: 'eu', name: '往歐洲、非洲', country: '印度洋', kind: 'both', at: geo(90, 5.5), side: 'tr', gate: '經過麻六甲海峽進入印度洋，再往西到歐洲、非洲' },
+  { id: 'am', name: '往美洲', country: '太平洋', kind: 'both', at: geo(155.5, 33), side: 'l', gate: '橫越太平洋，往東到美洲' },
+  { id: 'oc', name: '往大洋洲', country: '太平洋', kind: 'both', at: geo(146, -2), side: 't', gate: '往南越過赤道，到澳洲和紐西蘭' },
 ];
 export const portById = (id: string) => PORTS.find((p) => p.id === id)!;
 

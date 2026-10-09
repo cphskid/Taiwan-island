@@ -51,6 +51,18 @@ describe('天空港的規則', () => {
     expect(checkPath(plane, over).ok).toBe(true);
     expect(checkPath(ship, [ship.at, geo(119.5, 24), geo(121.5, 28), portById('sha').at]).ok).toBe(true);
   });
+  it('手機上放寬：擦到海岸可以，橫越臺灣、馬來半島還是不行', () => {
+    const slack = 28; // 手機直拿看第三關：約 6 px
+    const ship = spawn(1, 'ship', 'khh', 'am');
+    expect(checkPath(ship, [ship.at, geo(119.5, 24.3), geo(121, 24.3), geo(123, 24.3), portById('am').at], 220, slack).why).toMatch(/陸地/);
+    const eu = spawn(2, 'ship', 'khh', 'eu');
+    expect(checkPath(eu, [eu.at, geo(110, 10), geo(101.5, 4), geo(97, 4), portById('eu').at], 220, slack).why).toMatch(/陸地/);
+  });
+  it('拉到別的港口會說要去哪', () => {
+    const v = spawn(1, 'plane', 'tpe', 'am');
+    expect(checkPath(v, [v.at, portById('tyo').at], 100).why).toMatch(/往美洲.*東京/);
+    expect(checkPath(v, [v.at, { x: portById('am').at.x - 90, y: portById('am').at.y }], 100).ok).toBe(true);
+  });
   it('線要畫到目的地', () => {
     const v = spawn(1, 'plane', 'tpe', 'tyo');
     expect(checkPath(v, [v.at, geo(130, 30)]).why).toMatch(/東京/);

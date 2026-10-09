@@ -2738,3 +2738,12 @@ button.v-chip{cursor:pointer}
 @media (orientation:portrait) and (max-width:760px){.pc-scene{aspect-ratio:4/3.4}}
 /* 漁村進場讀圖：蓋在村子上面，讀好才掀開 */
 .village .v-loading{position:absolute;z-index:30}
+/* 天空港：拉線時目的地的「到達圈」（手機上地圖小，圈圈內放開就算到）、別的港口淡掉、出口名字往內寫 */
+.sky-svg .goal{fill:rgba(255,229,138,.18);stroke:#ffe58a;stroke-width:4;stroke-dasharray:10 8;vector-effect:non-scaling-stroke}
+.sky-svg .goal.on{fill:rgba(255,229,138,.45);stroke:#fff;stroke-dasharray:none}
+.port.dim{opacity:.4}
+.port.t,.port.tr{flex-direction:column-reverse;translate:-50% calc(-100% + 15px)}
+.port.tr{align-items:flex-start;translate:-15px calc(-100% + 15px)}
+.port b{white-space:nowrap}
+.sky-svg .tether{stroke:#fff;stroke-width:2;stroke-dasharray:3 5;opacity:.7;vector-effect:non-scaling-stroke}
+.sky .veh{width:min(5cqw,36px)}

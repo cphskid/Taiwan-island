@@ -26,10 +26,14 @@ export function Sky({ onExit }: { onExit: () => void }) {
   const live = useRef<Game | null>(null);
   live.current = g;
   const [toasts, setToasts] = useState<{ k: number; text: string }[]>([]);
-  const [draw, setDraw] = useState<{ id: number; pts: Pt[] } | null>(null);
+  const [draw, setDraw] = useState<{ id: number; pts: Pt[]; at?: Pt } | null>(null);
   const [bad, setBad] = useState<Pt[] | null>(null);
   const [flash, setFlash] = useState<{ k: number; at: Pt; text: string }[]>([]);
   const map = useRef<HTMLDivElement>(null);
+  // 一個螢幕 px 是幾個地圖單位：手機上整張圖縮很小，抓、到達、排隊都要用手指的大小來算
+  const upx = () => { const w = map.current?.getBoundingClientRect().width; return w ? SKY_W / w : 1; };
+  const grabR = () => Math.max(GRAB, 30 * upx());
+  const arriveR = (id: string) => Math.max(ARRIVE, (portById(id).gate ? 56 : 42) * upx());
 
   const toast = (text: string) => {
     const k = Math.random();
@@ -62,8 +66,14 @@ export function Sky({ onExit }: { onExit: () => void }) {
     const lv = g1.lv;
     // 來新的：在港口等的最多 3 個
     if (g1.queue < lv.trips.length && g1.t >= g1.next && g1.vs.filter((v) => !v.path).length < 3) {
-      const tr = lv.trips[g1.queue];
-      g1.vs = [...g1.vs, spawn(g1.queue + 1, tr.kind, tr.from, tr.to, g1.queue)];
+      const tr = lv.trips[g1.queue], u = upx(), port = portById(tr.from);
+      // 排在港口旁的空位（臺灣兩個港口有固定的排隊位置；別的港口繞一圈）
+      const taken = g1.vs.filter((v) => !v.path && v.from === tr.from).map((v) => v.at);
+      const slots: Pt[] = port.wait
+        ? port.wait.map(([x, y]) => ({ x: x * u, y: y * u }))
+        : [0, 1, 2].map((i) => ({ x: 26 * u * Math.cos(g1.queue * 2.4 + i * 2.1), y: 26 * u * Math.sin(g1.queue * 2.4 + i * 2.1) }));
+      const off = slots.find((o) => !taken.some((t) => Math.hypot(t.x - port.at.x - o.x, t.y - port.at.y - o.y) < 12 * u)) ?? slots[0];
+      g1.vs = [...g1.vs, spawn(g1.queue + 1, tr.kind, tr.from, tr.to, g1.queue, off)];
       g1.queue += 1; g1.next = g1.t + lv.every;
       sfx('SE-03');
     }
@@ -107,7 +117,7 @@ export function Sky({ onExit }: { onExit: () => void }) {
     if (!g || g.over) return;
     const p = toMap(e);
     const cand = g.vs.filter((v) => !v.done).map((v) => ({ v, d: Math.hypot(v.at.x - p.x, v.at.y - p.y) - (v.path ? 0 : 15) }))
-      .filter((x) => x.d < GRAB).sort((a, b) => a.d - b.d)[0];
+      .filter((x) => x.d < grabR()).sort((a, b) => a.d - b.d)[0];
     if (!cand) return;
     (e.target as Element).setPointerCapture?.(e.pointerId);
     sfx('SE-09');
@@ -116,18 +126,21 @@ export function Sky({ onExit }: { onExit: () => void }) {
   const onMove = (e: RPE) => {
     if (!draw) return;
     const p = toMap(e), last = draw.pts[draw.pts.length - 1];
-    if (Math.hypot(p.x - last.x, p.y - last.y) >= 10) setDraw({ ...draw, pts: [...draw.pts, p] });
+    if (Math.hypot(p.x - last.x, p.y - last.y) >= 3 * upx()) setDraw({ ...draw, pts: [...draw.pts, p], at: p });
+    else setDraw({ ...draw, at: p });
   };
   const onUp = () => {
     if (!draw || !g) return;
     const v = g.vs.find((x) => x.id === draw.id);
     setDraw(null);
     if (!v) return;
-    const to = portById(v.to).at;
+    const to = portById(v.to).at, r = arriveR(v.to);
     let pts = draw.pts;
-    const end = pts[pts.length - 1];
-    if (Math.hypot(end.x - to.x, end.y - to.y) <= ARRIVE) pts = [...pts.slice(0, -1), to];
-    const c = checkPath(v, pts);
+    const end = draw.at ?? pts[pts.length - 1];
+    // 手指放開的地方在目的地圈圈裡就吸過去（不用剛好點在正中間）
+    if (Math.hypot(end.x - to.x, end.y - to.y) <= r) pts = [...pts, to];
+    else if (end !== pts[pts.length - 1]) pts = [...pts, end];
+    const c = checkPath(v, pts, r, 6 * upx());
     if (!c.ok) { sfx('SE-04'); toast(c.why!); setBad(pts); setTimeout(() => setBad(null), 700); return; }
     sfx('SE-05');
     setG((cur) => cur && { ...cur, vs: cur.vs.map((x) => (x.id === v.id ? { ...x, path: pts.slice(1) } : x)) });
@@ -136,6 +149,10 @@ export function Sky({ onExit }: { onExit: () => void }) {
   const startLevel = (lv: Level) => { sfx('SE-03'); setIntro({ lv, i: 0 }); };
   const result = g?.over ? starsOf(g.lv, g.hits, g.fee) : 0;
   const drawing = draw && g?.vs.find((v) => v.id === draw.id);
+  const goal = drawing ? portById(drawing.to) : null;
+  const goalR = goal ? arriveR(goal.id) : 0;
+  const tip = draw ? draw.at ?? draw.pts[draw.pts.length - 1] : null;
+  const locked = !!(goal && tip && Math.hypot(tip.x - goal.at.x, tip.y - goal.at.y) <= goalR);
   const shownPorts = g ? portsUsed(g.lv) : [];
   // 這關只看地圖的一塊（第一關放大在臺灣附近，手機上才點得到）
   const lvView = (g ?? (intro ? { lv: intro.lv } : null))?.lv.view ?? LEVELS[LEVELS.length - 1].view;
@@ -156,23 +173,25 @@ export function Sky({ onExit }: { onExit: () => void }) {
                 <text x={FIR.x0 + 8} y={FIR.y0 + 26}>臺北飛航情報區</text>
               </g>
             )}
+            {g?.vs.filter((v) => !v.path && !v.done).map((v) => { const p = portById(v.from).at; return <line key={`w${v.id}`} className="tether" x1={p.x} y1={p.y} x2={v.at.x} y2={v.at.y} />; })}
             {g?.vs.filter((v) => v.path && !v.done).map((v) => (
               <polyline key={v.id} className={`route ${v.kind}`} points={[v.at, ...v.path!].map((p) => `${p.x},${p.y}`).join(' ')} />
             ))}
-            {draw && <polyline className={`route drawing ${drawing?.kind ?? ''}`} points={draw.pts.map((p) => `${p.x},${p.y}`).join(' ')} />}
+            {goal && <circle className={`goal ${locked ? 'on' : ''}`} cx={goal.at.x} cy={goal.at.y} r={goalR} />}
+            {draw && <polyline className={`route drawing ${drawing?.kind ?? ''}`} points={[...draw.pts, ...(locked && goal ? [goal.at] : tip ? [tip] : [])].map((p) => `${p.x},${p.y}`).join(' ')} />}
             {bad && <polyline className="route bad" points={bad.map((p) => `${p.x},${p.y}`).join(' ')} />}
             {g?.lv.typhoon && !g.over && (() => { const c = typhoonAt(g.t); return <circle className="ty-ring" cx={c.x} cy={c.y} r={TYPHOON_R} />; })()}
           </svg>
           {g?.lv.typhoon && !g.over && <span className="ty" style={pct(typhoonAt(g.t))}>🌀</span>}
           {shownPorts.map((p) => (
-            <span key={p.id} className={`port ${p.side ?? ''} ${p.home ? 'home' : ''} ${p.gate ? 'gate' : ''} ${drawing && drawing.to === p.id ? 'aim' : ''}`} style={pct(p.at)}>
+            <span key={p.id} className={`port ${p.side ?? ''} ${p.home ? 'home' : ''} ${p.gate ? 'gate' : ''} ${drawing && drawing.to === p.id ? 'aim' : ''} ${drawing && drawing.to !== p.id ? 'dim' : ''}`} style={pct(p.at)}>
               <i>{p.gate ? '➜' : p.kind === 'sea' ? '⚓' : p.kind === 'air' ? '✈' : '⚓✈'}</i><b>{p.name}</b>{!p.gate && <small>{p.country}</small>}
             </span>
           ))}
           {g?.vs.filter((v) => !v.done).map((v) => (
             <span key={v.id} className={`veh ${v.kind} ${v.path ? '' : 'wait'} ${v.bump > 0 ? 'hit' : ''}`} style={pct(v.at)}>
               <Craft kind={v.kind} deg={(v.heading * 180) / Math.PI} />
-              <em>往{portById(v.to).name}</em>
+              <em>{portById(v.to).gate ? '' : '往'}{portById(v.to).name}</em>
             </span>
           ))}
           {flash.map((f) => <b key={f.k} className="sky-pop" style={pct(f.at)}>{f.text}</b>)}
