@@ -5,18 +5,28 @@ import { pushCloud } from '../net/cloud';
 import { sfx } from '../audio';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
+import { PlaceLoading, useImagesReady } from './Ready';
 
 // 現在篇「景點明信片」：探究四步驟。① 挑景點 ② 到現場收四張資料卡（歷史卡要切到「過去」）
 // ③ 把卡放進明信片背面的四格 ④ 選一個好辦法、寫一句話給遊客，寄出。
 const TICK = `${import.meta.env.BASE_URL}img/tick/`;
 // 景點的寫實照片（現在、過去各一張）。還沒有照片時，退回底色＋大圖示。
-// 小卡片用 s/ 底下的縮圖（720 寬、一張約 60KB），放大看才讀原圖（1600 寬、一張 300KB 上下），手機才不用等。
+// 小卡片用 s/ 底下的縮圖（480 寬、一張約 20KB）；景點現場、放大看用 1200 寬（一張 100～150KB）。
+// 大張的還沒到之前先放縮圖（已經讀過了），到了再換清楚的，手機才不會空白一片。
 const photo = (id: string, past = false, small = false) => `${import.meta.env.BASE_URL}img/postcard/${small ? 's/' : ''}${id}-${past ? 'past' : 'now'}.webp`;
+const fetched = new Set<string>();
+const prefetch = (...urls: string[]) => { for (const u of urls) if (!fetched.has(u)) { fetched.add(u); new Image().src = u; } };
 function Photo({ spot, past = false, small = false, className = '' }: { spot: Spot; past?: boolean; small?: boolean; className?: string }) {
   const src = photo(spot.id, past, small);
   const [bad, setBad] = useState<string | null>(null);
+  const [sharp, setSharp] = useState<string | null>(null);
   if (bad === src) return <span className={`pc-noimg ${className}`}>{spot.icon}</span>;
-  return <img className={`pc-photo ${className}`} src={src} alt={`${spot.name}${past ? '以前' : ''}的照片`} onError={() => setBad(src)} draggable={false} />;
+  const alt = `${spot.name}${past ? '以前' : ''}的照片`;
+  if (small || sharp === src) return <img className={`pc-photo ${className}`} src={src} alt={alt} onError={() => setBad(src)} draggable={false} />;
+  return <>
+    <img className={`pc-photo ${className}`} src={photo(spot.id, past, true)} alt={alt} draggable={false} />
+    <img src={src} alt="" style={{ display: 'none' }} onLoad={() => setSharp(src)} onError={() => setBad(src)} />
+  </>;
 }
 const STEP_NAMES = ['發現問題', '蒐集資料', '整理分析', '行動省思'];
 // 現場的四個「🔍」放哪裡（%）
@@ -32,6 +42,8 @@ type Phase = { at: 'pick' } | { at: 'field'; spot: Spot; got: CardKind[]; past: 
 
 export function Postcard({ onExit }: { onExit: () => void }) {
   const [s, setS] = useState<PostSave>(loadPost);
+  // 六個景點的縮圖先讀好才掀開
+  const ready = useImagesReady(() => SPOTS.map((sp) => photo(sp.id, false, true)), '明信片縮圖讀好');
   useEffect(() => { savePost(s); pushCloud('post', s); }, [s]);
   const [intro, setIntro] = useState(s.intro ? -1 : 0);
   const [ph, setPh] = useState<Phase>({ at: 'pick' });
@@ -41,6 +53,7 @@ export function Postcard({ onExit }: { onExit: () => void }) {
 
   return (
     <div className="town postcard">
+      <PlaceLoading pct={ready} label="景點明信片準備中" />
       <header className="v-hud">
         <button className="v-chip v-back" onClick={() => { sfx('SE-02'); if (ph.at !== 'pick') setPh({ at: 'pick' }); else onExit(); }}>{ph.at !== 'pick' ? '← 換景點' : '← 大地圖'}</button>
         <span className="v-chip">✉️ 景點明信片</span>
@@ -56,7 +69,8 @@ export function Postcard({ onExit }: { onExit: () => void }) {
           <Tick text="遊客想來臺灣玩！挑一個景點，寫一張明信片給遊客。" />
           <div className="pc-spots">
             {SPOTS.map((sp) => (
-              <button key={sp.id} className="pc-spot" style={{ background: sp.sky }} onClick={() => { sfx('SE-03'); setPh({ at: 'field', spot: sp, got: [], past: false, open: null }); }}>
+              <button key={sp.id} className="pc-spot" style={{ background: sp.sky }} onPointerDown={() => prefetch(photo(sp.id), photo(sp.id, true, true))}
+                onClick={() => { sfx('SE-03'); setPh({ at: 'field', spot: sp, got: [], past: false, open: null }); }}>
                 <Photo spot={sp} small /><i>{sp.icon}</i><b>{sp.name}</b><small>{sp.where}</small>{sentOf(sp.id) && <em>✉️ 寄過了</em>}
               </button>
             ))}
@@ -151,6 +165,8 @@ function Tick({ text, worried = false }: { text: string; worried?: boolean }) {
 function Field({ ph, set }: { ph: Extract<Phase, { at: 'field' }>; set: (p: Phase) => void }) {
   const { spot, got, past, open } = ph;
   const [zoom, setZoom] = useState(false);
+  // 到了現場，先把「過去」那張也抓起來，切過去時就不用等
+  useEffect(() => { prefetch(photo(spot.id), photo(spot.id, true), photo(spot.id, true, true)); }, [spot.id]);
   const here = CARD_ORDER.filter((k) => (k === 'history') === past);
   const need = past ? '回到「現在」繼續找！' : got.includes('history') ? '' : '還少一張歷史卡……切到「過去」看看！';
   return <>
