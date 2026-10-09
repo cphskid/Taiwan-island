@@ -17,6 +17,7 @@ import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
 import { Dive, Drum } from './VillageGames';
 import { holdWarm } from './warm';
+import { mark } from '../perf';
 
 // 現在篇「風與海的漁村」：開羅式建村經營。
 // 地圖可以拖、可以用兩指（或滑鼠滾輪、右下的＋－）縮放；第一次進來有新手教學帶著蓋三棟（時間先停著）。
@@ -138,7 +139,7 @@ export function Village({ onExit }: { onExit: () => void }) {
       im.src = u;
       im.decode().catch(() => undefined).then(() => { done++; if (alive) setReady((r) => (r >= 1 ? r : Math.min(0.99, done / urls.length))); ok(); });
     });
-    void Promise.race([Promise.all(urls.map(one)), new Promise((ok) => setTimeout(ok, 8000))]).then(() => { if (alive) setReady(1); release(); });
+    void Promise.race([Promise.all(urls.map(one)), new Promise((ok) => setTimeout(ok, 8000))]).then(() => { mark('漁村的圖讀好'); if (alive) setReady(1); release(); });
     return () => { alive = false; release(); };
   }, []);
 

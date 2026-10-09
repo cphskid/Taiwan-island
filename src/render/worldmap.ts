@@ -14,6 +14,7 @@ import {
 } from '../data/world';
 import { lifeNames } from '../data/life-names';
 import { NOW_LIFE, NOW_ON, NOW_PLACES, type Era } from '../data/now';
+import { mark } from '../perf';
 
 const MAX_ZOOM = 6; // 最多放大到「一倍」的幾倍
 // 「一倍」＝放得下 2071×1492 這麼大一塊（第一版 M-01 的整張），看彰化平原的小人剛好；
@@ -183,6 +184,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   mapStatus.failed = [];
   const [regions] = await Promise.all([loadRegions(), loadTex(baseImageNames())]);
   mapStatus.stage = '把地圖畫出來';
+  mark('大地圖的圖讀好');
   let destroyed = false;
   const puff = puffTexture();
 
@@ -676,7 +678,7 @@ export async function createWorldMap(host: HTMLElement, opt: WorldMapOptions): P
   const order = [...Object.keys(LIFE)].sort((a, b2) => Number(!openedSet.has(a)) - Number(!openedSet.has(b2)));
   // 圖集一次全部開始抓（一共才八張），人和房子還是照順序一章章做出來
   for (const id of order) void loadAtlas(id);
-  void (async () => { for (const id of order) { if (destroyed) return; await ensureLife(id).catch(() => {}); } })();
+  void (async () => { for (const id of order) { if (destroyed) return; await ensureLife(id).catch(() => {}); } mark('各章人物房子到齊'); })();
   setNowOpened(opt.opened);
   buildRelief();
   const showEra = () => {
