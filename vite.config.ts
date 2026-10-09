@@ -52,8 +52,32 @@ function atlas() {
   };
 }
 
+// 把圖存進裝置的 Service Worker（sw/sw.js 原樣放上去）＋ sw-manifest.json：
+// public 每個檔案的指紋、這一版的程式檔清單。Service Worker 每次開網頁都會抓這份，換了的圖馬上重新下載
+function sw() {
+  return {
+    name: 'sw',
+    apply: 'build' as const,
+    generateBundle(this: { emitFile: (f: { type: 'asset'; fileName: string; source: string }) => void }, _o: unknown, bundle: Record<string, unknown>) {
+      const files: Record<string, string> = {};
+      const walk = (d: string) => {
+        for (const n of readdirSync(`public/${d}`).sort()) {
+          const p = d ? `${d}/${n}` : n;
+          if (statSync(`public/${p}`).isDirectory()) walk(p);
+          else files[p] = createHash('md5').update(readFileSync(`public/${p}`)).digest('hex').slice(0, 12);
+        }
+      };
+      walk('');
+      const assets = Object.keys(bundle).filter((f) => f.startsWith('assets/')).sort();
+      const v = createHash('md5').update(JSON.stringify([files, assets])).digest('hex').slice(0, 12);
+      this.emitFile({ type: 'asset', fileName: 'sw-manifest.json', source: JSON.stringify({ v, files, assets }) });
+      this.emitFile({ type: 'asset', fileName: 'sw.js', source: readFileSync('sw/sw.js', 'utf8') });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), imgList(), atlas()],
+  plugins: [react(), imgList(), atlas(), sw()],
   // 兩個頁面：遊戲（index.html）和老師細節頁（teacher.html）
   build: { rollupOptions: { input: { main: 'index.html', teacher: 'teacher.html' } } },
   test: { include: ['src/**/*.test.ts'] },

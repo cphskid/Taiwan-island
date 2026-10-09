@@ -52,7 +52,7 @@ export function Village({ onExit }: { onExit: () => void }) {
   const live = useRef(s);
   live.current = s;
   // 進場：底圖、已經蓋好的建築、村民的圖先讀好才掀開
-  const ready = useImagesReady(() => villageImages(live.current));
+  const ready = useImagesReady(() => villageImages(live.current), '漁村的圖讀好');
 
   const tut = s.tut < TUTORIAL.length ? TUTORIAL[s.tut] : null; // 教學中：這一步要蓋哪一棟
   const tutEnd = s.tut === TUTORIAL.length; // 三棟蓋完，最後一段說明

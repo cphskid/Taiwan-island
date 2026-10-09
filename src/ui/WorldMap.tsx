@@ -11,6 +11,7 @@ import { ReportButton } from './Report';
 import { NOW_LINES, NOW_ON, NOW_PLACES, NOW_URL, unlockNow, type Era, type NowPlace } from '../data/now';
 import { PARK_MAP } from '../net/park';
 import { warm } from './warm';
+import { mark } from '../perf';
 
 // 點到小人或動物的聲音
 const ACTOR_SE: Partial<Record<ActorDef['kind'], SeCode>> = { buffalo: 'SE-63', dog: 'SE-65', hen: 'SE-66' };
@@ -90,9 +91,6 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
   useEffect(() => {
     let alive = true;
     let timer = 0;
-    music('MU-10');
-    ambience('SE-30');
-    preload(['SE-03', 'SE-31', 'SE-32', 'SE-33', 'SE-34', 'SE-38', 'SE-39']);
     const from = chapterOf(back ?? 'ch5');
     createWorldMap(host.current!, {
       opened: opened(world),
@@ -107,6 +105,11 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
       setReady(true);
       setStuck(null);
       dispatchEvent(new Event('island:map-ready'));
+      mark('大地圖畫好');
+      // 音樂（約 1MB）和音效等地圖出來才抓，不跟地圖的圖搶網路
+      music('MU-10');
+      ambience('SE-30');
+      preload(['SE-03', 'SE-31', 'SE-32', 'SE-33', 'SE-34', 'SE-38', 'SE-39']);
       if (mapStatus.failed.length) setStuck(`有 ${mapStatus.failed.length} 張圖沒讀到，地圖上少了一點東西，照樣可以玩。想補回來，按「重新載入」再讀一次。`);   // 進場的穿越畫面等這個才收起來（ui/App.tsx）
       timer = window.setInterval(() => setFps(Math.round(m.fps())), 500);
       const todo = toCelebrate(live.current.world);

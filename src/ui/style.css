@@ -2738,3 +2738,7 @@ button.v-chip{cursor:pointer}
 @media (orientation:portrait) and (max-width:760px){.pc-scene{aspect-ratio:4/3.4}}
 /* 地點進場讀圖（Ready.tsx）：蓋在地點上面，讀好才掀開 */
 .boot.place-loading{position:absolute;z-index:40}
+
+/* 讀取計時（?perf=1，src/perf.ts） */
+.perf-box { position: fixed; right: 6px; bottom: 6px; z-index: 9999; max-width: 70vw; padding: 6px 8px; border-radius: 6px;
+  background: rgba(0, 0, 0, 0.72); color: #fff; font: 12px/1.45 ui-monospace, Menlo, monospace; white-space: pre-wrap; pointer-events: none; }

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { holdWarm } from './warm';
+import { mark } from '../perf';
 
 // 地點一進來先把大張的底圖讀好再掀開（手機、平板網路慢時，不會只看到人物在空白上走）。
 // 回傳讀圖進度 0～1，1＝讀好了；最多等 cap 毫秒，沒讀完也先掀開。讀的時候背景預熱先停，不跟它搶網路。
-export function useImagesReady(urls: () => string[], cap = 8000): number {
+export function useImagesReady(urls: () => string[], perf?: string, cap = 8000): number {
   const [ready, setReady] = useState(0);
   useEffect(() => {
     const list = [...new Set(urls())];
@@ -19,7 +20,7 @@ export function useImagesReady(urls: () => string[], cap = 8000): number {
       });
     });
     void Promise.race([Promise.all(list.map(one)), new Promise((ok) => setTimeout(ok, cap))])
-      .then(() => { if (alive) setReady(1); release(); });
+      .then(() => { if (perf) mark(perf); if (alive) setReady(1); release(); });
     return () => { alive = false; release(); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return ready;
