@@ -5,6 +5,7 @@
 - 測試站：https://cphskid.github.io/Taiwan-island/dev/（dev 分支，接測試庫）
 - 正式站：https://cphskid.github.io/Taiwan-island/（main 分支，目前是即將開幕頁）
 - 帳號、班級、老師後台都在樂園（cphskid/cphskid.github.io），這裡做學生端遊戲和一頁老師細節頁（teacher.html，樂園全班總覽點進來）。
+- 版號與更新說明：`package.json` 的 version 顯示在右上角，點了看 `public/changelog.json`（`src/ui/Changelog.tsx`）。推 dev 有玩家看得到的改變就升版號、在 changelog 最上面加一筆（小改 0.9.1、一批新功能 0.10.0）；測試站會跟正式站那份比，多出來的列成「待發布」。
 - 資料庫：`supabase/island_pioneer.sql`（雲端存檔、全班摘要、老師細節頁），在 Supabase SQL Editor 貼上執行；`./tools/test/db.sh` 本機跑權限測試。
 
 ## 開發

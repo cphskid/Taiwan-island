@@ -76,7 +76,10 @@ function sw() {
   };
 }
 
+const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { version: string };
+
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [react(), imgList(), atlas(), sw()],
   // 兩個頁面：遊戲（index.html）和老師細節頁（teacher.html）
   build: { rollupOptions: { input: { main: 'index.html', teacher: 'teacher.html' } } },

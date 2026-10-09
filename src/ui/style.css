@@ -2751,3 +2751,18 @@ button.v-chip{cursor:pointer}
 .port b{white-space:nowrap}
 .sky-svg .tether{stroke:#fff;stroke-width:2;stroke-dasharray:3 5;opacity:.7;vector-effect:non-scaling-stroke}
 .sky .veh{width:min(5cqw,36px)}
+
+/* 版號與更新說明（src/ui/Changelog.tsx）：標題列右上角，測試站用紅底標「測試站」；待發布那一段用紅框框起來 */
+.ver-btn{flex:none;font:700 13px/1 var(--f);color:var(--cream);background:none;border:1px dashed rgba(255,244,220,.6);border-radius:8px;padding:6px 8px;cursor:pointer}
+.ver-btn.staging{background:#e2553f;border:none;box-shadow:0 2px 0 #a33a28}
+.cl-veil{position:fixed;inset:0;z-index:9002;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(20,30,50,.55);user-select:text}
+.cl-box{width:min(440px,100%);color:var(--ink);max-height:86vh;display:flex;flex-direction:column;gap:10px;padding:16px;background:var(--cream);border:3px solid var(--wood);border-radius:18px;box-shadow:0 5px 0 var(--wood),0 14px 26px rgba(0,0,0,.3);font-size:15px;line-height:1.5;text-align:left}
+.cl-box h2{margin:0;text-align:center;font-size:20px}
+.cl-list{overflow-y:auto;display:flex;flex-direction:column;gap:12px;min-height:0}
+.cl-list h3{margin:4px 0 0;font-size:15px;color:#a0601c}
+.cl-list h3 small{font-weight:500;font-size:13px;color:#8a6a4a;margin-left:8px}
+.cl-pending{display:flex;flex-direction:column;gap:10px;padding:10px;border:2px solid #e2553f;border-radius:12px;background:#fff}
+.cl-head b{color:#a0601c;margin-right:4px}
+.cl-head small{color:#8a6a4a;margin-left:8px;font-size:13px}
+.cl-ver ul{margin:4px 0 0;padding-left:20px}
+.cl-close{align-self:center;min-width:120px;min-height:44px;padding:0 18px;border:3px solid var(--wood);border-radius:999px;background:#ffe9bf;box-shadow:0 3px 0 var(--wood);font:900 16px/1 var(--f);color:var(--wood);cursor:pointer}

@@ -20,6 +20,7 @@ import { loadSky, pickSky, saveSky } from '../core/sky';
 import { loadIsles, pickIsles, saveIsles } from '../core/isles';
 import { loadPost, pickPost, savePost } from '../core/postcard';
 import { Gate } from './Gate';
+import { VersionButton } from './Changelog';
 import { mark } from '../perf';
 
 const BASE = import.meta.env.BASE_URL;
@@ -69,6 +70,7 @@ export function App() {
         )}
         <h1>穿越吧！島嶼開拓者</h1>
         {state.step === 'play' && <WhoBadge who={state.who} />}
+        <VersionButton />
       </header>
       {state.step === 'checking' && <Boot pct={0.05} label="確認通行證" />}
       {state.step === 'loading' && <Boot pct={state.pct} label={state.label} />}
