@@ -2736,5 +2736,5 @@ button.v-chip{cursor:pointer}
 .pc-front:has(.pc-photo) span{display:none}
 .pc-spot .pc-noimg,.pc-front .pc-noimg{display:none}
 @media (orientation:portrait) and (max-width:760px){.pc-scene{aspect-ratio:4/3.4}}
-/* 漁村進場讀圖：蓋在村子上面，讀好才掀開 */
-.village .v-loading{position:absolute;z-index:30}
+/* 地點進場讀圖（Ready.tsx）：蓋在地點上面，讀好才掀開 */
+.boot.place-loading{position:absolute;z-index:40}

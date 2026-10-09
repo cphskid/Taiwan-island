@@ -8,6 +8,8 @@ import { pushCloud } from '../net/cloud';
 import { sfx } from '../audio';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
+import { PlaceLoading, useImagesReady } from './Ready';
+import imgList from 'virtual:img-list';
 
 // 現在篇「規則小鎮」：小偵探接案。街景一張圖，三個地方（大街、兒少保護站、網路分局）各有幾個案子。
 // 一案：聽委託 → 在街上點人問話、點東西（網路分局是看手機訊息找破綻）收線索
@@ -27,6 +29,8 @@ export function cluesOf(c: Case): Clue[] {
 
 export function Town({ onExit }: { onExit: () => void }) {
   const [s, setS] = useState<TownSave>(loadTown);
+  // 街景和小鎮居民的圖先讀好才掀開
+  const ready = useImagesReady(() => imgList.filter((p) => p.startsWith('img/town/')).map((p) => import.meta.env.BASE_URL + p));
   useEffect(() => { saveTown(s); pushCloud('town', s); }, [s]);
   const [intro, setIntro] = useState(s.intro ? -1 : 0);
   const [dist, setDist] = useState<District | null>(null);
@@ -78,6 +82,7 @@ export function Town({ onExit }: { onExit: () => void }) {
 
   return (
     <div className="town">
+      <PlaceLoading pct={ready} label="規則小鎮準備中" />
       <div className="t-stage">
         <div className="t-map">
           <img className="t-bg" src={timg('t1-bg')} alt="" draggable={false} />

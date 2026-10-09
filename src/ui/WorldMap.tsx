@@ -62,7 +62,7 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
   const [eraWarp, setEraWarp] = useState(0); // 切換時的穿梭光，數字變了就重播
   const [place, setPlace] = useState<NowPlace | null>(null);
   // 地點卡一打開就先抓那個地點的圖（排到最前面），按「出發！」時多半已經讀好了
-  useEffect(() => { if (place?.ready) warm(`${place.id}/`); }, [place]);
+  useEffect(() => { if (place?.ready) warm(`${place.id}/s/`, `${place.id}/`); }, [place]); // s/＝縮圖（明信片有），先抓
   const [bag, setBag] = useState(false);
   // 整篇通關的縮時：第幾章（0～7）、'all'＝拉遠看整座島的結算卡
   const [lapse, setLapse] = useState<number | 'all' | null>(null);

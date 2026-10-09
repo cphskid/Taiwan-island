@@ -10,9 +10,10 @@ import { ReportButton } from './Report';
 // ③ 把卡放進明信片背面的四格 ④ 選一個好辦法、寫一句話給遊客，寄出。
 const TICK = `${import.meta.env.BASE_URL}img/tick/`;
 // 景點的寫實照片（現在、過去各一張）。還沒有照片時，退回底色＋大圖示。
-const photo = (id: string, past = false) => `${import.meta.env.BASE_URL}img/postcard/${id}-${past ? 'past' : 'now'}.webp`;
-function Photo({ spot, past = false, className = '' }: { spot: Spot; past?: boolean; className?: string }) {
-  const src = photo(spot.id, past);
+// 小卡片用 s/ 底下的縮圖（720 寬、一張約 60KB），放大看才讀原圖（1600 寬、一張 300KB 上下），手機才不用等。
+const photo = (id: string, past = false, small = false) => `${import.meta.env.BASE_URL}img/postcard/${small ? 's/' : ''}${id}-${past ? 'past' : 'now'}.webp`;
+function Photo({ spot, past = false, small = false, className = '' }: { spot: Spot; past?: boolean; small?: boolean; className?: string }) {
+  const src = photo(spot.id, past, small);
   const [bad, setBad] = useState<string | null>(null);
   if (bad === src) return <span className={`pc-noimg ${className}`}>{spot.icon}</span>;
   return <img className={`pc-photo ${className}`} src={src} alt={`${spot.name}${past ? '以前' : ''}的照片`} onError={() => setBad(src)} draggable={false} />;
@@ -56,7 +57,7 @@ export function Postcard({ onExit }: { onExit: () => void }) {
           <div className="pc-spots">
             {SPOTS.map((sp) => (
               <button key={sp.id} className="pc-spot" style={{ background: sp.sky }} onClick={() => { sfx('SE-03'); setPh({ at: 'field', spot: sp, got: [], past: false, open: null }); }}>
-                <Photo spot={sp} /><i>{sp.icon}</i><b>{sp.name}</b><small>{sp.where}</small>{sentOf(sp.id) && <em>✉️ 寄過了</em>}
+                <Photo spot={sp} small /><i>{sp.icon}</i><b>{sp.name}</b><small>{sp.where}</small>{sentOf(sp.id) && <em>✉️ 寄過了</em>}
               </button>
             ))}
           </div>
@@ -219,7 +220,7 @@ function Sort({ ph, set }: { ph: Extract<Phase, { at: 'sort' }>; set: (p: Phase)
 // 明信片：正面景點、背面四格摘要＋一句話
 function Card({ spot, msg, plan, stamped = false }: { spot: Spot; msg: string; plan: string; stamped?: boolean }) {
   return <div className="pc-post">
-    <div className="pc-front" style={{ background: spot.sky }}><Photo spot={spot} /><span>{spot.icon}</span><b>{spot.name}</b><small>來自臺灣・{spot.where}</small></div>
+    <div className="pc-front" style={{ background: spot.sky }}><Photo spot={spot} small /><span>{spot.icon}</span><b>{spot.name}</b><small>來自臺灣・{spot.where}</small></div>
     <div className="pc-note">
       <p className="pc-msg">{msg}</p>
       <p className="pc-plan">💡 {plan}</p>
