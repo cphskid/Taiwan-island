@@ -20,6 +20,7 @@ import { loadSky, pickSky, saveSky } from '../core/sky';
 import { loadIsles, pickIsles, saveIsles } from '../core/isles';
 import { loadPost, pickPost, savePost } from '../core/postcard';
 import { Gate } from './Gate';
+import { mark } from '../perf';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -45,9 +46,11 @@ export function App() {
     const gate = await canEnter();
     if (!gate.ok) setState({ step: 'blocked', reason: gate.reason ?? '現在還不能進來', needLogin: false });
     else {
+      mark('確認通行證');
       await syncSaves(who);
       // 登島前先把第一個畫面的圖讀完（進度條 10%～85%），最多等 8 秒，沒讀完的進去後再補
       await Promise.race([early, new Promise((ok) => setTimeout(ok, 8000))]);
+      mark('第一個畫面的圖下載好');
       // 大地圖還要把圖做成貼圖（85%～100%），地圖說好了才收起穿越畫面
       setState({ step: 'play', who, opening: first.map });
     }

@@ -16,7 +16,7 @@ import { Say } from './Talk';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
 import { Dive, Drum } from './VillageGames';
-import { holdWarm } from './warm';
+import { PlaceLoading, useImagesReady } from './Ready';
 
 // 現在篇「風與海的漁村」：開羅式建村經營。
 // 地圖可以拖、可以用兩指（或滑鼠滾輪、右下的＋－）縮放；第一次進來有新手教學帶著蓋三棟（時間先停著）。
@@ -39,7 +39,6 @@ export function Village({ onExit }: { onExit: () => void }) {
   const [speed, setSpeed] = useState<0 | 1 | 2>(1);
   const prog = useRef(0); // 這個月走了多少（0～1）：每格都在變，不放 state，免得整個村子每格重畫
   const bar = useRef<HTMLElement>(null);
-  const [ready, setReady] = useState(0); // 進場讀圖進度（0～1），1＝讀好了
   const [placing, setPlacing] = useState<Placing>(null);
   const [menu, setMenu] = useState(false);
   const [pick, setPick] = useState<number | null>(null);
@@ -52,6 +51,8 @@ export function Village({ onExit }: { onExit: () => void }) {
   const [restart, setRestart] = useState(false);
   const live = useRef(s);
   live.current = s;
+  // 進場：底圖、已經蓋好的建築、村民的圖先讀好才掀開
+  const ready = useImagesReady(() => villageImages(live.current), '漁村的圖讀好');
 
   const tut = s.tut < TUTORIAL.length ? TUTORIAL[s.tut] : null; // 教學中：這一步要蓋哪一棟
   const tutEnd = s.tut === TUTORIAL.length; // 三棟蓋完，最後一段說明
@@ -128,20 +129,6 @@ export function Village({ onExit }: { onExit: () => void }) {
   };
 
   // ── 時間 ──
-  // 進場：底圖、已經蓋好的建築、村民的圖先讀好（最多等 8 秒），背景預熱這時先停
-  useEffect(() => {
-    const urls = villageImages(live.current);
-    const release = holdWarm();
-    let done = 0, alive = true;
-    const one = (u: string) => new Promise<void>((ok) => {
-      const im = new Image();
-      im.src = u;
-      im.decode().catch(() => undefined).then(() => { done++; if (alive) setReady((r) => (r >= 1 ? r : Math.min(0.99, done / urls.length))); ok(); });
-    });
-    void Promise.race([Promise.all(urls.map(one)), new Promise((ok) => setTimeout(ok, 8000))]).then(() => { if (alive) setReady(1); release(); });
-    return () => { alive = false; release(); };
-  }, []);
-
   const endMonth = useRef(() => {});
   useEffect(() => {
     let raf = 0, last = performance.now();
@@ -458,13 +445,7 @@ export function Village({ onExit }: { onExit: () => void }) {
         </div>
       )}
 
-      {ready < 1 && (
-        <div className="boot v-loading">
-          <img src={`${import.meta.env.BASE_URL}img/tick/wave.webp`} alt="" />
-          <p>漁村準備中… {Math.round(ready * 100)}%</p>
-          <div className="boot-bar"><i style={{ width: `${Math.round(ready * 100)}%` }} /></div>
-        </div>
-      )}
+      <PlaceLoading pct={ready} label="漁村準備中" />
 
       {ready >= 1 && intro >= 0 && (
         <div className="talk-cover" onClick={() => {

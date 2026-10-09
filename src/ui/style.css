@@ -2736,8 +2736,12 @@ button.v-chip{cursor:pointer}
 .pc-front:has(.pc-photo) span{display:none}
 .pc-spot .pc-noimg,.pc-front .pc-noimg{display:none}
 @media (orientation:portrait) and (max-width:760px){.pc-scene{aspect-ratio:4/3.4}}
-/* 漁村進場讀圖：蓋在村子上面，讀好才掀開 */
-.village .v-loading{position:absolute;z-index:30}
+/* 地點進場讀圖（Ready.tsx）：蓋在地點上面，讀好才掀開 */
+.boot.place-loading{position:absolute;z-index:40}
+
+/* 讀取計時（?perf=1，src/perf.ts） */
+.perf-box { position: fixed; right: 6px; bottom: 6px; z-index: 9999; max-width: 70vw; padding: 6px 8px; border-radius: 6px;
+  background: rgba(0, 0, 0, 0.72); color: #fff; font: 12px/1.45 ui-monospace, Menlo, monospace; white-space: pre-wrap; pointer-events: none; }
 /* 天空港：拉線時目的地的「到達圈」（手機上地圖小，圈圈內放開就算到）、別的港口淡掉、出口名字往內寫 */
 .sky-svg .goal{fill:rgba(255,229,138,.18);stroke:#ffe58a;stroke-width:4;stroke-dasharray:10 8;vector-effect:non-scaling-stroke}
 .sky-svg .goal.on{fill:rgba(255,229,138,.45);stroke:#fff;stroke-dasharray:none}

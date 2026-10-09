@@ -8,6 +8,7 @@ import { pushCloud } from '../net/cloud';
 import { sfx } from '../audio';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
+import { PlaceLoading, useImagesReady } from './Ready';
 
 // 現在篇「天空港」：塔台小調度員。按住飛機或貨櫃輪，畫一條線拉到目的地；飛機能飛過陸地，船只能走海上。
 // 經過哪片海會念出名字；別國飛機飛過臺北飛航情報區要付過境費；同種交通工具靠太近算擦撞、颱風圈也危險。
@@ -20,6 +21,7 @@ const newGame = (lv: Level): Game => ({ lv, t: 0, next: 0.6, queue: 0, vs: [], h
 
 export function Sky({ onExit }: { onExit: () => void }) {
   const [s, setS] = useState<SkySave>(loadSky);
+  const ready = useImagesReady(() => [simg('map')]); // 東亞地圖先讀好才掀開
   useEffect(() => { saveSky(s); pushCloud('sky', s); }, [s]);
   const [intro, setIntro] = useState<{ lv: Level; i: number } | null>(null);
   const [g, setG] = useState<Game | null>(null);
@@ -161,6 +163,7 @@ export function Sky({ onExit }: { onExit: () => void }) {
 
   return (
     <div className="town sky">
+      <PlaceLoading pct={ready} label="天空港準備中" />
       <div className="t-stage">
         <div className="t-map sky-view" style={{ aspectRatio: `${vw} / ${vh}`, width: `min(100cqw, calc(100cqh * ${vw / vh}))` }}>
         <div className="sky-map" ref={map} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={() => setDraw(null)}
