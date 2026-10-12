@@ -202,7 +202,7 @@ export const RAIL_SAY = {
   steep: { who: 'liu', text: '太陡了！火車爬不上去。找高度差 1 以內的路。' } as Line,
   tunnels: { who: 'liu', text: '隧道已經用完了，不能再挖。' } as Line,
   bridges: { who: 'liu', text: '橋的材料用完了！只能過一次河。' } as Line,
-  rails: { who: 'chun', mood: 'worried', text: '鐵軌用完了，還沒接到臺北……要不要退回去，換一條比較短的路？' } as Line,
+  rails: { who: 'chun', mood: 'worried', text: '剩下的鐵軌不夠接到臺北了……要不要退回去，換一條比較短的路？' } as Line,
   hint: { who: 'tick', mood: 'thinking', text: '看看發光的那一格，從那裡走！' } as Line,
   good: { who: 'liu', text: '基隆和臺北接起來了！' } as Line,
 };

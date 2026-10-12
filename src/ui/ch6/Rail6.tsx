@@ -29,6 +29,8 @@ export function Rail6({ p, set, next, oops }: Step6Props) {
 
 const same = (a: Pt, b: Pt) => a.x === b.x && a.y === b.y;
 const H_NAME = ['', '平地', '小丘', '山坡', '高山'];
+// 下一步格子上的小牌子：會蓋成什麼、或為什麼不能鋪
+const NO_NAME: Record<string, string> = { tunnel: '挖隧道', bridge: '搭橋', steep: '太陡', tunnels: '沒隧道了', bridges: '沒橋了', rails: '鐵軌不夠' };
 
 function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: () => void }) {
   const lv = RAILS[way];
@@ -115,29 +117,33 @@ function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: ()
             const st = k >= 0 ? path[k] : null;
             const h = railH(lv, c);
             const near = !done && k < 0 && Math.abs(x - last.at.x) + Math.abs(y - last.at.y) === 1;
+            // 下一步可以點的格子先算好：鋪下去會變成鐵軌、橋、隧道，還是太陡不能鋪，直接標在格子上
+            const next = near ? railStep(lv, path, c) : null;
+            const nextOk = next !== null && typeof next !== 'string';
             const hint = sol?.some((s) => same(s.at, c)) && k < 0;
             const label = ch === 'K' ? '基隆' : ch === 'P' ? '臺北' : ch === '~' ? '河' : H_NAME[h];
+            const stn = ch === 'K' || ch === 'P';
             return (
-              <button key={`${x},${y}`} className={`rl rl-${ch === '~' ? 'river' : ch === 'K' || ch === 'P' ? 'stn' : `h${h}`} ${st ? `on ${st.kind}` : ''} ${near ? 'near' : ''} ${hint ? 'hint' : ''} ${bad && same(bad, c) ? 'bad' : ''}`}
+              <button key={`${x},${y}`} className={`rl rl-${ch === '~' ? 'river' : stn ? 'stn' : `h${h}`} ${st ? `on ${st.kind}` : ''} ${near ? (nextOk ? 'near' : 'near no') : ''} ${hint ? 'hint' : ''} ${bad && same(bad, c) ? 'bad' : ''}`}
                 onClick={() => tap(c)} aria-label={label}>
-                {(near || (k === path.length - 1 && !done)) && ch !== '~' && ch !== 'K' && ch !== 'P' && <i className="rl-h">{H_NAME[h]}<b>{h}</b></i>}
-                {near && ch === '~' && <i className="rl-h river">河</i>}
-                {(ch === 'K' || ch === 'P') && <><img className="rl-stn-img" src={art6('o-09-station')} alt="" /><b className="rl-tag">{label}</b></>}
+                {!stn && ch !== '~' && !st && <i className="rl-n">{h}</i>}
+                {near && !stn && (nextOk ? next.kind !== 'land' : true) && <i className={`rl-h ${nextOk ? next.kind : 'no'}`}>{NO_NAME[nextOk ? next.kind : next as string] ?? '不行'}</i>}
+                {stn && <><img className="rl-stn-img" src={art6('o-09-station')} alt="" /><b className="rl-tag">{label}</b></>}
                 {st?.kind === 'tunnel' && <img className="rl-icon" src={art6('g-07-tunnel')} alt="" />}
                 {st?.kind === 'bridge' && <img className="rl-icon" src={art6('g-07-bridge')} alt="" />}
               </button>
             );
           }))}
-          {!done && (() => { const g = railGoal(lv); return <Beacon style={{ left: `${((g.x + 0.5) / W) * 100}%`, top: `${((g.y + 0.5) / H) * 100}%` }} label="臺北：鋪到這裡" spot />; })()}
+          {!done && (() => { const g = railGoal(lv); return <Beacon style={{ left: `${((g.x + 0.5) / W) * 100}%`, top: `${((g.y + 0.5) / H) * 100}%` }} label="終點" spot small />; })()}
           {pos && <img className="ch6-loco" src={art6('o-09-loco')} alt="" style={{ left: `${((pos.x + 0.5) / W) * 100}%`, top: `${((pos.y + 0.5) / H) * 100}%` }} />}
         </div>
         <div className="ch6-rail-foot">
-          <span className="ch6-legend rl-legend">
-            {([['s-22', '1 平地'], ['t-hill', '2 小丘'], ['t-slope', '3 山坡'], ['t-rock', '4 高山'], ['t-river', '河']] as const).map(([img, t]) => (
-              <span key={img}><i style={{ backgroundImage: `url(${art6(img)})` }} />{t}</span>
-            ))}
-            <em>點已經鋪好的地方可以退回去</em>
-          </span>
+          <ol className="rl-how">
+            <li>從基隆開始，點旁邊<b>發亮</b>的格子，一格一格接到臺北</li>
+            <li>格子上的數字是高度，前後兩格最多差 1</li>
+            <li>太陡的山點下去會挖<b>隧道</b>，河會搭<b>橋</b></li>
+            <li>點鋪好的格子可以退回去</li>
+          </ol>
           <button className="btn orange" disabled={done || path.length < 2} onClick={() => { sfx('SE-02'); setPath(railBegin(lv)); setBad(null); }}>重鋪</button>
         </div>
       </div>

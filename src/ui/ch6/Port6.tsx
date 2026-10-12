@@ -63,7 +63,8 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
     sfx('SE-07');
     setPath([...path, c]);
   };
-  const go = () => {
+  const go = (path_ = path, tide_ = tide, boat_ = boat) => {
+    const path = path_, tide = tide_, boat = boat_;
     const v = sail(lv, path, tide, boat);
     sfx('SE-101');
     setStuck(null);
@@ -90,7 +91,13 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
     };
     setTimeout(tick, 380);
   };
-  const demo = () => { const s = riverSolve(lv)!; setTide(s.tide); setBoat(s.boat); setPath(s.path); setStuck(null); setBoatAt(null); };
+  // 看示範：把路線、潮水、船都擺好，直接開船給小朋友看（以前只擺好路線，還要自己找「開船！」，手機上會以為卡住）
+  const demo = () => {
+    if (going) return;
+    const s = riverSolve(lv)!;
+    setTide(s.tide); setBoat(s.boat); setPath(s.path); setStuck(null); setBoatAt(null); setSay(null);
+    go(s.path, s.tide, s.boat);
+  };
   const shown = boatAt === null ? null : path[Math.min(boatAt, path.length - 1)];
   // 第三關到了大稻埕就換成大帆船
   const tIdx = path.findIndex((q) => rch(lv, q) === 'T');
@@ -124,7 +131,7 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
           <small className="ch6-boat-rule">{BOAT_NAME[boat]}：水深要 {b.draft} 以上{b.narrow ? '，窄河道也能走' : '，進不了窄河道'}</small>
         </div>
         <RiverMap lv={lv} st={st} tide={tide} path={path} sol={sol?.path ?? null} stuck={stuck} nextOk={nextOk} tap={tap}
-          dest={dest && !going ? dest : null} boat={shown ? { at: shown, id: boatNow, left: boatLeft } : null} />
+          dest={dest} going={going} boat={shown ? { at: shown, id: boatNow, left: boatLeft } : null} />
         <div className="ch6-port-foot">
           <span className="ch6-legend">
             <i className="lg-d1" /><i className="lg-d2" /><i className="lg-d3" />水越深顏色越深（數字＝水深）
@@ -133,10 +140,10 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
             <img src={art6('o-11-mud')} alt="" />泥灘（漲潮會變深）
           </span>
           <button className="btn orange" disabled={going || path.length < 2} onClick={() => { sfx('SE-02'); setPath([start]); setStuck(null); setBoatAt(null); }}>重畫</button>
-          <button className={`btn green ${reached && !going ? 'ready' : ''}`} disabled={going || path.length < 2} onClick={go}>開船！</button>
+          <button className={`btn green ${reached && !going ? 'ready' : ''}`} disabled={going || path.length < 2} onClick={() => go()}>開船！</button>
         </div>
       </div>
-      {fails >= 5 && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 5 && <button className="btn demo corner-btn" disabled={going} onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );
@@ -151,9 +158,9 @@ const DEPTH_COL = ['#a9def6', '#6fbcec', '#3a90d6', '#2366b0'];
 const DOCK: Record<string, string> = { '山上的茶園': 'o-10-pier', '大稻埕': 'o-10-dadaocheng', '淡水港': 'o-10-tamsui', '艋舺': 'o-10-bangka' };
 const DECOR = ['o-11-tree', 'o-11-teabush', 'o-11-bamboo', 'o-11-house', 'o-11-tree', 'o-11-teabush'];
 
-function RiverMap({ lv, st, tide, path, sol, stuck, nextOk, tap, dest, boat }: {
+function RiverMap({ lv, st, tide, path, sol, stuck, nextOk, tap, dest, going, boat }: {
   lv: RiverStage['level']; st: RiverStage; tide: Tide; path: Pt[]; sol: Pt[] | null; stuck: number | null;
-  nextOk: (c: Pt) => boolean; tap: (c: Pt) => void; dest: Pt | null; boat: { at: Pt; id: Boat['id']; left: boolean } | null;
+  nextOk: (c: Pt) => boolean; tap: (c: Pt) => void; dest: Pt | null; going: boolean; boat: { at: Pt; id: Boat['id']; left: boolean } | null;
 }) {
   const H = lv.map.length, W = lv.map[0].length;
   const sd = seedOf(lv.map); // 每一關的樹、房子擺法不一樣
@@ -243,7 +250,7 @@ function RiverMap({ lv, st, tide, path, sol, stuck, nextOk, tap, dest, boat }: {
       <div className="rv-hit" style={{ gridTemplateColumns: `repeat(${W}, 1fr)`, gridTemplateRows: `repeat(${H}, 1fr)` }}>
         {cells.map((c) => <button key={`${c.x},${c.y}`} onClick={() => tap(c)} aria-label={CELL_NAME[rch(lv, c)] || (water(c) ? tagOf(rch(lv, c)) : '陸地')} />)}
       </div>
-      {dest && <Beacon style={pct(dest)} label={`${st.to}：船開到這裡`} spot />}
+      {dest && <Beacon style={{ ...pct(dest), visibility: going ? 'hidden' : undefined }} label={`${st.to}：船開到這裡`} spot />}
       {boat && <img className={`ch6-boat ${boat.id} ${boat.left ? 'left' : ''}`} src={BOAT_IMG[boat.id]} alt="" style={pct(boat.at)} />}
     </div>
   );

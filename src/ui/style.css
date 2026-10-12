@@ -3,6 +3,8 @@
   --f:"Noto Sans TC",system-ui,sans-serif;
 }
 *{box-sizing:border-box}
+/* 快速點兩下不要放大畫面（iPhone Safari / Chrome 的雙擊縮放）；兩指縮放照常。:where 不加權重，各元件自己寫的 touch-action:none 照樣有效 */
+:where(html,body,body *){touch-action:manipulation}
 html,body,#root{height:100%;margin:0}
 body{background:var(--sky);color:var(--ink);font-family:var(--f);overflow:hidden;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;user-select:none}
 .app{height:100%;display:flex;flex-direction:column}
@@ -1347,12 +1349,17 @@ img.flip{transform:scaleX(-1)}
 .rl.hint::before{opacity:1;background:radial-gradient(circle,#fff 0,rgba(255,255,255,.6) 40%,rgba(255,255,255,0) 70%);animation:blink .7s ease-in-out infinite alternate}
 .rl.bad::before{opacity:1;background:radial-gradient(circle,rgba(230,60,50,.85) 0,rgba(230,60,50,.4) 45%,rgba(230,60,50,0) 70%);animation:shake .25s linear 2}
 @keyframes rl-glow{from{transform:scale(.85)}to{transform:scale(1.05)}}
-.rl-h{position:absolute;left:50%;top:6%;translate:-50% 0;display:flex;align-items:center;gap:3px;padding:0 6px 0 7px;border-radius:10px;background:rgba(255,250,235,.95);border:2px solid #8a5a32;font-style:normal;font-weight:900;font-size:13px;line-height:18px;white-space:nowrap;color:#5a3412;box-shadow:0 2px 0 rgba(90,52,18,.35);z-index:3;pointer-events:none}
-.rl-h b{display:inline-block;min-width:16px;height:16px;border-radius:50%;background:#8a5a32;color:#fff;font-size:12px;line-height:16px;text-align:center}
-.rl-h.river{background:#e6f5ff;border-color:#2f7fc2;color:#1d5a8a}
+/* 每格的高度數字；下一步可以鋪的格子數字變大、綠框，不能鋪的變暗、打叉 */
+.rl-n{position:absolute;left:50%;top:50%;translate:-50% -50%;min-width:22px;height:22px;padding:0 3px;border-radius:11px;background:rgba(255,250,235,.72);border:2px solid rgba(138,90,50,.55);color:#5a3412;font-style:normal;font-weight:900;font-size:13px;line-height:18px;text-align:center;pointer-events:none;z-index:3}
+.rl.near .rl-n{min-width:28px;height:28px;line-height:24px;font-size:17px;background:#fffbe8;border:3px solid #3f9a3a;box-shadow:0 0 0 3px rgba(255,236,150,.8),0 2px 0 rgba(0,0,0,.25)}
+.rl.near.no .rl-n{border-color:#b33;background:rgba(255,235,230,.92);box-shadow:none;color:#933}
+.rl.near.no::before{opacity:.55;background:radial-gradient(circle,rgba(200,60,50,.45) 0,rgba(200,60,50,0) 70%);animation:none}
+.rl-h{position:absolute;left:50%;bottom:2%;translate:-50% 0;padding:0 4px;border-radius:8px;background:#fffbe8;border:2px solid #3f9a3a;font-style:normal;font-weight:900;font-size:13px;line-height:16px;white-space:nowrap;color:#2d6a28;box-shadow:0 2px 0 rgba(0,0,0,.25);z-index:4;pointer-events:none}
+.rl-h.bridge{border-color:#2f7fc2;color:#1d5a8a;background:#e6f5ff}
+.rl-h.no{border-color:#b33;color:#933;background:#fff0ec}
+.rl-how{margin:0;padding:0 0 0 20px;font-size:14px;line-height:1.4;color:#5a3412;flex:1 1 260px}
+.rl-how b{color:#b5651d}
 .ch6-legend em{font-style:normal;margin-left:8px}
-.rl-legend>span{display:inline-flex;align-items:center;white-space:nowrap}
-.ch6-rail-foot .ch6-legend i{background-size:240% auto;background-position:center;border-radius:50%}
 .rl-lay image{filter:saturate(1.05)}
 .rl-stn-img{position:absolute;inset:4%;width:92%;height:92%;object-fit:contain;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35));pointer-events:none}
 .rl-tag{position:absolute;left:50%;bottom:2px;translate:-50% 0;background:rgba(255,248,230,.95);border:2px solid var(--wood-2);border-radius:8px;padding:0 6px;font-size:13px;white-space:nowrap;z-index:1}
@@ -2287,6 +2294,8 @@ button.v-chip{cursor:pointer}
 
 /* 手機橫拿（矮螢幕）：解謎的圖照高度放到最大，按鈕收到旁邊一欄；左上留給收起來的 🎯 目標鈕 */
 @media (max-height:600px) and (min-width:561px){
+  /* 矮螢幕（手機橫拿）：看示範移到左邊那排（🎯 小鈕下面），不要蓋到右下角的「開船！」「重鋪」 */
+  .corner-btn{left:4px;right:auto;top:104px;bottom:auto;min-width:0;width:52px;min-height:52px;padding:2px;font-size:13px;line-height:1.2;white-space:normal}
   .ch3-route{padding:6px 8px 6px 56px;gap:8px}
   .ch3-chart{height:min(100%,calc((100vw - 270px) * 7 / 10));max-width:calc(100% - 196px);border-width:4px}
   .ch3-helm{width:188px;padding:6px 8px;gap:5px;max-height:100%;overflow-y:auto}
@@ -2320,12 +2329,13 @@ button.v-chip{cursor:pointer}
   .ch6-rail-wrap{padding:6px 8px 6px 56px}
   .ch6-rail-board{display:grid;grid-template-columns:auto minmax(150px,200px);grid-template-rows:minmax(0,1fr) auto;align-items:center;gap:6px 10px;width:auto;max-width:100%;height:100%;padding:8px}
   .ch6-rail-grid{grid-column:1;grid-row:1/3;width:min(calc((100dvh - 80px) * var(--ar,1.5)),calc(100vw - 300px));margin:0}
-  .ch6-rail-foot .ch6-legend{display:grid;grid-template-columns:1fr 1fr;gap:2px 4px}
-  .ch6-rail-foot .ch6-legend em{grid-column:1/-1;font-style:normal}
-  .ch6-rail-bar{grid-column:2;grid-row:1;flex-direction:column;align-items:flex-start;gap:4px;align-self:start}
+  .rl-how{font-size:13px;line-height:1.3;padding-left:16px;flex-basis:100%}
+  .ch6-rail-wrap .say{left:auto;right:10px;top:52px;bottom:auto;max-width:min(260px,34vw)}
+  .ch6-rail-bar{grid-column:2;grid-row:1;display:grid;grid-template-columns:auto auto;align-items:center;gap:2px 8px;align-self:start;font-size:14px}
+  .ch6-rail-bar span:first-child,.ch6-rail-bar small{grid-column:1/-1}
+  .ch6-rail-bar img{width:28px;height:22px}
   .ch6-rail-bar small{margin-left:0}
   .ch6-rail-foot{grid-column:2;grid-row:2}
-  .ch6-rail-foot .ch6-legend{font-size:13px;line-height:1.3}
   .ch6-rail-foot .btn{flex:1;min-width:0}
 
   .ch7-pipe-wrap{padding:6px 8px 6px 56px;align-items:center}
