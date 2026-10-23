@@ -180,6 +180,7 @@ function DriftLevelView({ lv, onPass }: { lv: DriftLevel; onPass: () => void }) 
   const [anim, setAnim] = useState<{ leg: Leg; i: number } | null>(null);
   const [result, setResult] = useState<Outcome | null>(null);
   const [fails, setFails] = useState(0);
+  const [nudge, setNudge] = useState<Line | null>(null); // 還沒選季節就按出航：滴答提醒
   const demo = useRef<Season[] | null>(null);
 
   const reset = () => { setBoat(lv.start); setTrail([lv.start]); setLegs(0); setResult(null); setAnim(null); };
@@ -254,18 +255,18 @@ function DriftLevelView({ lv, onPass }: { lv: DriftLevel; onPass: () => void }) 
         <b>天氣羅盤</b>
         <div className="compass-dial">
           {SEASONS.map((s) => (
-            <button key={s} className={`season-btn ${s} ${season === s ? 'on' : ''} ${suggest === s ? 'suggest' : ''}`} disabled={busy || !!result} onClick={() => { sfx('SE-01'); setSeason(s); }}>
+            <button key={s} className={`season-btn ${s} ${season === s ? 'on' : ''} ${suggest === s ? 'suggest' : ''}`} disabled={busy || !!result} onClick={() => { sfx('SE-01'); setSeason(s); setNudge(null); }}>
               <span>{SEASON_INFO[s].icon}</span>{SEASON_INFO[s].name}<small>{SEASON_INFO[s].wind}</small>
             </button>
           ))}
         </div>
         <div className="row">
-          <button className="btn green" disabled={!season || busy || !!result} onClick={() => go()}>出航</button>
+          <button className={`btn green ${season ? 'go-ready' : 'wait'}`} disabled={busy || !!result} onClick={() => season ? go() : (sfx('SE-04'), setNudge({ who: 'tick', mood: 'thinking', text: '先在天氣羅盤上點一個季節，看風往哪裡吹，再按出航！' }))}>出航</button>
           <button className="btn orange" disabled={busy} onClick={reset}>重來</button>
           {fails >= DEMO_AT && <button className="btn demo" disabled={busy} onClick={startDemo}>看示範</button>}
         </div>
       </div>
-      {!result && <Say line={say} />}
+      {!result && <Say line={nudge ?? say} />}
       {result && (
         <div className={`result ${result === 'arrived' ? 'ok' : ''}`}>
           <p>{OUTCOME_TEXT[result]}</p>

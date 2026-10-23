@@ -137,7 +137,7 @@ function FireBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
         <div className="fire-foot">
           <span>還有 <b>{left}</b> 捆柴</span>
           <span className="fire-legend">每一面要 {HEAT_MIN}～{HEAT_MAX} 分</span>
-          <button className="btn green" disabled={left > 0 || burn === 'ok'} onClick={light}>點火！</button>
+          <button className={`btn green ${left > 0 ? 'wait' : 'go-ready'}`} disabled={burn === 'ok'} onClick={() => left > 0 ? (sfx('SE-04'), setSay({ who: 'yan', mood: 'thinking', text: `還有 ${left} 捆柴沒放！點陶罐旁邊的格子把柴堆上去，放完才能點火。` })) : light()}>點火！</button>
         </div>
         {burn === 'ok' && <p className="yes big">燒好了！四面都是漂亮的紅褐色。</p>}
       </div>

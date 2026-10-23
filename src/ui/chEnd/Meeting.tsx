@@ -105,7 +105,7 @@ function Lot({ oops, onDone }: { oops: () => void; onDone: () => void }) {
         })}
         <div className="end-lot-foot">
           {res && <span className={res.everyone ? 'ok' : res.passed ? 'mid' : 'bad'}>贊成 {res.yes.length} / {GROUPS.length}{res.passed ? '（過半數）' : '（沒過半數）'}</span>}
-          <button className="btn green" disabled={!full || passed} onClick={tryVote}>試投票</button>
+          <button className={`btn green ${full ? 'go-ready' : 'wait'}`} disabled={passed} onClick={() => full ? tryVote() : (sfx('SE-04'), setSay({ who: 'chair', text: `還有 ${plan.filter((u) => u === null).length} 塊空地沒決定，每一塊都點一下換成公園、停車場或市場，才能投票喔。` }))}>試投票</button>
         </div>
       </div>
       {fails >= 5 && !passed && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}

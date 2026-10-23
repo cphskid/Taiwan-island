@@ -180,7 +180,7 @@ function Schedule({ onDone, oops, night }: { onDone: () => void; oops: () => voi
         <div className="ch6-tea-foot">
           <small>{run ? (run.ok ? `第 ${run.end} 小時全部烘好！` : run.moldy.length ? `有 ${run.moldy.length} 批茶等太久，發霉了` : `烘到第 ${run.end} 小時，天已經黑了`) : '點茶葉排順序，再點「開工！」看一天怎麼過'}</small>
           <button className="btn orange" disabled={!order.length || !!run?.ok} onClick={() => { sfx('SE-02'); setOrder([]); setRun(null); }}>重排</button>
-          <button className="btn green" disabled={!!left.length || !!run} onClick={start}>開工！</button>
+          <button className={`btn green ${left.length ? 'wait' : 'go-ready'}`} disabled={!!run} onClick={() => left.length ? (sfx('SE-04'), setSay({ who: 'chun', mood: 'thinking', text: `還有 ${left.length} 批茶沒排進去喔！把每一批都點進順序裡，才能開工。` })) : start()}>開工！</button>
         </div>
       </div>
       {fails >= 5 && !run?.ok && <button className="btn demo corner-btn" onClick={() => { setOrder(good); setRun(null); }}>看示範</button>}

@@ -15,7 +15,7 @@ import type { Cell } from '../core/iso';
 // 標記放在 position:relative 的容器裡（.board-wrap、.art-frame），不擋點擊。
 
 // 目標條只放一行短句：第一個「。」前面那句。後面的規則說明點一下才展開。
-// floating 的目標條 6 秒後自己縮成 🎯 小圓鈕，不擋遊戲畫面；點一下再打開，目標換了也會自己打開。
+// floating 的目標條 6 秒後（或一點遊戲畫面）自己縮成 🎯 小圓鈕，不擋遊戲畫面；點一下再打開，目標換了也會自己打開。
 const FOLD_MS = 6000;
 export function Goal({ text, floating }: { text: string; floating?: boolean }) {
   const cut = text.indexOf('。');
@@ -23,12 +23,16 @@ export function Goal({ text, floating }: { text: string; floating?: boolean }) {
   const more = short.length < text.replace(/。$/, '').length;
   const [open, setOpen] = useState(false); // 展開完整說明
   const [folded, setFolded] = useState(false); // 縮成小圓鈕
+  const me = useRef<HTMLDivElement>(null);
   useEffect(() => {
     setFolded(false);
     setOpen(false);
     if (!floating) return;
     const t = setTimeout(() => setFolded(true), FOLD_MS);
-    return () => clearTimeout(t);
+    // 小朋友已經開始點遊戲畫面了，目標條就先收起來，不要擋住上面那排格子（手機橫拿時特別容易擋到）
+    const away = (e: PointerEvent) => { if (!me.current?.contains(e.target as Node)) setFolded(true); };
+    document.addEventListener('pointerdown', away);
+    return () => { clearTimeout(t); document.removeEventListener('pointerdown', away); };
   }, [text, floating]);
   const tap = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -37,7 +41,7 @@ export function Goal({ text, floating }: { text: string; floating?: boolean }) {
     else if (floating) setFolded(true);
   };
   return (
-    <div className={`quest ${floating ? 'floating' : ''} ${folded ? 'folded' : ''} ${open ? 'open' : ''}`} onClick={tap}
+    <div ref={me} className={`quest ${floating ? 'floating' : ''} ${folded ? 'folded' : ''} ${open ? 'open' : ''}`} onClick={tap}
       role="button" aria-label={folded ? '打開目標' : '目標'}>
       <i>🎯</i>
       {!folded && <span key={text}>{open ? text : short}</span>}

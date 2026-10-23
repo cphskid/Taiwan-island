@@ -19,16 +19,26 @@ export function Rules({ p, set, next, oops }: Step2Props) {
   const [fails, setFails] = useState(0);
   const [say, setSay] = useState<Line | null>(null);
   const busy = sim !== null && shown < sim.years.length;
+  const left = 3 - on.length;
+  // 目標條跟著進度變（變了會自己再打開）
+  const goal = busy ? '照著規矩過日子中…'
+    : sim?.ok ? '五年都過得很好！'
+    : !on.length ? '點 3 條規矩，看看照著過 5 年會怎樣。小米每年要夠吃，鹿也不能變少。'
+    : left > 0 ? `已經選 ${on.length} 條，再點 ${left} 條規矩。小米每年要夠吃，鹿也不能變少。`
+    : sim ? '換掉一條規矩再試試看。點選好的規矩可以取消。'
+    : '選好了！按下面的「照這三條過五年」。';
+  const nudge = (text: string) => { sfx('SE-04'); setSay({ who: 'ani', mood: 'thinking', text }); };
 
   const toggle = (id: RuleId) => {
     if (busy || sim?.ok) return;
     setSim(null); setSay(null);
     if (on.includes(id)) { sfx('SE-02'); setOn(on.filter((x) => x !== id)); return; }
-    if (on.length >= 3) { sfx('SE-04'); return; }
+    if (on.length >= 3) { nudge('只能選 3 條規矩喔。想換的話，先點一下選好的那條取消。'); return; }
     sfx('SE-07');
     setOn([...on, id]);
   };
   const go = () => {
+    if (left > 0) { nudge(`要選滿 3 條規矩才能試，還要再點 ${left} 條喔！`); return; }
     const r = simulate(on, ROT, DEER);
     setSim(r); setShown(0); setSay(null);
     sfx('SE-09');
@@ -48,12 +58,13 @@ export function Rules({ p, set, next, oops }: Step2Props) {
       {phase === 'intro' && <Talk lines={RULES_INTRO} onDone={() => setPhase('pick')} />}
       {phase === 'pick' && (
         <div className="rules-wrap">
-          <Goal floating text={`選 3 條規矩，看看照著過 5 年會怎樣`} />
+          <Goal floating text={goal} />
           <div className="rules panel">
             <div className="rule-list">
-              {RULES.map((r) => (
+              {RULES.map((r, k) => (
                 <button key={r.id} className={`rule ${on.includes(r.id) ? 'on' : ''} ${fails >= 3 && r.good ? 'hint' : ''}`} onClick={() => toggle(r.id)}>
                   <i>{on.includes(r.id) ? '✔' : ''}</i>{r.text}
+                  {!on.length && !sim && !fails && k === 0 && <em className="tap-me" aria-hidden>👆</em>}
                 </button>
               ))}
             </div>
@@ -69,7 +80,7 @@ export function Rules({ p, set, next, oops }: Step2Props) {
                 );
               })}
             </div>
-            <button className="btn green" disabled={on.length !== 3 || busy || !!sim?.ok} onClick={go}>照這三條過五年</button>
+            <button className={`btn green ${left > 0 || sim ? 'wait' : 'go-ready'}`} disabled={busy || !!sim?.ok} onClick={go}>照這三條過五年</button>
           </div>
           <Say line={say} />
         </div>

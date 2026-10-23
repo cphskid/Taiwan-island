@@ -54,7 +54,7 @@ function Decode({ oops, onDone }: { oops: () => void; onDone: () => void }) {
     <div className="ch3-deed-wrap">
       <Goal floating text="猜出三個不認得的方向字。查單字表，再讀讀下面的句子。" />
       <div className="ch3-deed panel">
-        <div className="ch3-deed-head"><h3>📜 社裡的契約</h3><button className="btn green" disabled={!all || won} onClick={() => check()}>讀讀看</button></div>
+        <div className="ch3-deed-head"><h3>📜 社裡的契約</h3><button className={`btn green ${all ? 'go-ready' : 'wait'}`} disabled={won} onClick={() => all ? check() : (sfx('SE-04'), setSay({ who: 'uma', text: `還有 ${UNKNOWN.filter((w) => !guess[w]).length} 個字沒猜。每個不認得的字，都在下面點一個方向。` }))}>讀讀看</button></div>
         <ol className="ch3-contract">
           {DEED.map((l, i) => (
             <li key={i}>{l.words.map((w, k) => (
