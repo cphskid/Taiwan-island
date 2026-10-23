@@ -13,6 +13,7 @@ import { load7, pickProgress7, save7 } from '../core/save7';
 import { load3, pickProgress3, save3 } from '../core/save3';
 import { loadEnd, pickProgressEnd, saveEnd } from '../core/saveEnd';
 import { loadCloud } from '../net/cloud';
+import { playlogOn } from '../net/playlog';
 import { loadMedals, mergeMedals, saveMedals } from '../core/medals';
 import { loadVillage, pickVillage, saveVillage } from '../core/village';
 import { loadTown, pickTown, saveTown } from '../core/town';
@@ -49,6 +50,7 @@ export function App() {
     else {
       mark('確認通行證');
       await syncSaves(who);
+      if (who.kind === 'student') playlogOn();
       // 登島前先把第一個畫面的圖讀完（進度條 10%～85%），最多等 8 秒，沒讀完的進去後再補
       await Promise.race([early, new Promise((ok) => setTimeout(ok, 8000))]);
       mark('第一個畫面的圖下載好');
