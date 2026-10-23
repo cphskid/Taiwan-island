@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
  * 是因為**測試站要讀正式站那一份**：兩邊一比，測試站多出來的版本就是「待發布」，
  * 不用有人記得另外維護一張清單。
  */
-interface Entry { version: string; date: string; title: string; items: string[] }
+interface Entry { version: string; date: string; title: string; items: string[]; thanks?: string[] } // thanks：建議被採用的學生暱稱
 
 const STAGING = import.meta.env.MODE === 'staging';
 const BASE = import.meta.env.BASE_URL;
@@ -100,6 +100,7 @@ function Version({ e }: { e: Entry }) {
     <div className="cl-ver">
       <div className="cl-head"><b>v{short(e.version)}</b> {e.title}<small>{e.date}</small></div>
       <ul>{e.items.map((t, i) => <li key={i}>{t}</li>)}</ul>
+      {!!e.thanks?.length && <p className="cl-thanks">💡 謝謝 {e.thanks.join('、')} 的建議！</p>}
     </div>
   );
 }
