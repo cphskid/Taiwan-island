@@ -48,6 +48,9 @@ const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString('zh-TW'
 const starText = (n: number) => '★'.repeat(n) + '☆'.repeat(3 - n);
 const ABC = 'ABCD';
 
+// 答對率紅黃綠：80% 以上綠、60~79% 黃、不到 60% 紅（先看紅的）
+const tone = (pct: number | null) => (pct === null ? 'none' : pct >= 80 ? 'good' : pct >= 60 ? 'mid' : 'bad');
+
 // 一章的狀態，給家長看的一句話
 function chapterLine(ch: ChapterReport, r: ProgressRow | undefined): string {
   if (!r) return '還沒玩';
@@ -188,6 +191,7 @@ function ClassView({ kids, byKid, onPick, posts }: { kids: Kid[]; byKid: Map<str
   const avg = played.length ? played.reduce((s, k) => s + cleared(k), 0) / played.length : 0;
   // 有在玩的排前面
   const order = [...kids].sort((a, b) => lastOf(b) - lastOf(a) || a.nickname.localeCompare(b.nickname, 'zh-TW'));
+  const [openAll, setOpenAll] = useState(false);
 
   return (
     <>
@@ -234,8 +238,13 @@ function ClassView({ kids, byKid, onPick, posts }: { kids: Kid[]; byKid: Map<str
 
       <section className="panel tp-sec">
         <h2>每一章：上課可以討論的地方</h2>
-        <p className="tp-note">每章最後有三題「想一想」。下面是全班答對多少、答錯的人最常選哪個，和正確答案的理由。</p>
-        {PAST_REPORTS.map((c) => <ChapterClass key={c.slot} ch={c} kids={kids} byKid={byKid} />)}
+        <p className="tp-note">每章最後有三題「想一想」。點一章打開，看全班答對多少、答錯的人最常選哪個，和正確答案的理由。</p>
+        <p className="tp-legend">
+          <span className="tp-pct good">80% 以上</span><span className="tp-pct mid">60～79%</span><span className="tp-pct bad">不到 60%</span>
+          <span>＝全班「想一想」答對率，紅色的先看。</span>
+          <button className="tp-link" onClick={() => setOpenAll((o) => !o)}>{openAll ? '全部收起' : '全部展開'}</button>
+        </p>
+        {PAST_REPORTS.map((c) => <ChapterClass key={`${c.slot}-${openAll}`} ch={c} kids={kids} byKid={byKid} open={openAll} />)}
       </section>
 
       <section className="panel tp-sec">
@@ -260,7 +269,7 @@ function ClassView({ kids, byKid, onPick, posts }: { kids: Kid[]; byKid: Map<str
   );
 }
 
-function ChapterClass({ ch, kids, byKid }: { ch: ChapterReport; kids: Kid[]; byKid: Map<string, Slots> }) {
+function ChapterClass({ ch, kids, byKid, open }: { ch: ChapterReport; kids: Kid[]; byKid: Map<string, Slots>; open: boolean }) {
   // 換成 classReport 吃的格式（每個人一列，沒玩過 step=null）
   const rows: DetailRow[] = kids.map((k) => {
     const r = byKid.get(k.id)?.get(ch.slot);
@@ -270,9 +279,18 @@ function ChapterClass({ ch, kids, byKid }: { ch: ChapterReport; kids: Kid[]; byK
   const rep = classReport(rows, ch.questions.map((q) => q.answer), ch.questions.map((q) => q.options.length));
   const withMiss = rows.filter((r) => r.step !== null);
   const avgMiss = withMiss.length ? withMiss.reduce((s, r) => s + r.broken, 0) / withMiss.length : 0;
+  // 收起來也看得到：三題合起來的答對率、平均失誤
+  const answered = rep.questions.reduce((s, q) => s + q.answered, 0);
+  const right = rep.questions.reduce((s, q) => s + q.right, 0);
+  const all = answered ? Math.round((100 * right) / answered) : null;
   return (
-    <details className="tp-ch" open={rep.played > 0 && rep.questions.some((q) => q.answered > 0)}>
-      <summary><b>{ch.title}</b><span>{rep.played ? `${rep.done} 人過關、${rep.played - rep.done} 人還在玩` : '還沒有人玩'}</span></summary>
+    <details className={`tp-ch ${tone(all)}`} open={open}>
+      <summary>
+        <b>{ch.title}</b>
+        <span className={`tp-pct ${tone(all)}`}>{all === null ? '還沒有人作答' : `答對 ${all}%`}</span>
+        <span>{rep.played ? `${rep.done} 人過關、${rep.played - rep.done} 人還在玩` : '還沒有人玩'}</span>
+        {rep.played > 0 && <span>平均失誤 {avgMiss.toFixed(1)} 次</span>}
+      </summary>
       {ch.goals ? <ul className="tp-goals">{ch.goals.map((g) => <li key={g}>{g}</li>)}</ul>
         : <p className="tp-note">這章在學：{ch.steps.slice(1, -1).join('、')}。</p>}
       {rep.played > 0 && <p className="tp-note">途中平均失誤 {avgMiss.toFixed(1)} 次（{ch.mistakes}加起來；3 次以內多一顆星）。</p>}
@@ -282,7 +300,7 @@ function ChapterClass({ ch, kids, byKid }: { ch: ChapterReport; kids: Kid[]; byK
         return (
           <div key={q.q} className="tp-q">
             <p><b>想一想 {i + 1}：{q.q}</b></p>
-            <div className="tp-meter"><i style={{ width: `${pct ?? 0}%` }} /></div>
+            <div className={`tp-meter ${tone(pct)}`}><i style={{ width: `${pct ?? 0}%` }} /></div>
             <p className="tp-q-line">
               {s.answered ? `${s.answered} 人作答，答對 ${pct}%` : '還沒有人作答'}
               {s.commonWrong !== null && <>；答錯的人最常選「{q.options[s.commonWrong]}」（{s.picks[s.commonWrong]} 人）</>}
