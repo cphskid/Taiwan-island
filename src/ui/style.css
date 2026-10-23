@@ -891,6 +891,10 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .rot-foot .rot-sum img,.meat img,.deer-n img,.deer-end img,.sim-year img{width:30px;height:30px;object-fit:contain}
 .rot-log{display:flex;gap:6px}
 .rot-log em{font-style:normal;background:#e9fbe6;border-radius:10px;padding:2px 8px;font-weight:700;font-size:13px}
+.rot-foot .btn.off{opacity:.55;filter:grayscale(.4)}
+.rot-foot .btn.ready{box-shadow:0 0 0 3px #ffe066,0 0 16px #ffb02e;animation:pulse .6s ease-in-out infinite alternate}
+.plot .tap-me{position:absolute;left:50%;bottom:-6px;font-size:34px;font-style:normal;pointer-events:none;animation:tap-me 1s ease-in-out infinite}
+@keyframes tap-me{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-10px)}}
 .rot-rule{margin:0;text-align:center;font-size:14px;color:#7a5a3a;font-weight:700}
 
 .hunt-board{padding:12px 16px;display:flex;flex-direction:column;gap:10px;width:min(820px,100%)}

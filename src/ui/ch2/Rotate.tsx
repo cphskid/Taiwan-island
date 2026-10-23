@@ -35,18 +35,30 @@ function Fields({ onDone, oops }: { onDone: () => void; oops: () => void }) {
   const [fails, setFails] = useState(0);
   const [demo, setDemo] = useState(false);
   const [say, setSay] = useState<Line | null>(null);
+  const [tip, setTip] = useState(false); // 現在的對話框是「還差幾塊」這種小提醒：選了田就收起來
+  const nudge = (text: string) => { sfx('SE-04'); setTip(true); setSay({ who: 'ani', mood: 'thinking', text }); };
   const plan = fails >= 3 || demo ? rotSolve({ ...ROT, start: fert, years: ROT.years - year }) : null;
   const sum = pick.reduce((a, i) => a + fert[i], 0);
+  const left = ROT.plotsPerYear - pick.length;
+  // 目標條跟著進度變（變了會自己再打開）：還沒選 → 選了幾塊 → 選滿了按「種下去」
+  const goal = reaping ? `第 ${year + 1} / ${ROT.years} 年：小米長大中…`
+    : !pick.length ? `第 ${year + 1} / ${ROT.years} 年：點 ${ROT.plotsPerYear} 塊田來種小米。收成要有 ${ROT.need} 份。`
+    : left > 0 ? `已經選 ${pick.length} 塊，再點 ${left} 塊田。收成要有 ${ROT.need} 份。`
+    : `選好了！按下面的「種下去，等收成」。`;
 
   const tap = (i: number) => {
     if (reaping) return;
-    if (pick.includes(i)) { sfx('SE-02'); setPick(pick.filter((x) => x !== i)); return; }
-    if (pick.length >= ROT.plotsPerYear) { sfx('SE-04'); return; }
+    if (pick.includes(i)) { if (tip) { setTip(false); setSay(null); } sfx('SE-02'); setPick(pick.filter((x) => x !== i)); return; }
+    if (pick.length >= ROT.plotsPerYear) { nudge(`一年最多種 ${ROT.plotsPerYear} 塊。想換的話，先點一下選好的田取消。`); return; }
+    if (tip) { setTip(false); setSay(null); }
     sfx('SE-07');
     setPick([...pick, i]);
   };
   const restart = () => { setFert(ROT.start); setYear(0); setPick([]); setLog([]); };
   const reap = () => {
+    // 還沒選滿就按：說還差幾塊，不要安安靜靜沒反應
+    if (left > 0) { nudge(`一年要種 ${ROT.plotsPerYear} 塊田，還要再點 ${left} 塊喔！點田就是選它來種。`); return; }
+    setTip(false);
     const r = farmYear(ROT, fert, pick);
     setReaping(true);
     sfx('SE-36');
@@ -70,7 +82,7 @@ function Fields({ onDone, oops }: { onDone: () => void; oops: () => void }) {
   };
   return (
     <div className="rot-wrap">
-      <Goal floating text={`第 ${year + 1} / ${ROT.years} 年：挑 ${ROT.plotsPerYear} 塊田種小米，收成要有 ${ROT.need} 份`} />
+      <Goal floating text={goal} />
       <div className="rot-board panel">
         <div className="plots">
           {fert.map((f, i) => {
@@ -82,6 +94,7 @@ function Fields({ onDone, oops }: { onDone: () => void; oops: () => void }) {
                 <b>{f}</b>
                 {ROT.steep.includes(i) && <small className="steep-tag">陡坡</small>}
                 {on && !reaping && <img className="seed" src={art2('g-04-seeds')} alt="" />}
+                {!year && !pick.length && !log.length && !fails && i === 0 && <i className="tap-me" aria-hidden>👆</i>}
               </button>
             );
           })}
@@ -90,7 +103,7 @@ function Fields({ onDone, oops }: { onDone: () => void; oops: () => void }) {
           <span className={`rot-sum ${sum >= ROT.need ? 'ok' : ''}`}><img src={art2('g-04-millet')} alt="" /> 今年會收 <b>{sum}</b> / {ROT.need}</span>
           <span className="rot-log">{log.map((h, k) => <em key={k}>第{k + 1}年 {h}</em>)}</span>
           <button className="btn orange" disabled={reaping || (!year && !pick.length)} onClick={() => { sfx('SE-02'); restart(); setSay(null); }}>重來</button>
-          <button className="btn green" disabled={pick.length !== ROT.plotsPerYear || reaping} onClick={reap}>種下去，等收成</button>
+          <button className={`btn green ${left > 0 ? 'off' : 'ready'}`} disabled={reaping} onClick={reap}>種下去，等收成</button>
         </div>
         <p className="rot-rule">種的田：收成＝數字，種完少 1（陡坡少 2）。休息的田：多 1，最多 {ROT.max}。</p>
       </div>
