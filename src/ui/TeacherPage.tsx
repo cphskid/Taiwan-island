@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { db, PARK_URL, whoAmI, type Who } from '../net/park';
-import { classDetail, classPostcards, myClasses, type ClassInfo, type PostRow } from '../net/teacher';
+import { classDetail, classPostcards, classProgress, myClasses, type ClassInfo, type PostRow, type ProgressRow } from '../net/teacher';
 import { SPOTS } from '../data/postcard';
 import { classReport, toCsv, type DetailRow } from '../core/report';
-import { CARD_ORDER, QUESTIONS } from '../data/babao-chapter';
-import { STEPS } from '../core/save';
+import { NOW_REPORTS, PAST_REPORTS, type ChapterReport } from '../data/report';
 import { BOOK1, BOOK2, BOOK3, BOOK4, BOOK5, BOOK6, BOOK7, BOOK_END, type Book } from './Album';
 import { FACTS } from '../data/prologue';
 import { TRUTH1 } from '../data/ch1';
@@ -19,17 +18,22 @@ import { TRUTH_END } from '../data/chEnd';
 const BASE = import.meta.env.BASE_URL;
 
 // 沒接資料庫（本機 npm run dev）或網址加 ?demo 時，用假的一班給人看畫面
-const DEMO: DetailRow[] = [
-  { student_id: '1', nickname: '小明', step: 5, stars: 3, done: true, done_at: '2026-10-01T03:20:00Z', updated_at: '2026-10-01T03:21:00Z', broken: 0, answers: [0, 1, 2], cards: 12 },
-  { student_id: '2', nickname: '小華', step: 5, stars: 2, done: true, done_at: '2026-10-01T03:25:00Z', updated_at: '2026-10-01T03:26:00Z', broken: 2, answers: [0, 1, 0], cards: 11 },
-  { student_id: '3', nickname: '阿寶', step: 5, stars: 1, done: true, done_at: '2026-10-01T03:30:00Z', updated_at: '2026-10-01T03:30:00Z', broken: 3, answers: [1, 1, 0], cards: 10 },
-  { student_id: '4', nickname: '小美', step: 3, stars: 0, done: false, done_at: null, updated_at: '2026-10-01T03:10:00Z', broken: 1, answers: [], cards: 7 },
-  { student_id: '5', nickname: '大雄', step: null, stars: null, done: null, done_at: null, updated_at: null, broken: 0, answers: [], cards: 0 },
+const DEMO_KIDS = [{ id: '1', nickname: '小明' }, { id: '2', nickname: '小華' }, { id: '3', nickname: '阿寶' }, { id: '4', nickname: '大雄' }];
+const at = '2026-10-20T03:20:00Z';
+const done = (student_id: string, slot: string, stars: number, answers: number[], mistakes: number): ProgressRow =>
+  ({ student_id, slot, step: 6, stars, done: true, clears: 1, n: 12, answers, mistakes, updated_at: at });
+const DEMO_PROGRESS: ProgressRow[] = [
+  { student_id: '1', slot: 'world', step: 0, stars: 0, done: false, clears: 0, n: 1, answers: [], mistakes: null, updated_at: at },
+  done('1', 'ch1', 3, [0, 1, 2], 1), done('1', 'ch2', 2, [1, 2, 1], 2), done('1', 'ch5', 3, [0, 1, 2], 0),
+  { student_id: '1', slot: 'ch3', step: 3, stars: 0, done: false, clears: 0, n: 5, answers: [], mistakes: 4, updated_at: at },
+  { student_id: '1', slot: 'town', step: 0, stars: 0, done: false, clears: 0, n: 6, answers: [], mistakes: null, updated_at: at },
+  { student_id: '2', slot: 'world', step: 0, stars: 0, done: false, clears: 0, n: 1, answers: [], mistakes: null, updated_at: at },
+  done('2', 'ch1', 1, [1, 1, 0], 7), done('2', 'ch5', 2, [0, 0, 2], 2),
+  { student_id: '3', slot: 'world', step: 0, stars: 0, done: false, clears: 0, n: 1, answers: [], mistakes: null, updated_at: at },
+  { student_id: '3', slot: 'ch1', step: 2, stars: 0, done: false, clears: 0, n: 3, answers: [], mistakes: 2, updated_at: at },
 ];
-
 const DEMO_POST: PostRow[] = [
   { student_id: '1', nickname: '小明', sent: [{ spot: 'taroko', plan: SPOTS[0].plans[0].text, msg: '來太魯閣記得戴安全帽！', at: '2026-10-01T03:40:00Z' }] },
-  { student_id: '2', nickname: '小華', sent: [{ spot: 'market', plan: SPOTS[3].plans[0].text, msg: '夜市的雞排超好吃，記得自備餐具', at: '2026-10-01T03:45:00Z' }] },
 ];
 
 type State =
@@ -37,19 +41,44 @@ type State =
   | { at: 'denied'; why: string }
   | { at: 'ready'; classes: ClassInfo[]; demo: boolean };
 
-const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—');
+interface Kid { id: string; nickname: string }
+type Slots = Map<string, ProgressRow>; // 一個學生：存檔格 → 那一格
 
-// 島嶼開拓者自己的老師細節頁：樂園教師入口「全班總覽」點進來，看第五章每個人玩到哪、反思題答得怎樣
+const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—');
+const starText = (n: number) => '★'.repeat(n) + '☆'.repeat(3 - n);
+const ABC = 'ABCD';
+
+// 一章的狀態，給家長看的一句話
+function chapterLine(ch: ChapterReport, r: ProgressRow | undefined): string {
+  if (!r) return '還沒玩';
+  if (r.done) return `過關 ${starText(r.stars)}`;
+  return `玩到第 ${Math.min(r.step, 6)}／6 步「${ch.steps[Math.min(r.step, ch.steps.length - 1)]}」`;
+}
+
+// 一章的「想一想」：這個孩子答錯哪幾題
+function wrongOf(ch: ChapterReport, r: ProgressRow | undefined) {
+  if (!r) return [];
+  return ch.questions.flatMap((q, i) => {
+    const a = r.answers[i];
+    return a !== undefined && a !== null && a >= 0 && a !== q.answer ? [{ q, i, picked: a }] : [];
+  });
+}
+
+// 島嶼開拓者自己的老師細節頁（也給家長看）：樂園教師入口「全班總覽」的「細節頁」點進來。
+// 上面是全班（進度表、每章反思題哪一題最多人錯），點孩子的名字看他一個人的白話報告。
+// 要畫哪些章、哪些地方，照 src/data/report.ts 的清單，新章節加在那裡就好。
 export function TeacherPage() {
   const [state, setState] = useState<State>({ at: 'loading' });
   const [code, setCode] = useState<string>(() => new URLSearchParams(location.search).get('class')?.toUpperCase() ?? '');
-  const [rows, setRows] = useState<DetailRow[] | null>(null);
+  const [kids, setKids] = useState<Kid[] | null>(null);
+  const [progress, setProgress] = useState<ProgressRow[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [posts, setPosts] = useState<PostRow[]>([]);
+  const [kid, setKid] = useState<string>(() => new URLSearchParams(location.search).get('kid') ?? '');
 
   useEffect(() => {
     (async () => {
-      if (!db || location.search.includes('demo')) { setState({ at: 'ready', classes: [{ code: 'DEMO01', name: '示範班（假資料）', members: DEMO.length, facilities: [] }], demo: true }); setCode('DEMO01'); return; }
+      if (!db || location.search.includes('demo')) { setState({ at: 'ready', classes: [{ code: 'DEMO01', name: '示範班（假資料）', members: DEMO_KIDS.length, facilities: [] }], demo: true }); setCode('DEMO01'); return; }
       const who: Who = await whoAmI();
       if (who.kind !== 'staff') { setState({ at: 'denied', why: who.kind === 'student' ? '這一頁是給老師和家長看的。' : '請先在樂園的教師入口登入。' }); return; }
       try {
@@ -62,13 +91,23 @@ export function TeacherPage() {
 
   useEffect(() => {
     if (state.at !== 'ready' || !code) return;
-    setRows(null);
-    setErr(null);
-    setPosts([]);
-    if (state.demo) { setRows(DEMO); setPosts(DEMO_POST); return; }
-    classDetail(code).then(setRows, (e: Error) => setErr(e.message));
+    setKids(null); setProgress(null); setErr(null); setPosts([]);
+    if (state.demo) { setKids(DEMO_KIDS); setProgress(DEMO_PROGRESS); setPosts(DEMO_POST); return; }
+    // 名單用第五章那份（班上每個人都有一列，沒玩過的也在）
+    classDetail(code).then((rows: DetailRow[]) => setKids(rows.map((r) => ({ id: r.student_id, nickname: r.nickname }))), (e: Error) => setErr(e.message));
+    classProgress(code).then((p) => (p ? setProgress(p) : setErr('資料庫還沒裝新版的細節頁函式（island_class_progress），請管理員套用 supabase/island_pioneer.sql。')));
     classPostcards(code).then(setPosts);
   }, [code, state.at]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 學生 → 存檔格
+  const byKid = useMemo(() => {
+    const m = new Map<string, Slots>();
+    for (const r of progress ?? []) {
+      if (!m.has(r.student_id)) m.set(r.student_id, new Map());
+      m.get(r.student_id)!.set(r.slot, r);
+    }
+    return m;
+  }, [progress]);
 
   const parkTeacher = PARK_URL ? `${PARK_URL}teacher.html` : null;
   if (state.at === 'loading') return <div className="tp"><p className="tp-note">讀取中…</p></div>;
@@ -79,13 +118,29 @@ export function TeacherPage() {
   );
 
   const cls = state.classes.find((c) => c.code === code);
-  const rep = rows ? classReport(rows, QUESTIONS.map((q) => q.answer), QUESTIONS.map((q) => q.options.length)) : null;
+  const ready = kids && progress;
+  const picked = kids?.find((k) => k.id === kid) ?? null;
+  const pick = (id: string) => {
+    setKid(id);
+    const u = new URL(location.href);
+    if (id) u.searchParams.set('kid', id); else u.searchParams.delete('kid');
+    history.replaceState(null, '', u);
+    window.scrollTo(0, 0);
+  };
+
   const exportCsv = () => {
-    if (!rows) return;
-    const head = ['暱稱', '玩到', '過關', '星星', '竹蛇籠被沖壞', ...QUESTIONS.map((_, i) => `想一想 ${i + 1}`), '圖鑑', '最後遊玩'];
-    const body = rows.map((r) => [r.nickname, r.step === null ? '還沒開始' : STEPS[Math.min(6, r.step)], r.done ? '是' : '', r.stars ?? '', r.broken,
-      ...QUESTIONS.map((q, i) => (r.answers[i] === undefined || r.answers[i] < 0 ? '' : r.answers[i] === q.answer ? '對' : `錯（選${'ABC'[r.answers[i]]}）`)),
-      `${r.cards}/${CARD_ORDER.length}`, when(r.updated_at)]);
+    if (!kids) return;
+    const head = ['暱稱', '序章', ...PAST_REPORTS.map((c) => c.title), ...PAST_REPORTS.map((c) => `${c.title} 想一想答錯`), ...PAST_REPORTS.map((c) => `${c.title} 失誤`), ...NOW_REPORTS.map((p) => p.title), '最後遊玩'];
+    const body = kids.map((k) => {
+      const s = byKid.get(k.id) ?? new Map();
+      const last = [...s.values()].map((r) => r.updated_at).sort().pop() ?? null;
+      return [k.nickname, s.get('world')?.n ? '玩完' : '',
+        ...PAST_REPORTS.map((c) => (s.get(c.slot) ? chapterLine(c, s.get(c.slot)) : '')),
+        ...PAST_REPORTS.map((c) => wrongOf(c, s.get(c.slot)).map((w) => `第${w.i + 1}題選${ABC[w.picked]}`).join('、')),
+        ...PAST_REPORTS.map((c) => s.get(c.slot)?.mistakes ?? ''),
+        ...NOW_REPORTS.map((p) => { const r = s.get(p.slot); return r ? (p.total ? p.unit(r.n) : r.done ? '完成' : '玩過') : ''; }),
+        when(last)];
+    });
     const url = URL.createObjectURL(new Blob([toCsv(head, body)], { type: 'text/csv' }));
     const a = document.createElement('a');
     a.href = url;
@@ -99,107 +154,254 @@ export function TeacherPage() {
       <Head parkTeacher={parkTeacher} />
       <div className="tp-bar">
         <label>班級
-          <select value={code} onChange={(e) => setCode(e.target.value)}>
+          <select value={code} onChange={(e) => { setCode(e.target.value); pick(''); }}>
             {state.classes.map((c) => <option key={c.code} value={c.code}>{c.name || c.code}（{c.members} 人）</option>)}
           </select>
         </label>
+        {kids && kids.length > 0 && (
+          <label>看
+            <select value={picked?.id ?? ''} onChange={(e) => pick(e.target.value)}>
+              <option value="">全班</option>
+              {kids.map((k) => <option key={k.id} value={k.id}>{k.nickname} 的報告</option>)}
+            </select>
+          </label>
+        )}
         {cls && !state.demo && !cls.facilities.includes('island_pioneer') && <span className="tp-warn">這個班還沒開放島嶼開拓者，請到樂園教師入口勾選。</span>}
         {state.demo && <span className="tp-warn">這是示範用的假資料。</span>}
-        <button className="btn green small" onClick={exportCsv} disabled={!rows}>匯出 CSV</button>
+        <button className="btn green small" onClick={exportCsv} disabled={!ready}>匯出 CSV</button>
       </div>
       {!state.classes.length && <p className="tp-note">你還沒有開班。請先到樂園教師入口開班。</p>}
       {err && <p className="tp-error">{err}</p>}
-      {rep && rows && (
-        <>
-          <section className="tp-cards">
-            <div className="tp-stat"><b>{rep.done}</b><span>/ {rep.total} 人過關</span></div>
-            <div className="tp-stat"><b>{rep.played - rep.done}</b><span>人還在玩</span></div>
-            <div className="tp-stat"><b>{rep.notStarted}</b><span>人還沒開始</span></div>
-            <div className="tp-stat"><b>{rep.avgStars.toFixed(1)}</b><span>過關的平均星星</span></div>
-          </section>
+      {ready && !picked && <ClassView kids={kids} byKid={byKid} onPick={pick} posts={posts} />}
+      {ready && picked && <KidReport kid={picked} slots={byKid.get(picked.id) ?? new Map()} posts={posts.find((p) => p.student_id === picked.id)} onBack={() => pick('')} />}
+      {ready && <Sources />}
+    </div>
+  );
+}
 
-          <section className="panel tp-sec">
-            <h2>反思題：上課可以討論的地方</h2>
-            {QUESTIONS.map((q, i) => {
-              const s = rep.questions[i];
-              const pct = s.answered ? Math.round((100 * s.right) / s.answered) : null;
-              return (
-                <div key={q.q} className="tp-q">
-                  <p><b>{i + 1}. {q.q}</b></p>
-                  <div className="tp-meter"><i style={{ width: `${pct ?? 0}%` }} /></div>
-                  <p className="tp-q-line">
-                    {s.answered ? `${s.answered} 人作答，答對 ${pct}%` : '還沒有人作答'}
-                    {s.commonWrong !== null && <>；答錯的人最常選「{q.options[s.commonWrong]}」（{s.picks[s.commonWrong]} 人）</>}
-                  </p>
-                  <p className="tp-why">正確答案：{q.options[q.answer]}。{q.why}</p>
-                </div>
-              );
-            })}
-          </section>
+// ---------- 全班 ----------
+function ClassView({ kids, byKid, onPick, posts }: { kids: Kid[]; byKid: Map<string, Slots>; onPick: (id: string) => void; posts: PostRow[] }) {
+  const week = Date.now() - 7 * 86400e3;
+  const lastOf = (k: Kid) => Math.max(0, ...[...(byKid.get(k.id)?.values() ?? [])].map((r) => new Date(r.updated_at).getTime()));
+  const cleared = (k: Kid) => PAST_REPORTS.filter((c) => byKid.get(k.id)?.get(c.slot)?.done).length;
+  const played = kids.filter((k) => byKid.has(k.id));
+  const avg = played.length ? played.reduce((s, k) => s + cleared(k), 0) / played.length : 0;
+  // 有在玩的排前面
+  const order = [...kids].sort((a, b) => lastOf(b) - lastOf(a) || a.nickname.localeCompare(b.nickname, 'zh-TW'));
 
-          <section className="panel tp-sec">
-            <h2>每個人</h2>
-            <div className="tp-table-wrap">
-              <table className="tp-table">
-                <thead><tr><th>暱稱</th><th>玩到</th><th>星星</th><th>竹蛇籠被沖壞</th>{QUESTIONS.map((_, i) => <th key={i}>想 {i + 1}</th>)}<th>圖鑑</th><th>最後遊玩</th></tr></thead>
-                <tbody>
-                  {rows.map((r) => (
-                    <tr key={r.student_id} className={r.step === null ? 'idle' : ''}>
-                      <td>{r.nickname}</td>
-                      <td>{r.step === null ? '還沒開始' : r.done ? '過關' : STEPS[Math.min(6, r.step)]}</td>
-                      <td className="tp-st">{r.done ? '★'.repeat(r.stars ?? 0) + '☆'.repeat(3 - (r.stars ?? 0)) : ''}</td>
-                      <td>{r.step === null ? '' : r.broken}</td>
-                      {QUESTIONS.map((q, i) => {
-                        const a = r.answers[i];
-                        return <td key={i} className={a === undefined || a < 0 ? '' : a === q.answer ? 'ok' : 'no'}>{a === undefined || a < 0 ? '' : a === q.answer ? '○' : `✕ ${'ABC'[a]}`}</td>;
-                      })}
-                      <td>{r.step === null ? '' : `${r.cards}/${CARD_ORDER.length}`}</td>
-                      <td>{when(r.updated_at)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="tp-note">「竹蛇籠被沖壞」越多，代表導水時常常正面硬擋，可以請他說說「導」和「擋」的差別。星星：過關、竹蛇籠沒被沖壞、想一想全對各一顆。</p>
-          </section>
+  return (
+    <>
+      <section className="tp-cards">
+        <div className="tp-stat"><b>{played.length}</b><span>/ {kids.length} 人玩過</span></div>
+        <div className="tp-stat"><b>{kids.filter((k) => lastOf(k) > week).length}</b><span>人最近 7 天有玩</span></div>
+        <div className="tp-stat"><b>{avg.toFixed(1)}</b><span>章：玩過的人平均過了幾章（共 {PAST_REPORTS.length} 章）</span></div>
+      </section>
 
-          <section className="panel tp-sec">
-            <h2>這一章在教什麼</h2>
-            <ul className="tp-goals">
-              <li>清領時期移民開墾彰化平原，需要水利才能種稻（施世榜、林先生與八堡圳）。</li>
-              <li>水往低處流：看等高線找出圳道路線，理解圳頭為什麼開在上游的二水。</li>
-              <li>用竹蛇籠「導」水比正面「擋」水有效。</li>
-              <li>分水協商：「平均」和「公平」不一樣；開圳前這片土地已經有巴布薩族人生活。</li>
-            </ul>
-            <p className="tp-note">圖鑑卡與章末「真的是這樣嗎？」的出處，整理在下面的「內容出處」；學生畫面不顯示出處，免得像在讀課本。如有和課本不一致的地方，請回報給管理員。</p>
-          </section>
+      <section className="panel tp-sec">
+        <h2>全班進度</h2>
+        <p className="tp-note">★ 是過關拿到的星星；「3/6」是還在玩、走到第幾步。點名字看那個孩子的白話報告（可以給家長看）。</p>
+        <div className="tp-table-wrap">
+          <table className="tp-table tp-grid">
+            <thead><tr><th>暱稱</th><th>序章</th>{PAST_REPORTS.map((c) => <th key={c.slot} title={c.title}>{c.title.split(' ')[0]}</th>)}
+              {NOW_REPORTS.map((p) => <th key={p.slot} className="now">{p.title}</th>)}<th>最後遊玩</th></tr></thead>
+            <tbody>
+              {order.map((k) => {
+                const s = byKid.get(k.id);
+                const last = lastOf(k);
+                return (
+                  <tr key={k.id} className={s ? '' : 'idle'}>
+                    <td><button className="tp-link" onClick={() => onPick(k.id)}>{k.nickname}</button></td>
+                    <td>{s?.get('world')?.n ? '✓' : ''}</td>
+                    {PAST_REPORTS.map((c) => {
+                      const r = s?.get(c.slot);
+                      const wrong = wrongOf(c, r).length;
+                      return <td key={c.slot} className={r?.done ? 'tp-st' : r ? 'mid' : ''} title={r ? `${chapterLine(c, r)}${wrong ? `，想一想錯 ${wrong} 題` : ''}` : ''}>
+                        {r ? (r.done ? starText(r.stars) : `${Math.min(r.step, 6)}/6`) : ''}{wrong ? <sup className="no">✕{wrong}</sup> : null}</td>;
+                    })}
+                    {NOW_REPORTS.map((p) => {
+                      const r = s?.get(p.slot);
+                      return <td key={p.slot} className="now">{r ? (p.total ? `${r.n}/${p.total}` : r.done ? '✓' : '玩過') : ''}</td>;
+                    })}
+                    <td>{last ? when(new Date(last).toISOString()) : '還沒玩'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="tp-note">「✕2」＝那一章章末的「想一想」答錯 2 題，點名字看錯在哪。</p>
+      </section>
 
-          {posts.length > 0 && (
-            <section className="panel tp-sec">
-              <h2>現在篇：學生寄出的明信片</h2>
-              <p className="tp-note">學生挑一個景點，收集特色、歷史、政府怎麼維護、遇到的問題，再選一個對策、寫一句話給遊客。可以挑幾張上課分享。</p>
-              <div className="tp-table-wrap">
-                <table className="tp-table">
-                  <thead><tr><th>暱稱</th><th>景點</th><th>寫給遊客的話</th><th>選的辦法</th><th>寄出</th></tr></thead>
-                  <tbody>
-                    {posts.flatMap((r) => r.sent.map((x) => (
-                      <tr key={`${r.student_id}-${x.spot}`}>
-                        <td>{r.nickname}</td>
-                        <td>{SPOTS.find((s) => s.id === x.spot)?.name ?? x.spot}</td>
-                        <td style={{ textAlign: 'left' }}>{x.msg}</td>
-                        <td style={{ textAlign: 'left' }}>{x.plan}</td>
-                        <td>{when(x.at)}</td>
-                      </tr>
-                    )))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          )}
+      <section className="panel tp-sec">
+        <h2>每一章：上課可以討論的地方</h2>
+        <p className="tp-note">每章最後有三題「想一想」。下面是全班答對多少、答錯的人最常選哪個，和正確答案的理由。</p>
+        {PAST_REPORTS.map((c) => <ChapterClass key={c.slot} ch={c} kids={kids} byKid={byKid} />)}
+      </section>
 
-          <Sources />
-        </>
+      <section className="panel tp-sec">
+        <h2>現在篇</h2>
+        <div className="tp-table-wrap">
+          <table className="tp-table">
+            <thead><tr><th>地方</th><th>在學什麼</th><th>玩過</th></tr></thead>
+            <tbody>{NOW_REPORTS.map((p) => <tr key={p.slot}><td><b>{p.title}</b></td><td style={{ whiteSpace: 'normal' }}>{p.what}</td>
+              <td>{kids.filter((k) => byKid.get(k.id)?.has(p.slot)).length} 人</td></tr>)}</tbody>
+          </table>
+        </div>
+      </section>
+
+      {posts.length > 0 && (
+        <section className="panel tp-sec">
+          <h2>現在篇：學生寄出的明信片</h2>
+          <p className="tp-note">學生挑一個景點，收集特色、歷史、政府怎麼維護、遇到的問題，再選一個對策、寫一句話給遊客。可以挑幾張上課分享。</p>
+          <Postcards rows={posts} />
+        </section>
       )}
+    </>
+  );
+}
+
+function ChapterClass({ ch, kids, byKid }: { ch: ChapterReport; kids: Kid[]; byKid: Map<string, Slots> }) {
+  // 換成 classReport 吃的格式（每個人一列，沒玩過 step=null）
+  const rows: DetailRow[] = kids.map((k) => {
+    const r = byKid.get(k.id)?.get(ch.slot);
+    return { student_id: k.id, nickname: k.nickname, step: r ? r.step : null, stars: r?.stars ?? null, done: r?.done ?? null,
+      done_at: null, updated_at: r?.updated_at ?? null, broken: r?.mistakes ?? 0, answers: r?.answers ?? [], cards: r?.n ?? 0 };
+  });
+  const rep = classReport(rows, ch.questions.map((q) => q.answer), ch.questions.map((q) => q.options.length));
+  const withMiss = rows.filter((r) => r.step !== null);
+  const avgMiss = withMiss.length ? withMiss.reduce((s, r) => s + r.broken, 0) / withMiss.length : 0;
+  return (
+    <details className="tp-ch" open={rep.played > 0 && rep.questions.some((q) => q.answered > 0)}>
+      <summary><b>{ch.title}</b><span>{rep.played ? `${rep.done} 人過關、${rep.played - rep.done} 人還在玩` : '還沒有人玩'}</span></summary>
+      {ch.goals ? <ul className="tp-goals">{ch.goals.map((g) => <li key={g}>{g}</li>)}</ul>
+        : <p className="tp-note">這章在學：{ch.steps.slice(1, -1).join('、')}。</p>}
+      {rep.played > 0 && <p className="tp-note">途中平均失誤 {avgMiss.toFixed(1)} 次（{ch.mistakes}加起來；3 次以內多一顆星）。</p>}
+      {ch.questions.map((q, i) => {
+        const s = rep.questions[i];
+        const pct = s.answered ? Math.round((100 * s.right) / s.answered) : null;
+        return (
+          <div key={q.q} className="tp-q">
+            <p><b>想一想 {i + 1}：{q.q}</b></p>
+            <div className="tp-meter"><i style={{ width: `${pct ?? 0}%` }} /></div>
+            <p className="tp-q-line">
+              {s.answered ? `${s.answered} 人作答，答對 ${pct}%` : '還沒有人作答'}
+              {s.commonWrong !== null && <>；答錯的人最常選「{q.options[s.commonWrong]}」（{s.picks[s.commonWrong]} 人）</>}
+            </p>
+            <p className="tp-why">正確答案：{q.options[q.answer]}。{q.why}</p>
+          </div>
+        );
+      })}
+    </details>
+  );
+}
+
+// ---------- 一個孩子（家長看得懂） ----------
+function KidReport({ kid, slots, posts, onBack }: { kid: Kid; slots: Slots; posts?: PostRow; onBack: () => void }) {
+  const cleared = PAST_REPORTS.filter((c) => slots.get(c.slot)?.done);
+  const playing = PAST_REPORTS.filter((c) => slots.has(c.slot) && !slots.get(c.slot)!.done);
+  const places = NOW_REPORTS.filter((p) => slots.has(p.slot));
+  const last = [...slots.values()].filter((r) => r.slot !== 'world').sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0];
+  const lastName = last ? (PAST_REPORTS.find((c) => c.slot === last.slot)?.title ?? NOW_REPORTS.find((p) => p.slot === last.slot)?.title) : null;
+  const wrongs = PAST_REPORTS.flatMap((c) => wrongOf(c, slots.get(c.slot)).map((w) => ({ ...w, ch: c })));
+  const answered = PAST_REPORTS.reduce((s, c) => s + (slots.get(c.slot)?.answers.filter((a) => a >= 0).length ?? 0), 0);
+  const slips = PAST_REPORTS.filter((c) => (slots.get(c.slot)?.mistakes ?? 0) > 3);
+
+  return (
+    <>
+      <section className="panel tp-sec tp-kid">
+        <button className="tp-link" onClick={onBack}>‹ 回全班</button>
+        <h2>{kid.nickname} 的學習報告</h2>
+        {slots.size === 0 ? <p>還沒開始玩島嶼開拓者。</p> : (
+          <p className="tp-sum">
+            過去篇過了 <b>{cleared.length}／{PAST_REPORTS.length}</b> 章{playing.length > 0 && <>，正在玩 {playing.map((c) => c.title).join('、')}</>}。
+            {places.length > 0 && <>現在篇去過 {places.map((p) => p.title).join('、')}。</>}
+            {lastName && <>最後玩的是「{lastName}」（{when(last.updated_at)}）。</>}
+            {answered > 0 && <>章末「想一想」答了 {answered} 題，答對 {answered - wrongs.length} 題。</>}
+          </p>
+        )}
+      </section>
+
+      {(wrongs.length > 0 || slips.length > 0) && (
+        <section className="panel tp-sec">
+          <h2>可以陪他再想想的地方</h2>
+          {wrongs.map((w) => (
+            <div key={`${w.ch.slot}-${w.i}`} className="tp-q">
+              <p className="tp-ch-tag">{w.ch.title}・想一想 {w.i + 1}</p>
+              <p><b>{w.q.q}</b></p>
+              <p className="no">他選了：{w.q.options[w.picked]}</p>
+              <p className="ok">正確是：{w.q.options[w.q.answer]}</p>
+              <p className="tp-why">為什麼：{w.q.why}</p>
+            </div>
+          ))}
+          {slips.map((c) => (
+            <div key={c.slot} className="tp-q">
+              <p className="tp-ch-tag">{c.title}・途中的挑戰</p>
+              <p>失誤了 <b>{slots.get(c.slot)!.mistakes}</b> 次（{c.mistakes}加起來）。3 次以內可以多拿一顆星，可以請他說說哪裡卡住，或陪他從頭再玩一次。</p>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {slots.size > 0 && (
+        <section className="panel tp-sec">
+          <h2>每一章</h2>
+          <div className="tp-table-wrap">
+            <table className="tp-table">
+              <thead><tr><th>章節</th><th>進度</th><th>想一想</th><th>途中失誤</th><th>圖鑑</th><th>最後玩</th></tr></thead>
+              <tbody>
+                <tr className={slots.get('world')?.n ? '' : 'idle'}><td>序章 認識臺灣</td><td>{slots.get('world')?.n ? '玩完' : '還沒玩完'}</td><td /><td /><td /><td /></tr>
+                {PAST_REPORTS.map((c) => {
+                  const r = slots.get(c.slot);
+                  const got = r?.answers.filter((a) => a >= 0).length ?? 0;
+                  const wrong = wrongOf(c, r).length;
+                  return (
+                    <tr key={c.slot} className={r ? '' : 'idle'}>
+                      <td>{c.title}</td>
+                      <td className={r?.done ? 'tp-st' : ''}>{chapterLine(c, r)}</td>
+                      <td className={got ? (wrong ? 'no' : 'ok') : ''}>{got ? (wrong ? `錯 ${wrong} 題` : `${got} 題全對`) : ''}</td>
+                      <td>{r?.mistakes ?? ''}</td>
+                      <td>{r ? `${r.n}/${c.cards}` : ''}</td>
+                      <td>{r ? when(r.updated_at) : ''}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="tp-note">星星：過關一顆、途中失誤 3 次以內一顆、「想一想」全對一顆。</p>
+        </section>
+      )}
+
+      {places.length > 0 && (
+        <section className="panel tp-sec">
+          <h2>現在篇</h2>
+          <ul className="tp-goals">
+            {places.map((p) => { const r = slots.get(p.slot)!; return <li key={p.slot}><b>{p.title}</b>：{p.total ? p.unit(r.n) : r.done ? '完成' : '玩過'}。{p.what}。</li>; })}
+          </ul>
+          {posts && posts.sent.length > 0 && <Postcards rows={[posts]} />}
+        </section>
+      )}
+    </>
+  );
+}
+
+function Postcards({ rows }: { rows: PostRow[] }) {
+  return (
+    <div className="tp-table-wrap">
+      <table className="tp-table">
+        <thead><tr><th>暱稱</th><th>景點</th><th>寫給遊客的話</th><th>選的辦法</th><th>寄出</th></tr></thead>
+        <tbody>
+          {rows.flatMap((r) => r.sent.map((x) => (
+            <tr key={`${r.student_id}-${x.spot}`}>
+              <td>{r.nickname}</td>
+              <td>{SPOTS.find((s) => s.id === x.spot)?.name ?? x.spot}</td>
+              <td style={{ textAlign: 'left' }}>{x.msg}</td>
+              <td style={{ textAlign: 'left' }}>{x.plan}</td>
+              <td>{when(x.at)}</td>
+            </tr>
+          )))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -213,6 +415,7 @@ function Sources() {
   return (
     <section className="panel tp-sec">
       <h2>內容出處</h2>
+      <p className="tp-note">圖鑑卡與章末「真的是這樣嗎？」的出處；學生畫面不顯示出處，免得像在讀課本。如有和課本不一致的地方，請回報給管理員。</p>
       <details className="tp-src">
         <summary>序章 認識臺灣（知識小卡）</summary>
         <ul>{Object.values(FACTS).map((f) => <li key={f.title}><b>{f.title}</b>：{f.source}</li>)}</ul>
@@ -234,7 +437,7 @@ function Head({ parkTeacher }: { parkTeacher: string | null }) {
   return (
     <header className="top">
       {parkTeacher && <a className="park-btn" href={parkTeacher}><img src={`${BASE}img/park.webp`} alt="" /><span>樂園教師入口</span></a>}
-      <h1>穿越吧！島嶼開拓者｜老師細節頁</h1>
+      <h1>穿越吧！島嶼開拓者｜老師・家長細節頁</h1>
     </header>
   );
 }

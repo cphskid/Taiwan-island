@@ -101,8 +101,22 @@ grant execute on function public.island_save(text, jsonb) to authenticated;
 
 -- -----------------------------------------------------------------------------
 -- 2. 樂園「全班總覽」那一欄（欄位跟 guardian_class_summary 一樣固定）
---    進度：第五章 6 步，過關＝100。之後章節多了改成「過了幾章」。
+--    進度：過去篇八章（一～七章、終章）過了幾章；狀態寫最後玩的是哪一章或哪個地方。
+--    （2026-10-23 前只看第五章，學生玩別章會顯示「還沒開始」）
 -- -----------------------------------------------------------------------------
+-- 存檔格的名字（老師看的）
+create or replace function public.island_slot_label(p_slot text)
+returns text language sql immutable set search_path = public, pg_temp as $$
+  select case p_slot
+    when 'ch1' then '第一章 島嶼的第一道火光' when 'ch2' then '第二章 山林與部落'
+    when 'ch3' then '第三章 大航海時代' when 'ch4' then '第四章 東寧屯田'
+    when 'ch5' then '第五章 八堡圳' when 'ch6' then '第六章 開港與鐵路'
+    when 'ch7' then '第七章 縱貫與大圳' when 'end' then '終章 今天的島嶼'
+    when 'village' then '風與海的漁村' when 'town' then '規則小鎮' when 'sky' then '天空港'
+    when 'isles' then '離島巡航' when 'post' then '景點明信片' when 'world' then '大地圖'
+    else p_slot end;
+$$;
+
 create or replace function public.island_class_summary(p_code text)
 returns table (student_id uuid, progress int, last_played timestamptz,
                status text, attention boolean, reason text)
@@ -113,33 +127,82 @@ language sql stable security definer set search_path = public, pg_temp as $$
       from public.park_class_members m join target t on t.code = m.class_code
      where public.is_teacher_of(t.code)
   ),
-  ch as (
-    select k.id, s.step, s.stars, s.done, s.updated_at as at
-      from kids k left join public.island_saves s on s.student_id = k.id and s.slot = 'ch5'
+  agg as (
+    select k.id,
+           count(*) filter (where s.done and s.slot in ('ch1','ch2','ch3','ch4','ch5','ch6','ch7','end')) as cleared,
+           max(s.updated_at) as at
+      from kids k left join public.island_saves s on s.student_id = k.id
+     group by k.id
   ),
-  last_at as (
-    select k.id, max(s.updated_at) as at
-      from kids k left join public.island_saves s on s.student_id = k.id group by k.id
+  -- 最後玩的那一格（大地圖、勳章那兩格一動就存，不算）
+  latest as (
+    select distinct on (k.id) k.id, s.slot, s.step, s.done, s.stars, s.updated_at as at
+      from kids k join public.island_saves s on s.student_id = k.id
+     where s.slot not in ('world', 'medals')
+     order by k.id, s.updated_at desc
   )
-  select c.id,
-         case when c.done then 100 else least(99, round(100.0 * coalesce(c.step, 0) / 6))::int end,
-         l.at,
+  select a.id,
+         round(100.0 * a.cleared / 8)::int,
+         a.at,
          case
-           when c.step is null then '還沒開始'
-           when c.done then '第五章八堡圳完成 ' || repeat('★', c.stars) || repeat('☆', 3 - c.stars)
-           else '第五章八堡圳：玩到「' || (array['開場', '認識地形', '做竹蛇籠', '導水', '分水', '豐收'])[least(c.step, 5) + 1] || '」'
+           when a.at is null then '還沒開始'
+           when l.slot is null then '看過大地圖，還沒進任何一章'
+           else '過了 ' || a.cleared || '/8 章・最近：' || public.island_slot_label(l.slot)
+                || case when l.slot like 'ch%' or l.slot = 'end' then
+                     case when l.done then ' ' || repeat('★', l.stars) || repeat('☆', 3 - l.stars)
+                          else '（第 ' || l.step || '/6 步）' end
+                   else '' end
          end,
-         (l.at is null or l.at < now() - interval '7 days' or (c.step is not null and not c.done and c.at < now() - interval '3 days')),
+         coalesce(a.at is null or a.at < now() - interval '7 days'
+          or ((l.slot like 'ch%' or l.slot = 'end') and not l.done and l.at < now() - interval '3 days'
+              and a.at < now() - interval '3 days'), false),
          case
-           when l.at is null then '還沒玩過'
-           when l.at < now() - interval '7 days' then extract(day from now() - l.at)::int || ' 天沒玩了'
-           when c.step is not null and not c.done and c.at < now() - interval '3 days' then '第五章停在同一步好幾天了'
+           when a.at is null then '還沒玩過'
+           when a.at < now() - interval '7 days' then extract(day from now() - a.at)::int || ' 天沒玩了'
+           when (l.slot like 'ch%' or l.slot = 'end') and not l.done and l.at < now() - interval '3 days'
+                and a.at < now() - interval '3 days'
+             then public.island_slot_label(l.slot) || '停在同一步好幾天了'
            else null
          end
-    from ch c join last_at l on l.id = c.id;
+    from agg a left join latest l on l.id = a.id;
 $$;
+revoke all on function public.island_slot_label(text) from public, anon;
 revoke all on function public.island_class_summary(text) from public, anon, authenticated;
 grant execute on function public.island_class_summary(text) to authenticated;
+
+-- 老師細節頁的「全班進度」與家長看的個人報告：每個學生每一格存檔一列。
+-- n 是那一格自己的計數（小鎮破了幾案、天空港過了幾關、離島蓋了幾個郵戳、明信片寄了幾張、各章圖鑑幾張）；
+-- answers 是章末「想一想」選了第幾個，mistakes 是途中失誤次數（第五章叫 broken：竹蛇籠被沖壞）。
+-- 細節頁照 src/data/report.ts 的清單畫，新章節只要存檔有這幾個欄位就會出現。
+drop function if exists public.island_class_progress(text);
+create or replace function public.island_class_progress(p_code text)
+returns table (student_id uuid, slot text, step smallint, stars smallint, done boolean,
+               clears smallint, n int, answers jsonb, mistakes int, updated_at timestamptz)
+language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare v_code text := upper(btrim(coalesce(p_code, '')));
+begin
+  if not public.is_teacher_of(v_code) then raise exception '這不是你的班'; end if;
+  return query
+    select s.student_id, s.slot, s.step, s.stars, s.done, s.clears,
+           case s.slot
+             when 'town'  then (select count(*)::int from jsonb_object_keys(case when jsonb_typeof(s.data -> 'solved') = 'object' then s.data -> 'solved' else '{}' end))
+             when 'sky'   then (select count(*)::int from jsonb_object_keys(case when jsonb_typeof(s.data -> 'best') = 'object' then s.data -> 'best' else '{}' end))
+             when 'isles' then case when jsonb_typeof(s.data -> 'stamps') = 'array' then jsonb_array_length(s.data -> 'stamps') else 0 end
+             when 'post'  then case when jsonb_typeof(s.data -> 'sent') = 'array' then jsonb_array_length(s.data -> 'sent') else 0 end
+             when 'world' then case when s.data ->> 'prologue' = 'true' then 1 else 0 end
+             else case when jsonb_typeof(s.data -> 'cards') = 'array' then jsonb_array_length(s.data -> 'cards') else 0 end
+           end,
+           case when jsonb_typeof(s.data -> 'answers') = 'array' then s.data -> 'answers' else '[]'::jsonb end,
+           case when jsonb_typeof(s.data -> 'mistakes') = 'number' then (s.data ->> 'mistakes')::numeric::int
+                when jsonb_typeof(s.data -> 'broken') = 'number' then (s.data ->> 'broken')::numeric::int end,
+           s.updated_at
+      from public.park_class_members m
+      join public.island_saves s on s.student_id = m.student_id
+     where m.class_code = v_code and s.slot <> 'medals';
+end;
+$$;
+revoke all on function public.island_class_progress(text) from public, anon, authenticated;
+grant execute on function public.island_class_progress(text) to authenticated;
 
 -- -----------------------------------------------------------------------------
 -- 3. 老師細節頁（遊戲自己的 teacher.html）：每個學生第五章的詳細情形
