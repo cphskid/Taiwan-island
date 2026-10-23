@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { addCards, allCleared, freshWorld, loadWorld, markCleared, opened, saveWorld, type WorldSave } from '../core/world';
 import { load } from '../core/save';
 import { CHAPTERS, type ChapterId } from '../data/world';
-import { unlockNow } from '../data/now';
+import { NOW_PLACES, unlockNow } from '../data/now';
 import { Chapter } from './Chapter';
 import { Ch1 } from './Ch1';
 import { load1 } from '../core/save1';
@@ -19,6 +19,7 @@ import { load3 } from '../core/save3';
 import { ChEnd } from './ChEnd';
 import { loadEnd } from '../core/saveEnd';
 import { pushCloud } from '../net/cloud';
+import { playAt } from '../net/playlog';
 import { WorldMap } from './WorldMap';
 import { Prologue } from './Prologue';
 import { Village, villageImages } from './Village';
@@ -92,12 +93,22 @@ export function firstScreenImages(): { urls: string[]; map: boolean } {
   return { urls: [], map: false };
 }
 
+// 遊玩紀錄上的名字（老師後台看的）
+function placeLabel(at: string): string {
+  if (at === 'map') return '大地圖';
+  if (at === 'prologue') return '序章 認識臺灣';
+  const ch = CHAPTERS.find((c) => c.id === at);
+  if (ch) return `${ch.no} ${ch.title}`;
+  return NOW_PLACES.find((p) => p.id === at)?.name ?? at;
+}
+
 export function Island() {
   const [world, setWorld] = useState<WorldSave>(initialWorld);
   const [mode, setMode] = useState<Mode>(() => initialMode(world));
   useEffect(() => { saveWorld(world); pushCloud('world', world); }, [world]);
   // 換畫面時，在背景先抓這一幕（和接下來）會用到的圖：序章、大地圖用 island/，各章用自己的資料夾（ch1/、ch2/…），劇情人物在 story/
   const at = mode.at === 'chapter' ? mode.id : mode.at;
+  useEffect(() => { playAt(at, placeLabel(at)); }, [at]);
   // 大地圖等地圖畫出來才開始抓，不跟地圖本身搶（最多等 10 秒）
   useEffect(() => {
     const go = () => warm(...(at === 'prologue' ? ['story/', 'island/'] : at === 'village' ? ['village/', 'island/'] : at === 'town' ? ['town/', 'island/'] : at === 'sky' ? ['sky/', 'island/'] : at === 'isles' ? ['isles/', 'island/'] : at === 'postcard' ? ['postcard/s/', 'tick/', 'postcard/'] : at === 'map' ? ['island/', 'story/'] : at === 'ch5' ? ['island/', 'people/'] : [`${at}/`, 'story/']));
