@@ -85,7 +85,7 @@ export function Camps({ p, set, next, oops }: Step4Props) {
             {phase === 'place' && (
               <div className="row">
                 <button className="btn orange" disabled={!camps.length} onClick={() => { sfx('SE-02'); setCamps([]); setRes(null); }}>全部拿起來</button>
-                <button className="btn green" disabled={camps.length !== CAMPS.camps} onClick={check}>檢查</button>
+                <button className={`btn green ${camps.length === CAMPS.camps ? 'go-ready' : 'wait'}`} onClick={() => camps.length === CAMPS.camps ? check() : (sfx('SE-04'), setSay({ who: 'xlian', mood: 'thinking', text: `還要再紮 ${CAMPS.camps - camps.length} 個營盤，紮滿了才能檢查喔！` }))}>檢查</button>
               </div>
             )}
           </div>

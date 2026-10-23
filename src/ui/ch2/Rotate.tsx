@@ -103,7 +103,7 @@ function Fields({ onDone, oops }: { onDone: () => void; oops: () => void }) {
           <span className={`rot-sum ${sum >= ROT.need ? 'ok' : ''}`}><img src={art2('g-04-millet')} alt="" /> 今年會收 <b>{sum}</b> / {ROT.need}</span>
           <span className="rot-log">{log.map((h, k) => <em key={k}>第{k + 1}年 {h}</em>)}</span>
           <button className="btn orange" disabled={reaping || (!year && !pick.length)} onClick={() => { sfx('SE-02'); restart(); setSay(null); }}>重來</button>
-          <button className={`btn green ${left > 0 ? 'off' : 'ready'}`} disabled={reaping} onClick={reap}>種下去，等收成</button>
+          <button className={`btn green ${left > 0 ? 'wait' : 'go-ready'}`} disabled={reaping} onClick={reap}>種下去，等收成</button>
         </div>
         <p className="rot-rule">種的田：收成＝數字，種完少 1（陡坡少 2）。休息的田：多 1，最多 {ROT.max}。</p>
       </div>

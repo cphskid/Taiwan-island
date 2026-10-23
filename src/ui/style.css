@@ -891,9 +891,11 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .rot-foot .rot-sum img,.meat img,.deer-n img,.deer-end img,.sim-year img{width:30px;height:30px;object-fit:contain}
 .rot-log{display:flex;gap:6px}
 .rot-log em{font-style:normal;background:#e9fbe6;border-radius:10px;padding:2px 8px;font-weight:700;font-size:13px}
-.rot-foot .btn.off{opacity:.55;filter:grayscale(.4)}
-.rot-foot .btn.ready{box-shadow:0 0 0 3px #ffe066,0 0 16px #ffb02e;animation:pulse .6s ease-in-out infinite alternate}
-.plot .tap-me{position:absolute;left:50%;bottom:-6px;font-size:34px;font-style:normal;pointer-events:none;animation:tap-me 1s ease-in-out infinite}
+/* 「選夠了才能按」的確認鈕：還沒選夠是淡的（按了夥伴會說還差什麼），選夠了發亮 */
+.btn.wait{opacity:.55;filter:grayscale(.4)}
+.btn.go-ready{box-shadow:0 0 0 3px #ffe066,0 0 16px #ffb02e;animation:pulse .6s ease-in-out infinite alternate}
+/* 一開始還沒點過：手指在第一個選項上跳，示範「點這個」 */
+.tap-me{position:absolute;left:50%;bottom:-6px;font-size:34px;font-style:normal;pointer-events:none;z-index:2;animation:tap-me 1s ease-in-out infinite}
 @keyframes tap-me{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-10px)}}
 .rot-rule{margin:0;text-align:center;font-size:14px;color:#7a5a3a;font-weight:700}
 
@@ -931,6 +933,8 @@ img.gear{width:110px;height:110px;object-fit:contain}
 
 .rules{padding:12px 16px;display:flex;flex-direction:column;gap:10px;align-items:center;width:min(820px,100%)}
 .rule-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.rule,.ch7-rcell{position:relative}
+.rule-list .tap-me{left:auto;right:12px;bottom:auto;top:50%;margin-top:-20px}
 .rule{display:flex;align-items:center;gap:8px;border:3px solid #c9a46b;border-radius:14px;background:#fffaf0;padding:8px 12px;font:700 17px var(--f);color:inherit;cursor:pointer;text-align:left}
 .rule i{width:26px;height:26px;border-radius:8px;border:3px solid var(--wood-2);display:inline-flex;align-items:center;justify-content:center;font-style:normal;color:#2e8b3a;flex:none}
 .rule.on{border-color:#3fbf5a;background:#e9fbe6}

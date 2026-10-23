@@ -114,7 +114,14 @@ export function Craft({ p, set, next }: StepProps) {
       </div>
       {!finished && (
         <div className="tray">
-          <button className="btn green go" disabled={!canCraft(p)} onClick={() => { setSay(null); setWeaving(true); }}>
+          <button className={`btn green go ${canCraft(p) ? 'go-ready' : 'wait'}`} onClick={() => {
+            if (!canCraft(p)) {
+              const miss = [p.bamboo < CAGE_COST.bamboo && `竹子 ${CAGE_COST.bamboo - p.bamboo} 根`, p.stone < CAGE_COST.stone && `石頭 ${CAGE_COST.stone - p.stone} 顆`].filter(Boolean).join('、');
+              sfx('SE-04'); setSay({ who: 'mu', mood: 'thinking', text: `材料還不夠，還差${miss}。點竹林砍竹子，溪水退的時候點石堆撿石頭。` });
+              return;
+            }
+            setSay(null); setWeaving(true);
+          }}>
             編竹蛇籠（竹子 1、石頭 2）
           </button>
         </div>

@@ -35,6 +35,14 @@ function Planner({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const [ok, setOk] = useState(false);
   const sol = rotaSolutions(ROTA)[0];
   const full = r.every((row) => row.every((c) => c !== null));
+  const empties = r.flat().filter((c) => c === null).length;
+  const untouched = empties === r.flat().length;
+  // 目標條跟著進度變：第一句是現在要做的事，規則放後面（點「說明」展開）
+  const rule = '每年三區種三種不一樣的，每區三年都要輪到一次水稻，每年的水不能超過水庫放的水。';
+  const goal = ok ? '排好了！'
+    : untouched ? `先在上面選一種作物，再點下面的格子種下去。${rule}`
+    : !full ? `還有 ${empties} 格空著，選作物再點格子。${rule}`
+    : `排滿了！按下面的「這樣種三年」。${rule}`;
 
   const put = (y: number, z: number) => {
     if (ok) return;
@@ -45,6 +53,7 @@ function Planner({ oops, onDone }: { oops: () => void; onDone: () => void }) {
     setMarks({ over: [], repeat: [], mix: [] });
   };
   const check = () => {
+    if (!full) { sfx('SE-04'); setSay({ who: 'hsiung', mood: 'thinking', text: `還有 ${empties} 格是空的喔！先在上面選作物，再點空格種下去。` }); return; }
     const c = rotaCheck(ROTA, r);
     if (c.ok) {
       setOk(true);
@@ -62,7 +71,7 @@ function Planner({ oops, onDone }: { oops: () => void; onDone: () => void }) {
 
   return (
     <div className="ch7-rota-wrap">
-      <Goal floating text="排三年的種法：每年三區種三種不一樣的，每區三年都輪到水稻，每年的水不能超過水庫放的水" />
+      <Goal floating text={goal} />
       <div className="ch7-rota-board panel">
         <div className="ch7-crops">
           {CROPS.map((c) => (
@@ -97,6 +106,7 @@ function Planner({ oops, onDone }: { oops: () => void; onDone: () => void }) {
                     return (
                       <td key={z}>
                         <button className={`ch7-rcell ${c ?? 'empty'} ${hint ? 'ch7-hint' : ''} ${marks.repeat.includes(z) ? 'bad' : ''}`} onClick={() => put(y, z)}>
+                          {untouched && !fails && y === 0 && z === 0 && <em className="tap-me" aria-hidden>👆</em>}
                           {c ? <><img src={CROP_IMG[c]} alt="" /><small>{CROP_NAME[c]} {ROTA.areas[z] * WATER[c]}</small></> : hint ? <small>試試{CROP_NAME[hint]}</small> : <small>＋</small>}
                         </button>
                       </td>
@@ -116,7 +126,7 @@ function Planner({ oops, onDone }: { oops: () => void; onDone: () => void }) {
         <div className="ch7-rota-foot">
           <small>一區的用水＝田的塊數 × 作物要的水</small>
           <button className="btn orange" disabled={ok} onClick={() => { sfx('SE-02'); setR(empty()); setMarks({ over: [], repeat: [], mix: [] }); }}>清空</button>
-          <button className="btn green" disabled={!full || ok} onClick={check}>這樣種三年</button>
+          <button className={`btn green ${full ? 'go-ready' : 'wait'}`} disabled={ok} onClick={check}>這樣種三年</button>
         </div>
       </div>
       {fails >= 5 && !ok && <button className="btn demo corner-btn" onClick={() => setR(sol.map((row) => [...row]))}>看示範</button>}
