@@ -29,3 +29,15 @@ export async function classPostcards(code: string): Promise<PostRow[]> {
   if (error) return []; // 還沒套新版 SQL 時就先不顯示
   return ((data ?? []) as PostRow[]).map((r) => ({ ...r, sent: Array.isArray(r.sent) ? r.sent : [] }));
 }
+
+// 全班每個人每一格存檔（各章、現在篇各地方）：細節頁的全班進度、每章反思題、家長看的個人報告都用它
+export interface ProgressRow {
+  student_id: string; slot: string; step: number; stars: number; done: boolean; clears: number;
+  n: number; answers: number[]; mistakes: number | null; updated_at: string;
+}
+export async function classProgress(code: string): Promise<ProgressRow[] | null> {
+  if (!db) return [];
+  const { data, error } = await db.rpc('island_class_progress', { p_code: code });
+  if (error) return null; // 還沒套新版 SQL：細節頁退回只看第五章
+  return ((data ?? []) as ProgressRow[]).map((r) => ({ ...r, answers: Array.isArray(r.answers) ? r.answers : [] }));
+}

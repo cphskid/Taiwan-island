@@ -82,14 +82,17 @@ select test_ok(not public.island_save('ch5', '{}'), '老師試玩不會存');
 select test_ok((select count(*) from public.island_saves) = 2, '王老師看得到自己學生的存檔');
 
 \echo '── 全班摘要與老師細節頁'
-select test_ok((select progress from public.island_class_summary('is1') where student_id = 'f0000000-0000-0000-0000-000000000001') = 100, '過關＝100');
-select test_ok((select status from public.island_class_summary('IS1') where student_id = 'f0000000-0000-0000-0000-000000000001') like '%完成 ★★☆', '狀態寫星星');
+select test_ok((select progress from public.island_class_summary('is1') where student_id = 'f0000000-0000-0000-0000-000000000001') = 13, '過了 1/8 章＝13');
+select test_ok((select status from public.island_class_summary('IS1') where student_id = 'f0000000-0000-0000-0000-000000000001') = '過了 1/8 章・最近：第五章 八堡圳 ★★☆', '狀態寫過了幾章、最近玩哪章、星星');
 select test_ok((select status from public.island_class_summary('IS1') where student_id = 'f0000000-0000-0000-0000-000000000002') = '還沒開始', '沒玩過的學生');
 select test_ok((select attention from public.island_class_summary('IS1') where student_id = 'f0000000-0000-0000-0000-000000000002'), '沒玩過要注意');
 select test_ok((select count(*) from public.island_class_summary('IS1')) = 2, '摘要只有這班的兩個人');
 select test_ok((select cards from public.island_class_detail('IS1') where nickname = '小明') = 3, '細節頁：圖鑑張數看大地圖那份');
 select test_ok((select answers from public.island_class_detail('IS1') where nickname = '小明') = '[]'::jsonb, '細節頁：反思題答案');
+select test_ok((select count(*) from public.island_class_progress('IS1') where slot in ('ch5', 'world')) = 2, '全班進度：第五章和大地圖兩格');
+select test_ok((select n from public.island_class_progress('IS1') where slot = 'ch5') = 0, '全班進度：從頭再玩後第五章圖鑑 0 張');
 select test_ok((select count(*) from public.island_class_summary('IS2')) = 0, '別班的摘要看不到');
+select test_denied($$select * from public.island_class_progress('IS2')$$, '別班的全班進度');
 select test_denied($$select * from public.island_class_detail('IS2')$$, '別班的細節頁');
 
 select test_as('e0000000-0000-0000-0000-000000000002');
