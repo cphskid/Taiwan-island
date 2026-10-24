@@ -4,7 +4,7 @@ import type { Cell } from '../core/iso';
 
 // 任務引導共用元件（每一章都用同一套，小朋友一看就知道「要做什麼、要去哪裡」）：
 //
-//   <Goal text="把水導到分水閘" />                常駐的一句話目標條（inline 放進上方的資訊列，floating 自己浮在畫面上方中間）
+//   <Goal text="把水導到分水閘" />                常駐的一句話目標條（inline 放進上方的資訊列；floating 先在中間放大，再住到左下角說話的人旁邊）
 //   <Beacon style={{ left: '40%', top: '30%' }} label="港口" spot={!intro} />
 //                                                  HTML 場景（海圖、圖片）上的目標標記：脈動圈＋上下跳的箭頭＋旗子文字
 //   <BoardBeacon board={board} cell={gate} label="分水閘" spot={!intro} />
@@ -15,37 +15,168 @@ import type { Cell } from '../core/iso';
 // 標記放在 position:relative 的容器裡（.board-wrap、.art-frame），不擋點擊。
 
 // 目標條只放一行短句：第一個「。」前面那句。後面的規則說明點一下才展開。
-// floating 的目標條 6 秒後（或一點遊戲畫面）自己縮成 🎯 小圓鈕，不擋遊戲畫面；點一下再打開，目標換了也會自己打開。
-const FOLD_MS = 6000;
-export function Goal({ text, floating }: { text: string; floating?: boolean }) {
+const shortOf = (text: string) => {
   const cut = text.indexOf('。');
   const short = cut > 0 && cut < text.length - 1 ? text.slice(0, cut) : text.replace(/。$/, '');
-  const more = short.length < text.replace(/。$/, '').length;
-  const [open, setOpen] = useState(false); // 展開完整說明
-  const [folded, setFolded] = useState(false); // 縮成小圓鈕
-  const me = useRef<HTMLDivElement>(null);
+  return { short, more: short.length < text.replace(/。$/, '').length };
+};
+
+// floating 的目標條住在左下角、說話的人旁邊（2026-10-24 Chuck 選「先放大再飛入」）：
+//   - 新目標先在畫面中間放大一下（約 1.5 秒，不用點），再飛進左下角
+//   - 有人在說話（<Say>）就放在說話框最上面一行；沒人說話就自己帶著滴答的頭像待在左下角
+//   - 一直留著文字，不再縮成沒字的 🎯
+//   - 只有數字變（還有 3 件 → 還有 2 件）不飛，左下角閃一下就好
+// 目前的目標放在這裡，<Say> 讀得到；同一時間只會有一個 floating 目標
+const goalHub = { text: null as string | null, flash: 0, says: 0, subs: new Set<() => void>() };
+const emit = () => goalHub.subs.forEach((f) => f());
+function useHub() {
+  const [, tick] = useState(0);
   useEffect(() => {
-    setFolded(false);
-    setOpen(false);
-    if (!floating) return;
-    const t = setTimeout(() => setFolded(true), FOLD_MS);
-    // 小朋友已經開始點遊戲畫面了，目標條就先收起來，不要擋住上面那排格子（手機橫拿時特別容易擋到）
-    const away = (e: PointerEvent) => { if (!me.current?.contains(e.target as Node)) setFolded(true); };
-    document.addEventListener('pointerdown', away);
-    return () => { clearTimeout(t); document.removeEventListener('pointerdown', away); };
-  }, [text, floating]);
-  const tap = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (folded) { setFolded(false); return; }
-    if (more) setOpen(!open);
-    else if (floating) setFolded(true);
-  };
+    const f = () => tick((n) => n + 1);
+    goalHub.subs.add(f);
+    return () => { goalHub.subs.delete(f); };
+  }, []);
+  return goalHub;
+}
+// <Say> 有在說話時登記一下，目標就改放在說話框裡
+export function useSayGoal(showing: boolean) {
+  const hub = useHub();
+  useEffect(() => {
+    if (!showing) return;
+    hub.says++; emit();
+    return () => { hub.says--; emit(); };
+  }, [showing]); // eslint-disable-line react-hooks/exhaustive-deps
+  return showing ? hub.text : null;
+}
+
+// 左下角那條綠色目標（說話框裡、或自己帶著滴答）
+export function GoalStrip({ text }: { text: string }) {
+  const hub = useHub();
+  const { short, more } = shortOf(text);
+  const [open, setOpen] = useState(false);
+  const [flash, setFlash] = useState(false);
+  useEffect(() => { setOpen(false); }, [text]);
+  useEffect(() => {
+    if (!hub.flash) return;
+    setFlash(true);
+    const t = setTimeout(() => setFlash(false), 1300);
+    return () => clearTimeout(t);
+  }, [hub.flash]);
+  const tap = (e: React.MouseEvent) => { e.stopPropagation(); if (more) setOpen(!open); };
   return (
-    <div ref={me} className={`quest ${floating ? 'floating' : ''} ${folded ? 'folded' : ''} ${open ? 'open' : ''}`} onClick={tap}
-      role="button" aria-label={folded ? '打開目標' : '目標'}>
+    <div className={`quest strip ${open ? 'open' : ''} ${flash ? 'flash' : ''}`} onClick={tap} data-goal-strip role="button" aria-label="目標">
       <i>🎯</i>
-      {!folded && <span key={text}>{open ? text : short}</span>}
-      {!folded && more && <em>{open ? '▴' : '說明▾'}</em>}
+      <span key={text}>{open ? text : short}</span>
+      {more && <em>{open ? '▴' : '說明▾'}</em>}
+    </div>
+  );
+}
+
+// 這些畫面蓋著的時候先不要飛（開場對話、任務卡、過關、圖鑑卡、聚光）
+const BUSY = '.talk-cover, .mission, .result, .chapter-card, .card-pop, .beacon.spotting';
+const FLY_MS = 1500;
+const calm = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function useFlyIn(text: string, on: boolean) {
+  const [fly, setFly] = useState<string | null>(null);
+  const shape = shortOf(text).short.replace(/\d+/g, '#');
+  const last = useRef<string | null>(null);
+  const flyEl = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!on) return;
+    if (last.current === shape) return;
+    last.current = shape;
+    if (calm()) { goalHub.flash++; emit(); return; }
+    // 等蓋著的畫面收掉才飛
+    let t = 0;
+    const wait = () => {
+      if (document.querySelector(BUSY)) { t = window.setTimeout(wait, 300); return; }
+      setFly(shortOf(text).short);
+    };
+    wait();
+    return () => clearTimeout(t);
+  }, [shape, on]); // eslint-disable-line react-hooks/exhaustive-deps
+  // 放大停一下，再飛到左下角那條綠色目標的位置
+  useEffect(() => {
+    if (!fly) return;
+    let anim: Animation | null = null;
+    const t = setTimeout(() => {
+      const el = flyEl.current;
+      const to = document.querySelector('[data-goal-strip]')?.getBoundingClientRect();
+      if (!el || !to || !el.animate) { setFly(null); goalHub.flash++; emit(); return; }
+      const from = el.getBoundingClientRect();
+      const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+      const dy = to.top + to.height / 2 - (from.top + from.height / 2);
+      const k = Math.min(1, to.height / from.height);
+      anim = el.animate([{ transform: 'translate(-50%,-50%)', opacity: 1 }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(${k})`, opacity: 0.4 }],
+        { duration: 450, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' });
+      anim.onfinish = () => { setFly(null); goalHub.flash++; emit(); };
+    }, FLY_MS - 450);
+    return () => { clearTimeout(t); anim?.cancel(); };
+  }, [fly]);
+  // 小朋友等不及先點了畫面：直接收進去
+  useEffect(() => {
+    if (!fly) return;
+    const skip = () => { setFly(null); goalHub.flash++; emit(); };
+    document.addEventListener('pointerdown', skip);
+    return () => document.removeEventListener('pointerdown', skip);
+  }, [fly]);
+  if (!fly) return null;
+  return (
+    <>
+      <div className="quest-dim" />
+      <div ref={flyEl} className="quest quest-fly"><i>🎯</i><span>{fly}</span></div>
+    </>
+  );
+}
+
+export function Goal({ text, floating }: { text: string; floating?: boolean }) {
+  const hub = useHub();
+  useEffect(() => {
+    if (!floating) return;
+    goalHub.text = text; emit();
+  }, [text, floating]);
+  useEffect(() => {
+    if (!floating) return;
+    return () => { if (goalHub.text !== null) { goalHub.text = null; emit(); } };
+  }, [floating]);
+  const fly = useFlyIn(text, !!floating);
+  // 只有數字變（還有 3 件 → 還有 2 件）：不飛，左下角閃一下
+  const seen = useRef(text);
+  useEffect(() => {
+    if (!floating || seen.current === text) return;
+    const same = seen.current.replace(/\d+/g, '#') === text.replace(/\d+/g, '#');
+    seen.current = text;
+    if (same) { goalHub.flash++; emit(); }
+  }, [text, floating]);
+  if (floating) {
+    return (
+      <>
+        {fly}
+        {/* 沒人說話的時候，目標自己帶著滴答待在左下角（位置跟說話框一樣） */}
+        {hub.says === 0 && (
+          <div className="say goal-dock">
+            <div className="face small tick" style={{ borderColor: '#c99a3a' }}><img src={`${import.meta.env.BASE_URL}img/tick/happy.webp`} alt="" /></div>
+            <GoalStrip text={text} />
+          </div>
+        )}
+      </>
+    );
+  }
+  return <InlineGoal text={text} />;
+}
+
+// 放進上方資訊列的目標（不是 floating 的那幾關）：一行短句，點一下展開說明
+function InlineGoal({ text }: { text: string }) {
+  const { short, more } = shortOf(text);
+  const [open, setOpen] = useState(false);
+  useEffect(() => { setOpen(false); }, [text]);
+  const tap = (e: React.MouseEvent) => { e.stopPropagation(); if (more) setOpen(!open); };
+  return (
+    <div className={`quest ${open ? 'open' : ''}`} onClick={tap} role="button" aria-label="目標">
+      <i>🎯</i>
+      <span key={text}>{open ? text : short}</span>
+      {more && <em>{open ? '▴' : '說明▾'}</em>}
     </div>
   );
 }
