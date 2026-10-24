@@ -155,23 +155,32 @@ export function TeacherPage() {
   return (
     <div className="tp">
       <Head parkTeacher={parkTeacher} />
-      <div className="tp-bar">
-        <label>班級
-          <select value={code} onChange={(e) => { setCode(e.target.value); pick(''); }}>
-            {state.classes.map((c) => <option key={c.code} value={c.code}>{c.name || c.code}（{c.members} 人）</option>)}
-          </select>
-        </label>
-        {kids && kids.length > 0 && (
-          <label>看
-            <select value={picked?.id ?? ''} onChange={(e) => pick(e.target.value)}>
-              <option value="">全班</option>
-              {kids.map((k) => <option key={k.id} value={k.id}>{k.nickname} 的報告</option>)}
-            </select>
-          </label>
-        )}
-        {cls && !state.demo && !cls.facilities.includes('island_pioneer') && <span className="tp-warn">這個班還沒開放島嶼開拓者，請到樂園教師入口勾選。</span>}
-        {state.demo && <span className="tp-warn">這是示範用的假資料。</span>}
-        <button className="btn green small" onClick={exportCsv} disabled={!ready}>匯出 CSV</button>
+      {/* 2026-10-24 跟守護異世界細節頁合成一套：班級改成一顆一顆的按鈕，第二列是看誰、列印、匯出 CSV */}
+      <div className="panel tp-bar">
+        <div className="tp-chips">
+          {state.classes.map((c) => (
+            <button key={c.code} className={c.code === code ? 'on' : ''}
+              onClick={() => {
+                setCode(c.code); pick('');
+                const u = new URL(location.href); u.searchParams.set('class', c.code); u.searchParams.delete('kid'); history.replaceState(null, '', u);
+              }}>{c.name || c.code}</button>
+          ))}
+        </div>
+        <div className="tp-tools">
+          {kids && kids.length > 0 && (
+            <label>看
+              <select value={picked?.id ?? ''} onChange={(e) => pick(e.target.value)}>
+                <option value="">全班（{kids.length} 人）</option>
+                {kids.map((k) => <option key={k.id} value={k.id}>{k.nickname} 的報告</option>)}
+              </select>
+            </label>
+          )}
+          {cls && !state.demo && !cls.facilities.includes('island_pioneer') && <span className="tp-warn">這個班還沒開放島嶼開拓者，請到樂園教師入口勾選。</span>}
+          {state.demo && <span className="tp-warn">這是示範用的假資料。</span>}
+          <span className="tp-spacer" />
+          <button className="btn plain small" onClick={() => window.print()} disabled={!ready}>列印</button>
+          <button className="btn green small" onClick={exportCsv} disabled={!ready}>匯出 CSV</button>
+        </div>
       </div>
       {!state.classes.length && <p className="tp-note">你還沒有開班。請先到樂園教師入口開班。</p>}
       {err && <p className="tp-error">{err}</p>}
@@ -200,6 +209,8 @@ function ClassView({ kids, byKid, onPick, posts }: { kids: Kid[]; byKid: Map<str
         <div className="tp-stat"><b>{kids.filter((k) => lastOf(k) > week).length}</b><span>人最近 7 天有玩</span></div>
         <div className="tp-stat"><b>{avg.toFixed(1)}</b><span>章：玩過的人平均過了幾章（共 {PAST_REPORTS.length} 章）</span></div>
       </section>
+
+      <KeyLine kids={kids} byKid={byKid} />
 
       <section className="panel tp-sec">
         <h2>全班進度</h2>
@@ -266,6 +277,31 @@ function ClassView({ kids, byKid, onPick, posts }: { kids: Kid[]; byKid: Map<str
         </section>
       )}
     </>
+  );
+}
+
+// 一句話重點（兩邊細節頁都有）：全班「想一想」答對率，和答對率最低的一章（至少 5 題作答才算）
+function quizOf(ch: ChapterReport, kids: Kid[], byKid: Map<string, Slots>) {
+  let n = 0, ok = 0;
+  for (const k of kids) {
+    const r = byKid.get(k.id)?.get(ch.slot);
+    ch.questions.forEach((q, i) => { const a = r?.answers[i]; if (a !== undefined && a !== null && a >= 0) { n++; if (a === q.answer) ok++; } });
+  }
+  return { ch, n, ok };
+}
+function KeyLine({ kids, byKid }: { kids: Kid[]; byKid: Map<string, Slots> }) {
+  const all = PAST_REPORTS.map((c) => quizOf(c, kids, byKid));
+  const n = all.reduce((s, x) => s + x.n, 0), ok = all.reduce((s, x) => s + x.ok, 0);
+  if (!n) return null;
+  const pct = (x: { n: number; ok: number }) => Math.round((100 * x.ok) / x.n);
+  const worst = all.filter((x) => x.n >= 5).sort((a, b) => a.ok / a.n - b.ok / b.n)[0];
+  return (
+    <p className="panel tp-sec tp-key">
+      全班「想一想」答對率 <span className={`tp-pct ${tone(pct({ n, ok }))}`}>{pct({ n, ok })}%</span>
+      {worst && pct(worst) < 80
+        ? <>；最需要討論的是<b>{worst.ch.title}</b>（答對 {pct(worst)}%），下面「每一章」點開看大家最常選錯哪個。</>
+        : '，每一章都答得不錯。'}
+    </p>
   );
 }
 
@@ -454,8 +490,9 @@ function Sources() {
 function Head({ parkTeacher }: { parkTeacher: string | null }) {
   return (
     <header className="top">
-      {parkTeacher && <a className="park-btn" href={parkTeacher}><img src={`${BASE}img/park.webp`} alt="" /><span>樂園教師入口</span></a>}
-      <h1>穿越吧！島嶼開拓者｜老師・家長細節頁</h1>
+      {/* 跟守護異世界細節頁一樣：左上角只有這一顆，就是回去（登出、管理員都在樂園教師入口） */}
+      {parkTeacher && <a className="park-btn tp-back" href={parkTeacher}><span>←</span><img src={`${BASE}img/park.webp`} alt="" /><span>樂園教師入口</span></a>}
+      <h1>老師・家長細節頁<small>島嶼開拓者</small></h1>
     </header>
   );
 }
