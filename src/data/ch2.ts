@@ -285,7 +285,7 @@ export const HUNT_EASY_INTRO: Line[] = [
 ];
 export const HUNT_EASY_SAY = {
   demo: { who: 'ani', mood: 'sad', text: '春天也去打獵，懷著小鹿的母鹿受驚，生的小鹿只剩一半，鹿變少了……' } as Line,
-  rule: { who: 'hunter', text: '換你訂規矩：一年裡，哪幾季可以上山打獵？點季節切換。' } as Line,
+  rule: { who: 'hunter', text: '想想看：哪幾季上山打獵，鹿群才不會越來越少？' } as Line,
   none: { who: 'hunter', text: '一季都不能打，大家要餓肚子了。至少要留一季上山。' } as Line,
   spring: { who: 'ani', mood: 'sad', text: '春天上山，母鹿又受驚了，小鹿只剩一半……' } as Line,
   hint: { who: 'elder', text: '春天是母鹿生小鹿的時候。那一季，讓山林安靜下來。' } as Line,

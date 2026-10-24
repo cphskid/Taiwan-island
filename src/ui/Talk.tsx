@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PEOPLE, TICK_MOODS, type Line } from '../data/babao-chapter';
 import { sfx } from '../audio';
+import { GoalStrip, useSayGoal } from './Guide';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -41,6 +42,8 @@ export function Face({ who, mood, small }: { who: Line['who']; mood?: Line['mood
 export function Say({ line }: { line: Line | null }) {
   const text = line?.text;
   const [small, setSmall] = useState(false);
+  // 這一關的目標（<Goal floating>）放在說話框最上面一行；縮起來也留著
+  const goal = useSayGoal(!!line);
   useEffect(() => {
     setSmall(false);
     if (!text) return;
@@ -48,6 +51,18 @@ export function Say({ line }: { line: Line | null }) {
     return () => clearTimeout(t);
   }, [text]);
   if (!line) return null;
+  if (goal) {
+    return (
+      <button className={`say with-goal ${small ? 'mini' : ''}`} onClick={() => setSmall(!small)} aria-label={small ? '打開提示' : '收起提示'}>
+        <Face who={line.who} mood={line.mood} small />
+        <div className="say-col">
+          <GoalStrip text={goal} />
+          {!small && <p><b style={{ color: PEOPLE[line.who].color }}>{PEOPLE[line.who].name}</b>{line.text}</p>}
+        </div>
+        {small ? <i className="say-dot">💬</i> : <i className="say-x">✕</i>}
+      </button>
+    );
+  }
   return (
     <button className={`say ${small ? 'mini' : ''}`} onClick={() => setSmall(!small)} aria-label={small ? '打開提示' : '收起提示'}>
       <Face who={line.who} mood={line.mood} small />

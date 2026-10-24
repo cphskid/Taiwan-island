@@ -2786,3 +2786,33 @@ button.v-chip{cursor:pointer}
 .cl-thanks{margin:4px 0 0;padding:3px 10px;border-radius:10px;background:#fff3c4;font-weight:900;color:#a0601c}
 .cl-close{align-self:center;min-width:120px;min-height:44px;padding:0 18px;border:3px solid var(--wood);border-radius:999px;background:#ffe9bf;box-shadow:0 3px 0 var(--wood);font:900 16px/1 var(--f);color:var(--wood);cursor:pointer}
 .pc-light .pc-lightimg{width:min(96vw,1200px,calc(84vh * 1.49))}
+
+/* 目標住在左下角、說話的人旁邊（Guide.tsx Goal floating、Talk.tsx Say）：新目標先在中間放大，再飛進來 */
+.say.with-goal{align-items:flex-start}
+.say-col{display:flex;flex-direction:column;gap:4px;min-width:0}
+.quest.strip{border-radius:12px;font-size:18px;padding:3px 10px 3px 6px;border-width:2px;box-shadow:none;align-self:flex-start}
+.quest.strip.open span{white-space:normal}
+.say.mini.with-goal,.say.goal-dock{border-radius:999px;padding:4px 12px 4px 4px;gap:8px;align-items:center;max-width:min(520px,calc(100% - 24px))}
+.say.mini.with-goal .say-dot{right:auto;left:40px}
+.say.goal-dock{cursor:default}
+.say.with-goal:not(.mini){max-width:min(480px,46%)}
+.quest.strip.flash{animation:questflash .32s ease-in-out 4 alternate}
+@keyframes questflash{from{transform:scale(1);box-shadow:0 0 0 0 #ffe066}to{transform:scale(1.08);box-shadow:0 0 0 5px #ffe066,0 0 18px 4px #ffe066}}
+.quest-dim{position:fixed;inset:0;z-index:40;background:rgba(20,12,4,.38);pointer-events:none;animation:questdim 1.5s ease-in-out forwards}
+@keyframes questdim{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}
+.quest.quest-fly{position:fixed;left:50%;top:45%;transform:translate(-50%,-50%);z-index:41;font-size:30px;padding:10px 26px 10px 16px;border-width:4px;box-shadow:0 8px 30px rgba(0,0,0,.45);pointer-events:none;max-width:min(760px,calc(100vw - 32px));animation:questpop .35s cubic-bezier(.3,1.6,.6,1)}
+.quest.quest-fly i{font-size:32px}
+.quest.quest-fly span{white-space:normal;text-align:center}
+@keyframes questpop{from{transform:translate(-50%,-50%) scale(.4);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+@media (max-height:600px){
+  .quest.strip{font-size:14px;padding:2px 8px 2px 4px}
+  .quest.quest-fly{font-size:21px;padding:8px 18px 8px 12px}
+  .say.mini.with-goal .say-dot{left:26px}
+  .say.with-goal:not(.mini){max-width:min(400px,48%)}
+}
+@media (prefers-reduced-motion:reduce){.quest.strip.flash,.quest-dim,.quest.quest-fly{animation:none}}
+/* 手機橫拿：關卡面板幾乎佔滿畫面，目標貼到最下面，少擋面板裡的東西 */
+@media (max-height:600px){
+  .chapter .say.with-goal,.chapter .say.goal-dock,.prologue .say.with-goal,.prologue .say.goal-dock{bottom:4px}
+  .chapter .ch6-rail-wrap .say.with-goal,.chapter .ch6-rail-wrap .say.goal-dock{bottom:auto}
+}

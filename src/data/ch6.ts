@@ -389,7 +389,7 @@ export const TEA_EASY_INTRO: Line[] = [
   { who: 'chun', mood: 'thinking', text: '一片茶葉要走好長的路，才會到外國人的杯子裡。你知道它是怎麼走的嗎？' },
 ];
 export const TEA_EASY_SAY = {
-  demo: { who: 'chun', mood: 'happy', text: '第一站我先放：茶園採茶！接下來換你，一張一張點，排出茶葉的旅程。' } as Line,
+  demo: { who: 'chun', mood: 'happy', text: '第一站我先放：茶園採茶！採下來的葉子要走好幾站，才坐得上大輪船喔。' } as Line,
   wrong: (got: TeaStep, want: TeaStep) => ({ who: 'chun', mood: 'thinking', text: `「${got.name}」還太早喔。${want.why}` }) as Line,
   good: { who: 'merchant', text: 'Wonderful！採茶、揀茶、焙茶、裝箱、上船，這就是福爾摩沙茶的旅程。' } as Line,
 };

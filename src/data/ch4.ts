@@ -355,7 +355,7 @@ export const SALT_EASY_INTRO: Line[] = [
   { who: 'chen', text: '所以要看天氣。下雨天把草蓆蓋上；晴天把草蓆拿開，才曬得到太陽。12 天裡收 4 籃鹽。' },
 ];
 export const SALT_EASY_SAY = {
-  demo: { who: 'xlian', mood: 'happy', text: '第一天我先做：今天會出太陽，先把海水引進第一格鹽田！接下來換你，一天做一件事。' } as Line,
+  demo: { who: 'xlian', mood: 'happy', text: '第一天我先做：今天會出太陽，先把海水引進第一格鹽田！記得每天先看上面的天氣。' } as Line,
   washed: { who: 'xlian', mood: 'sad', text: '下雨了……沒蓋草蓆的鹽田被沖掉了。' } as Line,
   shade: { who: 'chen', text: '今天出太陽，可是草蓆蓋著，鹽田曬不到。' } as Line,
   short: (n: number) => ({ who: 'chen', text: `12 天過去，只收了 ${n} 籃鹽。再看一次天氣：下雨那天要蓋草蓆。` }) as Line,
