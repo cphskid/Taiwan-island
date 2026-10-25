@@ -751,6 +751,31 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .side-heat.ok{background:#3fae3a}.side-heat.cold{background:#4f8fd1}.side-heat.hot{background:#e0452c}
 .side-N{top:-4px;left:50%;translate:-50% 0}.side-S{bottom:-4px;left:50%;translate:-50% 0}
 .side-W{left:-8px;top:50%;translate:0 -50%}.side-E{right:-8px;top:50%;translate:0 -50%}
+/*
+  手機橫拿（2026-10-25 Chuck：四面的分數擠在一起、最下面一排被目標擋住）：
+  格子照高度算、柴數和點火鈕改直排放左邊、整塊靠右讓開左下角的目標；
+  四面分數改小，騎在陶罐格子的邊線上，不再疊在罐子上。
+*/
+@media (max-height:600px) and (orientation:landscape){
+  .fire-wrap{--c:min(110px,calc((100dvh - 44px - 6px - 74px) / 3));justify-content:flex-end;padding:44px max(10px,env(safe-area-inset-right)) 6px 10px}
+  /* 左下角的目標讓出右邊的窯：寬度只到窯的左邊，字多就換行 */
+  .fire-wrap .say.with-goal,.fire-wrap .say.goal-dock{max-width:calc(100% - 3 * var(--c) - 200px)}
+  .fire-wrap .say.goal-dock{border-radius:18px}
+  .fire-wrap .say .quest.strip span{white-space:normal;overflow:visible;text-overflow:clip}
+  .fire-board{flex-direction:row-reverse;align-items:stretch;gap:10px;padding:8px}
+  .fire-grid{grid-template-columns:repeat(3,var(--c));grid-template-rows:repeat(3,var(--c));gap:6px}
+  .fire-pot{z-index:2}
+  .fire-pot img{width:62%}
+  .side-heat{font-size:12px;padding:0 5px;border-width:1.5px;border-radius:9px;line-height:18px}
+  .side-N{top:0;translate:-50% -55%}.side-S{bottom:0;translate:-50% 55%}
+  .side-W{left:0;translate:-55% -50%}.side-E{right:0;translate:55% -50%}
+  .fire-slot img{width:70%}
+  .fire-slot .puddle{font-size:24px}
+  .fire-foot{flex-direction:column;justify-content:flex-start;align-items:stretch;gap:8px;width:118px;font-size:15px;text-align:center}
+  .fire-foot .fire-legend{font-size:13px}
+  .fire-foot .btn{padding:8px 6px}
+  .fire-board .yes.big{position:absolute;left:8px;right:8px;bottom:8px;margin:0;font-size:15px;background:#fffaf0;border-radius:10px;padding:4px 8px;z-index:3}
+}
 .fire-foot{display:flex;align-items:center;gap:14px;font-weight:700;font-size:17px}
 .fire-foot .fire-legend{color:#9c8466;font-size:15px}
 .wind{position:absolute;z-index:2;background:#e6f4ff;border:3px solid #7fb6d6;border-radius:14px;padding:2px 10px;font-weight:900;color:#2b6a94;animation:windblow 1.2s ease-in-out infinite alternate}
