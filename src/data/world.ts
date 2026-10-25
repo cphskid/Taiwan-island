@@ -519,7 +519,7 @@ export const LIFE: Partial<Record<ChapterId, ChapterLife>> = {
 export const SEASON_SECONDS = 80;
 
 export const TICK_LINES = {
-  welcome: '這是被時光雲霧蓋住的台灣。每一個發光的裂縫，都通往一個時代。先去彰化平原的裂縫看看吧！',
+  welcome: '這是被時光雲霧蓋住的台灣。每一個發光的裂縫，都通往一個時代。先從最古老的第一章開始吧！',
   building: (title: string) => `「${title}」這一章還在施工中，下次再來！`,
   cleared: '彰化平原的雲霧散開了！八堡圳的水一直流進田裡，大家在田裡忙著呢。點一下小人，聽聽他們說什麼。',
   clearedCh1: '海邊的雲霧散開了！八仙洞的火亮起來，十三行的煉鐵爐也冒煙了。阿岩的時代，終於等到天亮。',

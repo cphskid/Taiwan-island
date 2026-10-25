@@ -400,7 +400,11 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
       {intro && ready && (
         <Talk
           lines={[{ who: 'tick', mood: 'wave', text: TICK_LINES.welcome }]}
-          onDone={() => { setIntro(false); setWorld((w) => ({ ...w, greeted: true })); setPicked('ch5'); void map.current?.flyTo(chapterOf('ch5').rift, 1.8, 900); }}
+          onDone={() => {
+            // 新人從第一章開始（2026-10-25：以前固定帶到第五章，新人一進來就玩最長的一章，38 人只有 11 人過關）
+            const first = CHAPTERS.find((c) => c.playable && !world.cleared.includes(c.id))?.id ?? 'ch1';
+            setIntro(false); setWorld((w) => ({ ...w, greeted: true })); setPicked(first); void map.current?.flyTo(chapterOf(first).rift, 1.8, 900);
+          }}
         />
       )}
       <div className="fps">每秒 {fps} 格</div>
