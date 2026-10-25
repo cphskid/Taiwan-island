@@ -12,18 +12,20 @@ import { ambience, jingle, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
 import { Beacon, Goal, compass } from './Guide';
+import { playMark } from '../net/playlog';
 
 type Phase = 'tower' | 'oops' | 'warp' | 'find' | 'drift' | 'land' | 'village' | 'end';
 const STEP_MS = 380;
 const HINT_AT = 3; // 失敗幾次羅盤上亮出建議
 const DEMO_AT = 5;
 
-// 序章《認識臺灣》：時光鐘塔 → 找到臺灣 → 海上漂流三關 → 上岸認識地形氣候 → 選地蓋村 → 大地圖
+// 序章《認識臺灣》：時光鐘塔 → 找到臺灣 → 海上漂流兩關 → 上岸認識地形氣候 → 選地蓋村 → 大地圖
 export function Prologue({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<Phase>('tower');
   const [fact, setFact] = useState<{ fact: Fact; then: () => void } | null>(null);
   const showFact = (f: Fact, then: () => void) => { sfx('SE-36'); setFact({ fact: f, then }); };
   useEffect(() => { music(null); return () => ambience(null); }, []);
+  useEffect(() => { if (phase !== 'oops' && phase !== 'warp') playMark(`pro:${phase}`); }, [phase]);
   useEffect(() => { ambience(phase === 'find' || phase === 'drift' ? 'SE-62' : phase === 'land' || phase === 'village' ? 'SE-61' : null); }, [phase]);
 
   return (
@@ -164,11 +166,13 @@ function Find({ onFound }: { onFound: () => void }) {
   );
 }
 
-// ── 海上漂流三關 ──
+// ── 海上漂流：夏天、冬天兩關 ──
+// 2026-10-25 縮短序章：正式庫 72 人進序章只有 30 人走完，第三關黑潮（5 段航程）先拿掉，資料留著（core/drift.test.ts 還在測）
+const MAIN_DRIFTS = DRIFTS.slice(0, 2);
 function Drift({ onDone }: { onDone: () => void }) {
   const [idx, setIdx] = useState(0);
-  const lv = DRIFTS[idx];
-  return <DriftLevelView key={lv.id} lv={lv} onPass={() => (idx + 1 < DRIFTS.length ? setIdx(idx + 1) : onDone())} />;
+  const lv = MAIN_DRIFTS[idx];
+  return <DriftLevelView key={lv.id} lv={lv} onPass={() => (idx + 1 < MAIN_DRIFTS.length ? setIdx(idx + 1) : onDone())} />;
 }
 
 function DriftLevelView({ lv, onPass }: { lv: DriftLevel; onPass: () => void }) {
@@ -245,7 +249,7 @@ function DriftLevelView({ lv, onPass }: { lv: DriftLevel; onPass: () => void }) 
   return (
     <div className="scene sea-scene">
       <div className="levels">
-        {DRIFTS.map((d) => <span key={d.id} className={`lv ${d.id === lv.id ? 'on' : d.id < lv.id ? 'past' : ''}`}>{d.id}</span>)}
+        {MAIN_DRIFTS.map((d) => <span key={d.id} className={`lv ${d.id === lv.id ? 'on' : d.id < lv.id ? 'past' : ''}`}>{d.id}</span>)}
         <span className="hint plain"><b>{lv.title}</b></span>
         <Goal text={`轉天氣羅盤、按出航，把 ⛵ 漂到 ⚓ 港口`} />
       </div>
@@ -272,7 +276,7 @@ function DriftLevelView({ lv, onPass }: { lv: DriftLevel; onPass: () => void }) 
           <p>{OUTCOME_TEXT[result]}</p>
           {result !== 'arrived' && <p className="tip">滴答：⚓ 港口在船的{away}，哪一季的風（或海流）會往那邊走？</p>}
           {result === 'arrived'
-            ? <button className="btn green" onClick={onPass}>{lv.id < DRIFTS.length ? '下一關' : '上岸！'}</button>
+            ? <button className="btn green" onClick={onPass}>{lv.id < MAIN_DRIFTS.length ? '下一關' : '上岸！'}</button>
             : <button className="btn orange" onClick={reset}>再試一次</button>}
         </div>
       )}

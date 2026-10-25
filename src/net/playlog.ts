@@ -10,6 +10,13 @@ let on = false;
 let id: number | null = null;
 let cur: { place: string; label: string } | null = null;
 let timer = 0;
+let noted = false;
+const pending: string[] = [];   // 還沒拿到這一筆的編號時先排著的 mark
+
+function device() {
+  if (!matchMedia('(pointer:coarse)').matches) return 'desktop';
+  return Math.min(screen.width, screen.height) < 600 ? 'phone' : 'tablet';
+}
 
 async function call<T>(fn: string, args: Record<string, unknown>): Promise<T | null> {
   if (!db || !on) return null;
@@ -28,6 +35,9 @@ async function start() {
   const want = cur;
   id = await call<number>('park_play_start', { p_facility: FACILITY, p_place: want.place, p_label: want.label });
   if (cur !== want) return; // 等回應的時候又換地方了
+  // 這一頁第一筆記下裝置、從開網頁到能玩花多久（2026-10-25 補記錄，看手機或等太久是不是比較容易走掉）
+  if (id && !noted) { noted = true; void call('park_play_note', { p_id: id, p_device: device(), p_load_ms: Math.round(performance.now()) }); }
+  for (const m of pending.splice(0)) void call('park_play_note', { p_id: id, p_mark: m });
   timer = window.setInterval(() => { if (id) void call('park_play_beat', { p_id: id }); }, BEAT_MS);
 }
 
@@ -52,4 +62,11 @@ export function playAt(place: string, label: string) {
   stop();
   cur = { place, label };
   void start();
+}
+
+// 這一趟裡發生的事（例如序章走到哪一段 'pro:drift'），分得出是在哪裡走掉的
+export function playMark(mark: string) {
+  if (!on) return;
+  if (id) void call('park_play_note', { p_id: id, p_mark: mark });
+  else pending.push(mark);
 }
