@@ -37,7 +37,7 @@ function Builder({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const [water, setWater] = useState<'none' | 'leak' | 'full'>('none');
   const u = used(DAM, d);
   const sol = damSolve(DAM);
-  const showAnswer = fails >= 3;
+  const showAnswer = fails >= 2;
 
   const put = (row: number, i: number) => {
     if (isFixed(DAM, row, i) || water === 'full') return;
@@ -113,7 +113,7 @@ function Builder({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           <button className="btn green" disabled={water === 'full'} onClick={test}>放水試試看</button>
         </div>
       </div>
-      {fails >= 5 && water !== 'full' && <button className="btn demo corner-btn" onClick={() => { setD(sol.map((r) => [...r])); setBad(-1); setWater('none'); }}>看示範</button>}
+      {fails >= 3 && water !== 'full' && <button className="btn demo corner-btn" onClick={() => { setD(sol.map((r) => [...r])); setBad(-1); setWater('none'); }}>看示範</button>}
       <Say line={say} />
     </div>
   );

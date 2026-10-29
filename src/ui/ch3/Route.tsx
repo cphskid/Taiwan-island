@@ -129,7 +129,7 @@ function RouteSail({ info, oops, onDone }: { info: RouteInfo; oops: () => void; 
             );
           }))}
         </div>
-        {fails >= 3 && !won && trail.map((p, k) => <i key={k} className="ch3-trail" style={pct(p)} />)}
+        {fails >= 2 && !won && trail.map((p, k) => <i key={k} className="ch3-trail" style={pct(p)} />)}
         {info.labels.map((l) => <span key={l.text} className="ch3-label" style={pct(l)}>{l.text}</span>)}
         <span className="ch3-port from" style={pct(startPos)}>{info.from}</span>
         <span className="ch3-port to" style={pct(harborOf(lv))}>{info.to}</span>
@@ -155,7 +155,7 @@ function RouteSail({ info, oops, onDone }: { info: RouteInfo; oops: () => void; 
         </div>
         <button className="ch3-reset" disabled={busy || won} onClick={reset}>↺ 回到起點</button>
       </div>
-      {fails >= 5 && !won && <button className="btn demo corner-btn" disabled={busy} onClick={demo}>看示範</button>}
+      {fails >= 3 && !won && <button className="btn demo corner-btn" disabled={busy} onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );

@@ -157,7 +157,7 @@ function YardBoard({ level, oops, onDone }: { level: number; oops: () => void; o
           <button className="btn orange" disabled={leaving || demo || (!y.out.length && y.sideMoves === 0)} onClick={() => { sfx('SE-02'); reset(); setSay(null); }}>重排</button>
         </div>
       </div>
-      {fails >= 5 && !demo && !leaving && <button className="btn demo corner-btn" onClick={() => { reset(); setDemo(true); }}>看示範</button>}
+      {fails >= 3 && !demo && !leaving && <button className="btn demo corner-btn" onClick={() => { reset(); setDemo(true); }}>看示範</button>}
       <Say line={say} />
     </div>
   );

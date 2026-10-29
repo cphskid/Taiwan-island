@@ -70,7 +70,7 @@ function Sort({ mode, oops, onDone }: { mode: 'kind' | 'map'; oops: () => void; 
   };
   const demo = () => { setPlaced({ ...answer }); setWrong([]); setPick(null); };
   // 失敗 3 次以上：拿著的卡會在正確的地方發光
-  const glow = fails >= 3 && pick ? answer[pick] : null;
+  const glow = fails >= 2 && pick ? answer[pick] : null;
   const chip = (id: TenId) => (
     <button key={id} className={`end-chip ${wrong.includes(id) ? 'wrong' : ''}`} onClick={(e) => { e.stopPropagation(); if (pick) put(placed[id]); else back(id); }}>
       <img src={ten(id).img} alt="" /><small>{ten(id).name}</small>
@@ -117,7 +117,7 @@ function Sort({ mode, oops, onDone }: { mode: 'kind' | 'map'; oops: () => void; 
           <svg className="end-westline" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden><polyline points="84,7 68,12 53,24 42,35 40,52 39,66 40,78" /></svg>
         </div>
       )}
-      {fails >= 5 && !passed && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && !passed && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );

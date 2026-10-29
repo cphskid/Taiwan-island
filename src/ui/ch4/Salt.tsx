@@ -165,7 +165,7 @@ function SaltPlan({ onDone }: { onDone: () => void }) {
   const [say, setSay] = useState<Line | null>(null);
   const now = acts.reduce((cur, a) => (a.kind === 'cover' ? cur : doAct(cur, a)), start);
   const cover = (acts.find((a) => a.kind === 'cover') as { pan: number } | undefined)?.pan ?? -1;
-  const showHint = fails >= 3 || auto;
+  const showHint = fails >= 2 || auto;
   const best = useMemo(() => (showHint && day < SALT.days.length ? saltBest(SALT, day, start).plan[0] ?? [] : []), [showHint, day, start]);
   const tip = best;
   const sky = SALT.days[day];
@@ -264,7 +264,7 @@ function SaltPlan({ onDone }: { onDone: () => void }) {
           </div>
         </div>
       )}
-      {fails >= 5 && phase === 'work' && !auto && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && phase === 'work' && !auto && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       <Say line={phase === 'work' ? say : null} />
     </>
   );

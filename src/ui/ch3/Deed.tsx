@@ -69,7 +69,7 @@ function Decode({ oops, onDone }: { oops: () => void; onDone: () => void }) {
             <div key={w} className={`ch3-guess-row ${wrong.includes(w) ? 'wrong' : ''}`}>
               <b>{w}</b><span>是</span>
               {DIRS.map((d) => (
-                <button key={d} className={`${guess[w] === d ? 'on' : ''} ${fails >= 3 && SECRET[w] === d ? 'ch3-hint' : ''}`} onClick={() => pick(w, d)} disabled={won}>{DIR_NAME[d]}</button>
+                <button key={d} className={`${guess[w] === d ? 'on' : ''} ${fails >= 2 && SECRET[w] === d ? 'ch3-hint' : ''}`} onClick={() => pick(w, d)} disabled={won}>{DIR_NAME[d]}</button>
               ))}
             </div>
           ))}
@@ -83,7 +83,7 @@ function Decode({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           <div key={c.text} className="ch3-clue"><Face who={c.who} small /><span><b style={{ color: PEOPLE[c.who].color }}>{PEOPLE[c.who].name}</b>{c.text}</span></div>
         ))}
       </div>
-      {fails >= 5 && !won && <button className="btn demo corner-btn" onClick={() => { const g = { ...SECRET }; setGuess(g); setTimeout(() => check(g), 600); }}>看示範</button>}
+      {fails >= 3 && !won && <button className="btn demo corner-btn" onClick={() => { const g = { ...SECRET }; setGuess(g); setTimeout(() => check(g), 600); }}>看示範</button>}
       <Say line={say} />
     </div>
   );
@@ -143,7 +143,7 @@ function Trace({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           const at = path[k].id === s.id;
           const passed = path.slice(0, k + 1).some((q) => q.id === s.id);
           return (
-            <button key={s.id} className={`ch3-spot ${s.kind} ${at ? 'at' : ''} ${passed ? 'passed' : ''} ${bad === s.id ? 'bad' : ''} ${fails >= 3 && !done && want.id === s.id ? 'ch3-hint' : ''}`}
+            <button key={s.id} className={`ch3-spot ${s.kind} ${at ? 'at' : ''} ${passed ? 'passed' : ''} ${bad === s.id ? 'bad' : ''} ${fails >= 2 && !done && want.id === s.id ? 'ch3-hint' : ''}`}
               style={{ left: `${x}%`, top: `${y}%` }} onClick={() => tap(s)} aria-label={WORDS[s.kind]}>
               {icon.startsWith('/') || icon.includes('.webp') ? <img src={icon} alt="" /> : <i>{icon || '💧'}</i>}
               <small>{s.kind}</small>
@@ -152,7 +152,7 @@ function Trace({ oops, onDone }: { oops: () => void; onDone: () => void }) {
         })}
         <div className="ch3-rose"><b>北</b><span>西 ✛ 東</span><b>南</b></div>
       </div>
-      {fails >= 5 && !done && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && !done && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );

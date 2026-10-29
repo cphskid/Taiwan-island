@@ -21,7 +21,7 @@ export function Camps({ p, set, next, oops }: Step4Props) {
   const [res, setRes] = useState<CampCheck | null>(null);
   const [fails, setFails] = useState(0);
   const [say, setSay] = useState<Line | null>(null);
-  const sol = fails >= 3 ? campSolutions(CAMPS, 1)[0] : null;
+  const sol = fails >= 2 ? campSolutions(CAMPS, 1)[0] : null;
   const has = (c: Cell) => camps.findIndex((x) => ck(x) === ck(c));
 
   const tap = (c: Cell) => {
@@ -91,7 +91,7 @@ export function Camps({ p, set, next, oops }: Step4Props) {
           </div>
         </div>
       )}
-      {fails >= 5 && phase === 'place' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && phase === 'place' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       {phase === 'names' && (
         <div className="talk-cover">
           <div className="panel mission ch4-names">

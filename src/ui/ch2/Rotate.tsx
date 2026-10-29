@@ -37,7 +37,7 @@ function Fields({ onDone, oops }: { onDone: () => void; oops: () => void }) {
   const [say, setSay] = useState<Line | null>(null);
   const [tip, setTip] = useState(false); // 現在的對話框是「還差幾塊」這種小提醒：選了田就收起來
   const nudge = (text: string) => { sfx('SE-04'); setTip(true); setSay({ who: 'ani', mood: 'thinking', text }); };
-  const plan = fails >= 3 || demo ? rotSolve({ ...ROT, start: fert, years: ROT.years - year }) : null;
+  const plan = fails >= 2 || demo ? rotSolve({ ...ROT, start: fert, years: ROT.years - year }) : null;
   const sum = pick.reduce((a, i) => a + fert[i], 0);
   const left = ROT.plotsPerYear - pick.length;
   // 目標條跟著進度變（變了會自己再打開）：還沒選 → 選了幾塊 → 選滿了按「種下去」
@@ -107,7 +107,7 @@ function Fields({ onDone, oops }: { onDone: () => void; oops: () => void }) {
         </div>
         <p className="rot-rule">種的田：收成＝數字，種完少 1（陡坡少 2）。休息的田：多 1，最多 {ROT.max}。</p>
       </div>
-      {fails >= 5 && !demo && <button className="btn demo corner-btn" onClick={() => { restart(); setDemo(true); }}>看示範</button>}
+      {fails >= 3 && !demo && <button className="btn demo corner-btn" onClick={() => { restart(); setDemo(true); }}>看示範</button>}
       <Say line={say} />
     </div>
   );

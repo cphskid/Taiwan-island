@@ -83,7 +83,7 @@ function Match({ onDone, oops }: { onDone: () => void; oops: () => void }) {
         <div className="ch6-healers">
           {CLINIC.healers.map((h) => {
             const mine = CLINIC.patients.filter((x) => plan[x.id] === h.id);
-            const glow = fails >= 3 && pick && answer[pick] === h.id;
+            const glow = fails >= 2 && pick && answer[pick] === h.id;
             return (
               <div key={h.id} role="button" className={`ch6-healer ${pick ? 'ready' : ''} ${full.includes(h.id) ? 'full' : ''} ${glow ? 'hint' : ''}`} onClick={() => put(h.id)}>
                 <div className="ch6-healer-head">
@@ -110,7 +110,7 @@ function Match({ onDone, oops }: { onDone: () => void; oops: () => void }) {
         </div>
         <small className="ch6-clinic-tip">🦷 拔牙　🤒 發冷發熱（瘧疾）要吃藥　🩹 傷口要清洗包紮　放錯了點一下可以拿回來</small>
       </div>
-      {fails >= 5 && !ok && <button className="btn demo corner-btn" onClick={() => { setPlan(answer); setWrong([]); setFull([]); setPick(null); }}>看示範</button>}
+      {fails >= 3 && !ok && <button className="btn demo corner-btn" onClick={() => { setPlan(answer); setWrong([]); setFull([]); setPick(null); }}>看示範</button>}
       <Say line={say} />
     </div>
   );

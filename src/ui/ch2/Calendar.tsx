@@ -70,7 +70,7 @@ export function Calendar({ p, set, next, oops }: Step2Props) {
                   <b>{SEASON_ICON[s]} {name}</b>
                   <span className="cal-got">
                     {CHORES.filter((c) => placed[c.id] === s).map((c) => (
-                      <button key={c.id} className={`cal-chip ${wrong.includes(c.id) ? 'wrong' : ''} ${fails >= 3 && c.season !== s ? 'wrong' : ''}`} onClick={(e) => { e.stopPropagation(); if (pick) put(s); else back(c.id); }}>
+                      <button key={c.id} className={`cal-chip ${wrong.includes(c.id) ? 'wrong' : ''} ${fails >= 2 && c.season !== s ? 'wrong' : ''}`} onClick={(e) => { e.stopPropagation(); if (pick) put(s); else back(c.id); }}>
                         <img src={CHORE_IMG[c.id]} alt="" />{c.name}
                       </button>
                     ))}
@@ -82,7 +82,7 @@ export function Calendar({ p, set, next, oops }: Step2Props) {
           </div>
         </div>
       )}
-      {fails >= 5 && phase === 'sort' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && phase === 'sort' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       {phase === 'cards' && <NewCards ids={['season']} p={p} set={set} onDone={next} />}
       <Say line={phase === 'sort' ? say : null} />
     </div>

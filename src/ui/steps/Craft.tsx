@@ -106,8 +106,8 @@ export function Craft({ p, set, next }: StepProps) {
       {!finished && !intro && nearBamboo && p.bamboo < need * CAGE_COST.bamboo && <BoardBeacon board={board} cell={nearBamboo} label="竹林：點這裡砍竹子" small />}
       {!finished && !intro && nearStone && p.stone < need * CAGE_COST.stone && <BoardBeacon board={board} cell={nearStone} label="石堆：水退時點這裡" small />}
       {splash > 0 && <div className="splash">撲通！</div>}
+      {!finished && <Goal floating text={canCraft(p) ? '材料夠了！按下面「編竹蛇籠」' : '點竹林砍竹子、溪水退時點石堆撿石頭'} />}
       <div className="mats">
-        {!finished && <Goal text={canCraft(p) ? '材料夠了！按下面「編竹蛇籠」' : '點竹林砍竹子、溪水退時點石堆撿石頭'} />}
         <span><img src={img('g-bamboo')} alt="" />竹子 <b>{p.bamboo}</b></span>
         <span><img src={img('g-stone')} alt="" />石頭 <b>{p.stone}</b></span>
         <span><img src={img('g-cage-full')} alt="" />竹蛇籠 <b>{p.cages} / {CAGES_NEEDED}</b></span>

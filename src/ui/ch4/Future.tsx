@@ -18,7 +18,7 @@ export function Future({ p, set, next, oops }: Step4Props) {
   const [fails, setFails] = useState(0);
   const [say, setSay] = useState<Line | null>(null);
   const res = runGrain(GRAIN, plan);
-  const sol = fails >= 3 ? grainSolutions(GRAIN)[0] : null;
+  const sol = fails >= 2 ? grainSolutions(GRAIN)[0] : null;
 
   const bump = (y: number, d: number) => {
     const k = plan[y] + d;
@@ -86,7 +86,7 @@ export function Future({ p, set, next, oops }: Step4Props) {
           </div>
         </div>
       )}
-      {fails >= 5 && phase === 'plan' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && phase === 'plan' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       {phase === 'choice' && <Decide4 id="grain" set={set} onDone={() => setPhase('history')} />}
       {phase === 'history' && <Talk lines={HISTORY4} onDone={() => setPhase('jump')} />}
       {phase === 'jump' && <Jump4 to={3} onDone={() => setPhase('shilang')} />}

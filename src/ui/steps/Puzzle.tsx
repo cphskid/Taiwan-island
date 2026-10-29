@@ -13,8 +13,8 @@ import type { StepProps } from '../Chapter';
 import { jingle, sfx } from '../../audio';
 
 const STEP_MS = 250; // 水每 0.25 秒往前一格
-const HINT_AT = 3; // 失敗幾次亮出白色提示（失敗一次夥伴就先說一句）
-const DEMO_AT = 5; // 失敗幾次可以看示範
+const HINT_AT = 2; // 失敗幾次亮出白色提示（失敗一次夥伴就先說一句）
+const DEMO_AT = 3; // 失敗幾次可以看示範
 
 type Drag = { kind: 'new' } | { kind: 'move'; id: number; x0: number; y0: number; moved: boolean };
 type Run = { result: FlowResult; t: number; done: boolean };
@@ -268,7 +268,7 @@ export function FlowLevel({ p, set, level, levels, helper, intro: introLines, on
           <span key={lv.id} className={`lv ${i === idx ? 'on' : i < idx ? 'past' : ''}`}>{lv.id}</span>
         ))}
         <span className="hint plain"><b>{level.title}</b></span>
-        <Goal text={goal ?? `把溪水導到分水閘（要 ${level.need} 份水）`} />
+        <Goal floating text={goal ?? `把溪水導到分水閘（要 ${level.need} 份水）`} />
       </div>
 
       {spots.gate && <BoardBeacon board={board} cell={spots.gate} label="分水閘：水送到這裡" spot={!intro && ready > 0} />}

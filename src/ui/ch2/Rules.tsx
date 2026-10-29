@@ -62,7 +62,7 @@ export function Rules({ p, set, next, oops }: Step2Props) {
           <div className="rules panel">
             <div className="rule-list">
               {RULES.map((r, k) => (
-                <button key={r.id} className={`rule ${on.includes(r.id) ? 'on' : ''} ${fails >= 3 && r.good ? 'hint' : ''}`} onClick={() => toggle(r.id)}>
+                <button key={r.id} className={`rule ${on.includes(r.id) ? 'on' : ''} ${fails >= 2 && r.good ? 'hint' : ''}`} onClick={() => toggle(r.id)}>
                   <i>{on.includes(r.id) ? '✔' : ''}</i>{r.text}
                   {!on.length && !sim && !fails && k === 0 && <em className="tap-me" aria-hidden>👆</em>}
                 </button>

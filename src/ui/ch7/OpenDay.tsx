@@ -84,7 +84,7 @@ function Gates({ oops, onDone }: { oops: () => void; onDone: () => void }) {
                   <span className="ch7-open-n">💧{open[k]}</span>
                   <button onClick={() => turn(k, 1)} disabled={won}>＋</button>
                 </div>
-                {fails >= 3 && !won && <small className="ch7-need">{ROTA.areas[k]} × {WATER[c]} = {need[k]}</small>}
+                {fails >= 2 && !won && <small className="ch7-need">{ROTA.areas[k]} × {WATER[c]} = {need[k]}</small>}
                 {st === 'dry' && <em className="ch7-tag">太少，田乾</em>}
                 {st === 'flood' && <em className="ch7-tag">太多，淹水</em>}
               </div>
@@ -96,7 +96,7 @@ function Gates({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           <button className="btn green" disabled={won} onClick={release}>開閘放水</button>
         </div>
       </div>
-      {fails >= 5 && !won && <button className="btn demo corner-btn" onClick={() => { setOpen(need); setRes(null); }}>看示範</button>}
+      {fails >= 3 && !won && <button className="btn demo corner-btn" onClick={() => { setOpen(need); setRes(null); }}>看示範</button>}
       <Say line={say} />
     </div>
   );

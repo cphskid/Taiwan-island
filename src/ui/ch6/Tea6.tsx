@@ -135,7 +135,7 @@ function Schedule({ onDone, oops, night }: { onDone: () => void; oops: () => voi
             {TEA.batches.map((b) => {
               const k = order.indexOf(b.id);
               return (
-                <button key={b.id} className={`ch6-batch ${k >= 0 ? 'on' : ''} ${fails >= 3 && k < 0 && good[order.length] === b.id ? 'hint' : ''}`}
+                <button key={b.id} className={`ch6-batch ${k >= 0 ? 'on' : ''} ${fails >= 2 && k < 0 && good[order.length] === b.id ? 'hint' : ''}`}
                   onClick={() => (k >= 0 ? drop(b.id) : add(b.id))} style={{ ['--tint' as string]: TEA_TINT[b.id] }}>
                   {k >= 0 && <em className="ch6-batch-n">{k + 1}</em>}
                   <img src={art6(TEA_IMG[b.id])} alt="" />
@@ -183,7 +183,7 @@ function Schedule({ onDone, oops, night }: { onDone: () => void; oops: () => voi
           <button className={`btn green ${left.length ? 'wait' : 'go-ready'}`} disabled={!!run} onClick={() => left.length ? (sfx('SE-04'), setSay({ who: 'chun', mood: 'thinking', text: `還有 ${left.length} 批茶沒排進去喔！把每一批都點進順序裡，才能開工。` })) : start()}>開工！</button>
         </div>
       </div>
-      {fails >= 5 && !run?.ok && <button className="btn demo corner-btn" onClick={() => { setOrder(good); setRun(null); }}>看示範</button>}
+      {fails >= 3 && !run?.ok && <button className="btn demo corner-btn" onClick={() => { setOrder(good); setRun(null); }}>看示範</button>}
       <Say line={say} />
     </div>
   );

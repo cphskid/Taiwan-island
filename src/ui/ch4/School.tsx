@@ -52,7 +52,7 @@ export function School({ p, set, next, oops }: Step4Props) {
     setSay(f >= 3 ? TEMPLE_SAY.spot : f >= 2 ? TEMPLE_SAY.hint : TEMPLE_SAY.wrong);
   };
   const demo = () => { setPlaced({ ...TEMPLE.answer }); setWrong([]); setPick(null); };
-  const target = pick && fails >= 3 ? ck(TEMPLE.answer[pick]) : null;
+  const target = pick && fails >= 2 ? ck(TEMPLE.answer[pick]) : null;
 
   return (
     <div className="scene ch4-school">
@@ -101,7 +101,7 @@ export function School({ p, set, next, oops }: Step4Props) {
           </div>
         </div>
       )}
-      {fails >= 5 && phase === 'build' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && phase === 'build' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       {phase === 'done' && <Talk lines={TEMPLE_DONE} onDone={() => setPhase('choice')} />}
       {phase === 'choice' && <Decide4 id="school" set={set} onDone={() => setPhase('cards')} />}
       {phase === 'cards' && <NewCards ids={['c4-temple', 'c4-chengtian']} p={p} set={set} onDone={next} />}

@@ -24,7 +24,7 @@ export function Pond({ p, set, next, oops }: Step4Props) {
   const [fails, setFails] = useState(0);
   const [say, setSay] = useState<Line | null>(null);
   const labor = cells + crops.filter((c) => c !== 'none').length;
-  const sol = fails >= 3 ? pondSolutions(POND)[0] : null;
+  const sol = fails >= 2 ? pondSolutions(POND)[0] : null;
   const cap = cells * POND.cellCap;
   const food = crops.reduce((a, c) => a + (c === 'none' ? 0 : POND.crops[c].food), 0);
 
@@ -118,7 +118,7 @@ export function Pond({ p, set, next, oops }: Step4Props) {
           </div>
         </div>
       )}
-      {fails >= 5 && phase === 'plan' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && phase === 'plan' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       {phase === 'choice' && <Decide4 id="water" set={set} onDone={() => setPhase('cards')} />}
       {phase === 'cards' && <NewCards ids={['c4-pond']} p={p} set={set} onDone={next} />}
       <Say line={phase === 'plan' || phase === 'run' ? say : null} />

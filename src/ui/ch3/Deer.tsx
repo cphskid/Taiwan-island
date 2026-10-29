@@ -183,7 +183,7 @@ function HerdPlan({ oops, onDone }: { oops: () => void; onDone: () => void }) {
       <div className="ch3-herd panel">
         <div className="ch3-years">
           {takes.map((t, y) => (
-            <div key={y} className={`ch3-year ${shown > y ? 'shown' : ''} ${fails >= 3 && y === 0 ? 'ch3-hint' : ''}`}>
+            <div key={y} className={`ch3-year ${shown > y ? 'shown' : ''} ${fails >= 2 && y === 0 ? 'ch3-hint' : ''}`}>
               <b>第 {y + 1} 年</b>
               <span className="herd-n"><img src={DEER_IMG} alt="" />年初 {shown > y || y === 0 ? startOf(y) : '?'} 群</span>
               <div className="stepper">
@@ -204,7 +204,7 @@ function HerdPlan({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           <button className="btn green" disabled={going || won} onClick={() => go()}>照這樣過四年</button>
         </div>
       </div>
-      {fails >= 5 && !won && <button className="btn demo corner-btn" disabled={going} onClick={demo}>看示範</button>}
+      {fails >= 3 && !won && <button className="btn demo corner-btn" disabled={going} onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );

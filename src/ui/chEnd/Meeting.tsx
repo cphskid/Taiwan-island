@@ -85,9 +85,9 @@ function Lot({ oops, onDone }: { oops: () => void; onDone: () => void }) {
         <span className="end-lot-side bottom">🏠 老房子</span>
         <div className="end-lot-grid">
           {plan.map((u, i) => (
-            <button key={i} className={`end-lot-block ${u ?? 'empty'} ${fails >= 3 && u !== ANSWER[i] ? 'hint' : ''}`} onClick={() => tap(i)} aria-label={BLOCKS[i]}>
+            <button key={i} className={`end-lot-block ${u ?? 'empty'} ${fails >= 2 && u !== ANSWER[i] ? 'hint' : ''}`} onClick={() => tap(i)} aria-label={BLOCKS[i]}>
               {u ? <><img src={USE_INFO[u].img} alt="" /><b>{USE_INFO[u].name}</b></> : <b className="end-lot-empty">空地<br /><small>點一下</small></b>}
-              {fails >= 3 && u !== ANSWER[i] && <em className="end-lot-ghost">試試{USE_INFO[ANSWER[i]].name}？</em>}
+              {fails >= 2 && u !== ANSWER[i] && <em className="end-lot-ghost">試試{USE_INFO[ANSWER[i]].name}？</em>}
             </button>
           ))}
         </div>
@@ -108,7 +108,7 @@ function Lot({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           <button className={`btn green ${full ? 'go-ready' : 'wait'}`} disabled={passed} onClick={() => full ? tryVote() : (sfx('SE-04'), setSay({ who: 'chair', text: `還有 ${plan.filter((u) => u === null).length} 塊空地沒決定，每一塊都點一下換成公園、停車場或市場，才能投票喔。` }))}>試投票</button>
         </div>
       </div>
-      {fails >= 5 && !passed && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && !passed && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );

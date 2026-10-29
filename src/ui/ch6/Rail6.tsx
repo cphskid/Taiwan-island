@@ -39,7 +39,7 @@ function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: ()
   const [bad, setBad] = useState<Pt | null>(null);
   const [train, setTrain] = useState<number | null>(null);
   const [say, setSay] = useState<Line | null>(null);
-  const sol = fails >= 3 ? railSolve(lv) : null;
+  const sol = fails >= 2 ? railSolve(lv) : null;
   const W = lv.map[0].length, H = lv.map.length;
   const used = railUsed(path);
   const done = railDone(lv, path);
@@ -147,7 +147,7 @@ function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: ()
           <button className="btn orange" disabled={done || path.length < 2} onClick={() => { sfx('SE-02'); setPath(railBegin(lv)); setBad(null); }}>重鋪</button>
         </div>
       </div>
-      {fails >= 5 && !done && <button className="btn demo corner-btn" onClick={() => { setPath(railSolve(lv)!.slice(0, -1)); setBad(null); setSay(RAIL_SAY.hint); }}>看示範</button>}
+      {fails >= 3 && !done && <button className="btn demo corner-btn" onClick={() => { setPath(railSolve(lv)!.slice(0, -1)); setBad(null); setSay(RAIL_SAY.hint); }}>看示範</button>}
       <Say line={say} />
     </div>
   );

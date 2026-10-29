@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PEOPLE, TICK_MOODS, type Line } from '../data/babao-chapter';
 import { sfx } from '../audio';
 import { GoalStrip, useSayGoal } from './Guide';
@@ -38,10 +38,17 @@ export function Face({ who, mood, small }: { who: Line['who']; mood?: Line['mood
 }
 
 // 夥伴／滴答在角落說一句話：點一下縮成小頭像（不擋操作），再點一下展開；
-// 新的一句話會自己展開，8 秒後自己縮起來
+// 新的一句話會自己展開，8 秒後自己縮起來；點畫面別的地方也會馬上縮起來，不擋下面的東西
 export function Say({ line }: { line: Line | null }) {
   const text = line?.text;
   const [small, setSmall] = useState(false);
+  const box = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (small || !text) return;
+    const away = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setSmall(true); };
+    document.addEventListener('pointerdown', away, true);
+    return () => document.removeEventListener('pointerdown', away, true);
+  }, [small, text]);
   // 這一關的目標（<Goal floating>）放在說話框最上面一行；縮起來也留著
   const goal = useSayGoal(!!line);
   useEffect(() => {
@@ -53,7 +60,7 @@ export function Say({ line }: { line: Line | null }) {
   if (!line) return null;
   if (goal) {
     return (
-      <button className={`say with-goal ${small ? 'mini' : ''}`} onClick={() => setSmall(!small)} aria-label={small ? '打開提示' : '收起提示'}>
+      <button ref={box} className={`say with-goal ${small ? 'mini' : ''}`} onClick={() => setSmall(!small)} aria-label={small ? '打開提示' : '收起提示'}>
         <Face who={line.who} mood={line.mood} small />
         <div className="say-col">
           <GoalStrip text={goal} />
@@ -64,7 +71,7 @@ export function Say({ line }: { line: Line | null }) {
     );
   }
   return (
-    <button className={`say ${small ? 'mini' : ''}`} onClick={() => setSmall(!small)} aria-label={small ? '打開提示' : '收起提示'}>
+    <button ref={box} className={`say ${small ? 'mini' : ''}`} onClick={() => setSmall(!small)} aria-label={small ? '打開提示' : '收起提示'}>
       <Face who={line.who} mood={line.mood} small />
       {small ? <i className="say-dot">💬</i> : (
         <>

@@ -108,7 +108,7 @@ function Timetable({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops
               <small className={res?.late[k] ? 'late' : ''}>最晚第 {lv.deadline[k]} 格到{res ? `（第 ${res.arrive[k]} 格到）` : ''}</small>
               <div className="ch6-waits">
                 {mid.map((name, i) => (
-                  <div key={name} className={`ch6-wait ${fails >= 3 && sol && (k === 0 ? sol.down : sol.up)[i] > 0 ? 'hint' : ''}`}>
+                  <div key={name} className={`ch6-wait ${fails >= 2 && sol && (k === 0 ? sol.down : sol.up)[i] > 0 ? 'hint' : ''}`}>
                     <span>{name}</span>
                     <div className="stepper">
                       <button disabled={running || waits[k][i] <= 0} onClick={() => bump(k, i, -1)}>−</button>
@@ -143,7 +143,7 @@ function Timetable({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops
           <button className="btn green" disabled={running || !!res?.ok} onClick={go}>發車！</button>
         </div>
       </div>
-      {fails >= 5 && !res?.ok && <button className="btn demo corner-btn" onClick={() => { setWaits([[...sol.down], [...sol.up]]); setRes(null); setT(null); }}>看示範</button>}
+      {fails >= 3 && !res?.ok && <button className="btn demo corner-btn" onClick={() => { setWaits([[...sol.down], [...sol.up]]); setRes(null); setT(null); }}>看示範</button>}
       <Say line={say} />
     </div>
   );

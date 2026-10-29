@@ -58,7 +58,7 @@ function HarborBoard({ li, oops, onDone }: { li: number; oops: () => void; onDon
   useEffect(() => () => { alive.current = false; }, []);
   const n = h.size;
   // 失敗 3 次以後，標出下一步該動哪一艘船
-  const nextMove = useMemo(() => (fails >= 3 && !won ? harborSolve({ ...h, boats })?.[0] ?? null : null), [fails, won, h, boats]);
+  const nextMove = useMemo(() => (fails >= 2 && !won ? harborSolve({ ...h, boats })?.[0] ?? null : null), [fails, won, h, boats]);
 
   const commit = async (id: string, by: number, bs = boats, mv = moves, lastId = last) => {
     const nb = slide(h, bs, id, by);
@@ -151,7 +151,7 @@ function HarborBoard({ li, oops, onDone }: { li: number; oops: () => void; onDon
           <small>{li === 0 ? '城堡' : '外海'}</small>
         </div>
       </div>
-      {fails >= 5 && !won && <button className="btn demo corner-btn" disabled={busy} onClick={demo}>看示範</button>}
+      {fails >= 3 && !won && <button className="btn demo corner-btn" disabled={busy} onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );

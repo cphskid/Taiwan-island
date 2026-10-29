@@ -3,7 +3,7 @@ import { deerRun, ruleRun, ruleHunts, SEASONS } from '../../core/mountain';
 import { DEER, HUNT_DEMO_OPEN, HUNT_EASY_INTRO, HUNT_EASY_SAY, HUNT_INTRO, HUNT_SAY, art2 } from '../../data/ch2';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { ChallengeOffer, ChallengeTag } from '../Challenge';
 import { challengeDone } from '../Medal';
 import { NewCards, type Step2Props } from '../Ch2';
@@ -85,16 +85,29 @@ function HuntRule({ onDone, oops }: { onDone: () => void; oops: () => void }) {
       setSay(f >= 2 ? HUNT_EASY_SAY.hint : HUNT_EASY_SAY.spring);
     });
   };
+  // 正解（手指、看示範用）：四季開關所有組合裡，兩年都有肉、鹿不變少的那一種
+  const answer = SEASONS.map((_, s) => s !== 0);
+  const tried = open.some(Boolean);
+  const goal = stage === 'demo'
+    ? (playing ? '先看阿妮照「想打就打」過一年。' : '按「換我來訂規矩」。剛剛四季都打，鹿變少了。')
+    : won ? '鹿群沒有變少，肉也夠吃！'
+    : !tried ? '點季節，決定哪幾季可以上山。兩年都有肉吃，鹿群也不能變少。'
+    : `按「照這個規矩過 ${DEER.years} 年」看結果。也可以再點季節改。`;
+  const handAt = playing || won ? null
+    : stage === 'demo' ? '.hunt-foot .btn.green'
+    : !tried ? '.hunt-toggle[data-season="2"]'
+    : '.hunt-foot .btn.green';
   const deerAt = (y: number) => (y === 0 ? DEER.start : run.years[y - 1].deerAfter);
   const done = !playing && shown >= years;
   return (
     <div className="hunt-wrap">
-      <Goal floating text={stage === 'demo' ? '先看阿妮照「想打就打」過一年。' : '訂獵季：點季節決定哪幾季可以上山。兩年都有肉吃，鹿群也不能變少。'} />
+      <Goal floating id={`hunt-${stage}`} text={goal} />
+      <Hand at={handAt} first={stage === 'demo' ? done : !fails && shown === 0} />
       <div className="hunt-board panel">
         {stage === 'rule' && (
           <div className="hunt-rule">
             {SEASONS.map((n, s) => (
-              <button key={n} className={`hunt-toggle ${open[s] ? 'on' : ''} ${fails >= 2 && s === 0 ? 'hint' : ''}`} disabled={playing || won} onClick={() => toggle(s)}>
+              <button key={n} data-season={s} className={`hunt-toggle ${open[s] ? 'on' : ''} ${fails >= 2 && s === 0 ? 'hint' : ''}`} disabled={playing || won} onClick={() => toggle(s)}>
                 <span>{n}{s === 0 && <small> 生小鹿</small>}</span>
                 <em>{open[s] ? '🏹 可以打獵' : '🌿 不上山'}</em>
               </button>
@@ -124,6 +137,7 @@ function HuntRule({ onDone, oops }: { onDone: () => void; oops: () => void }) {
           {stage === 'demo'
             ? <button className="btn green" disabled={!done} onClick={toRule}>換我來訂規矩 ▶</button>
             : <button className="btn green" disabled={playing || won} onClick={go}>照這個規矩過 {DEER.years} 年</button>}
+          {stage === 'rule' && fails >= 3 && !won && !playing && <button className="btn demo" onClick={() => { sfx('SE-01'); setShown(0); setOpen(answer); }}>看示範</button>}
         </div>
       </div>
       <Say line={say} />
@@ -181,7 +195,7 @@ function HuntPlan({ onDone, oops }: { onDone: () => void; oops: () => void }) {
             </div>
             <div className="hunt-seasons">
               {row.map((h, s) => (
-                <div key={s} className={`hunt-season s${s} ${fails >= 3 && s === 0 ? 'hint' : ''}`}>
+                <div key={s} className={`hunt-season s${s} ${fails >= 2 && s === 0 ? 'hint' : ''}`}>
                   <b>{SEASONS[s]}{s === 0 && <small>生小鹿</small>}</b>
                   <div className="stepper">
                     <button onClick={() => bump(y, s, -1)} disabled={!h}>－</button>
@@ -199,7 +213,7 @@ function HuntPlan({ onDone, oops }: { onDone: () => void; oops: () => void }) {
           <button className="btn green" disabled={going} onClick={go}>照這樣過 {DEER.years} 年</button>
         </div>
       </div>
-      {fails >= 5 && !run.ok && <button className="btn demo corner-btn" onClick={() => { setShown(0); setPlan(DEMO.map((r) => [...r])); }}>看示範</button>}
+      {fails >= 3 && !run.ok && <button className="btn demo corner-btn" onClick={() => { setShown(0); setPlan(DEMO.map((r) => [...r])); }}>看示範</button>}
       <Say line={say} />
     </div>
   );

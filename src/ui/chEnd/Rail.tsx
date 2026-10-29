@@ -39,7 +39,7 @@ function Track({ oops, riding, onPass, onRode }: { oops: () => void; riding: boo
   const r = railRun(RAIL, path, stops);
   const onPath = new Map(path.map((c, i) => [cellKey(c), i]));
   const end = path[path.length - 1];
-  const best = fails >= 3 ? railSolve(RAIL) : null;
+  const best = fails >= 2 ? railSolve(RAIL) : null;
   const bestCells = new Set(best?.path.map(cellKey) ?? []);
 
   const tap = (c: Cell) => {
@@ -138,7 +138,7 @@ function Track({ oops, riding, onPass, onRode }: { oops: () => void; riding: boo
           <button className="btn green" disabled={riding} onClick={go}>試跑一趟</button>
         </div>
       </div>
-      {fails >= 5 && !riding && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && !riding && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );

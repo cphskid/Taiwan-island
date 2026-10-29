@@ -105,7 +105,7 @@ function Pipes({ oops, onDone }: { oops: () => void; onDone: () => void }) {
             <img className="ch7-slope-bg" src={art7('s-sunmoon')} alt="" />
             <div className="ch7-pipes" style={{ gridTemplateColumns: `repeat(${lv.cols}, 1fr)`, gridTemplateRows: `repeat(${lv.rows}, 1fr)` }}>
               {lv.tiles.map((t, i) => (
-                <button key={i} className={`ch7-tile ${t.k} ${f.wet[i] ? 'wet' : ''} ${f.leaks.includes(i) && lit !== null ? 'leak' : ''} ${fails >= 3 && !want(i) ? 'ch7-hint' : ''}`}
+                <button key={i} className={`ch7-tile ${t.k} ${f.wet[i] ? 'wet' : ''} ${f.leaks.includes(i) && lit !== null ? 'leak' : ''} ${fails >= 2 && !want(i) ? 'ch7-hint' : ''}`}
                   onClick={() => spin(i)} disabled={t.k !== 'pipe'} aria-label={t.k === 'plant' ? t.name : t.k}>
                   <PipeArt tile={t} wet={f.wet[i]} i={i} />
                   {t.k === 'plant' && <small>{t.name}</small>}
@@ -123,7 +123,7 @@ function Pipes({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           <button className="btn green" disabled={won} onClick={release}>開閘放水</button>
         </div>
       </div>
-      {fails >= 5 && !won && <button className="btn demo corner-btn" onClick={() => {
+      {fails >= 3 && !won && <button className="btn demo corner-btn" onClick={() => {
         setLv({ ...PIPES, tiles: PIPES.tiles.map((t, i) => (t.k === 'pipe' && PIPE_DEMO[i] !== undefined ? { ...t, rot: PIPE_DEMO[i] } : t)) });
         setLit(null);
       }}>看示範</button>}

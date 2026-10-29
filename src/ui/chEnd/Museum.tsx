@@ -86,7 +86,7 @@ export function Museum({ p, set, next, oops }: StepEndProps) {
               const id = atSlot(i);
               const e = id ? exOf(id) : null;
               return (
-                <div key={i} role="button" className={`end-museum-slot ${pick ? 'ready' : ''} ${id && wrong.includes(id) ? 'wrong' : ''} ${fails >= 3 && pick && ANSWER[pick] === String(i) ? 'glow' : ''}`} onClick={() => put(i)}>
+                <div key={i} role="button" className={`end-museum-slot ${pick ? 'ready' : ''} ${id && wrong.includes(id) ? 'wrong' : ''} ${fails >= 2 && pick && ANSWER[pick] === String(i) ? 'glow' : ''}`} onClick={() => put(i)}>
                   <div className="end-museum-glass">{e && <img className={brought.has(e.id) ? 'brought' : ''} src={e.img} alt="" />}</div>
                   <b>{slotEx.when}</b>
                   {passed && <small>{slotEx.era}</small>}
@@ -97,7 +97,7 @@ export function Museum({ p, set, next, oops }: StepEndProps) {
           </div>
         </div>
       )}
-      {fails >= 5 && !passed && phase === 'sort' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && !passed && phase === 'sort' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       {phase === 'done' && <Talk lines={MUSEUM_DONE} onDone={() => setPhase('cards')} />}
       {phase === 'cards' && <NewCardsEnd ids={['eras', 'today']} p={p} set={set} onDone={next} />}
       <Say line={phase === 'sort' ? say : null} />

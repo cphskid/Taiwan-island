@@ -44,7 +44,7 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
   const [going, setGoing] = useState(false); // 船正在開：這時候不能改路線、潮水、船
   const [fails, setFails] = useState(0);
   const [say, setSay] = useState<Line | null>(null);
-  const sol = fails >= 3 ? riverSolve(lv) : null;
+  const sol = fails >= 2 ? riverSolve(lv) : null;
   const H = lv.map.length, W = lv.map[0].length;
   const last = path[path.length - 1];
   const dest = (() => { for (let y = 0; y < H; y++) { const x = lv.map[y].indexOf('B'); if (x >= 0) return { x, y }; } return null; })();
@@ -143,7 +143,7 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
           <button className={`btn green ${reached && !going ? 'ready' : ''}`} disabled={going || path.length < 2} onClick={() => go()}>開船！</button>
         </div>
       </div>
-      {fails >= 5 && <button className="btn demo corner-btn" disabled={going} onClick={demo}>看示範</button>}
+      {fails >= 3 && <button className="btn demo corner-btn" disabled={going} onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );

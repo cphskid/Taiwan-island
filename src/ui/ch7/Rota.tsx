@@ -102,7 +102,7 @@ function Planner({ oops, onDone }: { oops: () => void; onDone: () => void }) {
                 <tr key={y} className={marks.mix.includes(y) ? 'bad' : ''}>
                   <th>第 {y + 1} 年</th>
                   {row.map((c, z) => {
-                    const hint = fails >= 3 && y === 0 && c !== sol[0][z] ? sol[0][z] : null;
+                    const hint = fails >= 2 && y === 0 && c !== sol[0][z] ? sol[0][z] : null;
                     return (
                       <td key={z}>
                         <button className={`ch7-rcell ${c ?? 'empty'} ${hint ? 'ch7-hint' : ''} ${marks.repeat.includes(z) ? 'bad' : ''}`} onClick={() => put(y, z)}>
@@ -129,7 +129,7 @@ function Planner({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           <button className={`btn green ${full ? 'go-ready' : 'wait'}`} disabled={ok} onClick={check}>這樣種三年</button>
         </div>
       </div>
-      {fails >= 5 && !ok && <button className="btn demo corner-btn" onClick={() => setR(sol.map((row) => [...row]))}>看示範</button>}
+      {fails >= 3 && !ok && <button className="btn demo corner-btn" onClick={() => setR(sol.map((row) => [...row]))}>看示範</button>}
       <Say line={say} />
     </div>
   );

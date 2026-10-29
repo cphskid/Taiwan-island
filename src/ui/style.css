@@ -2426,6 +2426,25 @@ button.v-chip{cursor:pointer}
 .hunt-toggle:disabled{cursor:default;opacity:.8}
 .hunt-season .hunt-icons{min-height:24px;display:flex;flex-wrap:wrap;justify-content:center;font-size:13px;color:#9c8466;font-weight:700}
 .hunt-season .hunt-icons img{width:24px;height:24px;object-fit:contain}
+/* 手機橫拿：左欄放四季開關＋按鈕，右欄放兩年；下面留給左下角的目標條 */
+@media (max-height:600px){
+  .hunt-wrap{padding:46px 10px 62px}
+  .hunt-board{display:grid;grid-template-columns:minmax(150px,26%) 1fr;column-gap:12px;row-gap:4px;align-content:start;max-height:100%}
+  .hunt-rule{grid-column:1;grid-row:1;grid-template-columns:1fr 1fr;gap:4px}
+  .hunt-foot{grid-column:1;grid-row:2;flex-direction:column;gap:6px;align-items:stretch}
+  .hunt-foot .btn{padding:6px 8px;font-size:15px}
+  .hunt-year{grid-column:2}
+  .hunt-toggle{padding:2px 4px;font-size:15px}
+  .hunt-toggle em{font-size:12px}
+  .hunt-head{gap:8px;margin:0}
+  .hunt-head b{font-size:15px}
+  .hunt-head img{width:22px;height:22px}
+  .hunt-seasons{gap:4px}
+  .hunt-season>b{font-size:13px}
+  .hunt-season .hunt-icons{min-height:18px}
+  .hunt-season .hunt-icons img{width:18px;height:18px}
+  .births{font-size:11px}
+}
 .hunt-season.closed{opacity:.75}
 
 /* 第三章鹿皮（故事版）：點草原上的鹿收鹿皮 */
@@ -2862,4 +2881,15 @@ button.v-chip{cursor:pointer}
 @media (max-height:600px){
   .chapter .say.with-goal,.chapter .say.goal-dock,.prologue .say.with-goal,.prologue .say.goal-dock{bottom:4px}
   .chapter .ch6-rail-wrap .say.with-goal,.chapter .ch6-rail-wrap .say.goal-dock{bottom:auto}
+}
+
+/* 手機橫拿共用規則（2026-10-29 進場引導原則：要點的東西不能被左下角的目標條蓋住）：
+   每一關的操作區底部留 62px 給目標條（面板太高的，目標條蓋到會自己變半透明讓點） */
+@media (max-height:600px){
+  .chapter .scene > [class*="-wrap"]:not(.knap-wrap):not(.fire-wrap){padding-bottom:62px}
+  .chapter .board-wrap .say.goal-dock,.chapter .board-wrap .say.with-goal{bottom:62px}
+  .rules{gap:6px;padding:8px 12px}
+  .rule-list{gap:4px}
+  .rule-list .rule{padding:2px 10px;font-size:14px}
+  .sim-year{flex-direction:row;gap:6px;font-size:12px;padding:2px}
 }
