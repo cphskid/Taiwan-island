@@ -70,8 +70,8 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
   const [leverNew, setLeverNew] = useState(false); // 撥桿剛出現：亮一陣子提醒
   const allDone = allCleared(world, ALL);
   if (allDone) unlockNow(); // 剛打完終章回來：地圖要一起準備好「現在」
-  // 下面的導覽列（有撥桿）：?now=1 一律有；沒加的人要全破、看完整篇通關才出現
-  const navOn = NOW_URL || (allDone && world.finale);
+  // 下面的導覽列（有撥桿）一直都在；全破後的整篇通關縮時照樣播一次當獎勵
+  const navOn = true;
   const live = useRef({ world, busy });
   live.current = { world, busy };
 
