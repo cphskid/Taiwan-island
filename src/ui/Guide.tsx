@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
+import { createPortal } from 'react-dom';
 import type { Board } from '../render/board';
 import type { Cell } from '../core/iso';
 
@@ -11,6 +12,12 @@ import type { Cell } from '../core/iso';
 //                                                  等角遊戲盤上的目標標記，跟著地圖平移縮放；目標在畫面外就貼在邊緣、箭頭指過去
 //   spot：第一次變成 true 的時候畫面暗下來、光圈縮到目標上（約 2.5 秒），等於「鏡頭帶到目標」
 //   towards(dx, dy) / compass(dx, dy)：做錯時夥伴指方向用的「左下方」「東北邊」
+//   <Hand at=".fire-slot[data-slot='N']" first={還沒做對第一下} />
+//                                                  手指示範：第一下還沒做、或停住 8 秒沒點，手指就指著要點的東西
+//
+// 進場引導原則（2026-10-29 Chuck 定，全樂園一樣）：進場 3 秒內知道「要做什麼、先點哪、做對沒」。
+//   目標只住左下角、寫下一個動作（第一句 15 字內）、跟著步驟變；第一下手指帶；
+//   卡住：停 8 秒手指回來、錯 1 次夥伴說具體的、錯 2 次正確位置發亮、錯 3 次看示範。
 //
 // 標記放在 position:relative 的容器裡（.board-wrap、.art-frame），不擋點擊。
 
@@ -77,9 +84,12 @@ const BUSY = '.talk-cover, .mission, .result, .chapter-card, .card-pop, .beacon.
 const FLY_MS = 1500;
 const calm = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function useFlyIn(text: string, on: boolean) {
+// 同一個 id 算同一件事：換步驟（點石頭 → 點槌子 → 敲下去）只閃一下，不再飛一次；沒給 id 就看去掉數字的那句
+const flyKey = (text: string, id?: string) => id ?? shortOf(text).short.replace(/\d+/g, '#');
+
+function useFlyIn(text: string, on: boolean, id?: string) {
   const [fly, setFly] = useState<string | null>(null);
-  const shape = shortOf(text).short.replace(/\d+/g, '#');
+  const shape = flyKey(text, id);
   const last = useRef<string | null>(null);
   const flyEl = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -130,7 +140,7 @@ function useFlyIn(text: string, on: boolean) {
   );
 }
 
-export function Goal({ text, floating }: { text: string; floating?: boolean }) {
+export function Goal({ text, floating, id }: { text: string; floating?: boolean; id?: string }) {
   const hub = useHub();
   useEffect(() => {
     if (!floating) return;
@@ -140,15 +150,15 @@ export function Goal({ text, floating }: { text: string; floating?: boolean }) {
     if (!floating) return;
     return () => { if (goalHub.text !== null) { goalHub.text = null; emit(); } };
   }, [floating]);
-  const fly = useFlyIn(text, !!floating);
-  // 只有數字變（還有 3 件 → 還有 2 件）：不飛，左下角閃一下
+  const fly = useFlyIn(text, !!floating, id);
+  // 只有數字變（還有 3 件 → 還有 2 件）、或同一個 id 換下一步：不飛，左下角閃一下
   const seen = useRef(text);
   useEffect(() => {
     if (!floating || seen.current === text) return;
-    const same = seen.current.replace(/\d+/g, '#') === text.replace(/\d+/g, '#');
+    const same = flyKey(seen.current, id) === flyKey(text, id);
     seen.current = text;
     if (same) { goalHub.flash++; emit(); }
-  }, [text, floating]);
+  }, [text, floating]); // eslint-disable-line react-hooks/exhaustive-deps
   if (floating) {
     return (
       <>
@@ -164,6 +174,48 @@ export function Goal({ text, floating }: { text: string; floating?: boolean }) {
     );
   }
   return <InlineGoal text={text} />;
+}
+
+const IDLE_MS = 8000;
+// 停住 ms 毫秒沒點畫面就變 true；一點畫面就重算
+export function useIdle(on = true, ms = IDLE_MS) {
+  const [idle, setIdle] = useState(false);
+  useEffect(() => {
+    setIdle(false);
+    if (!on) return;
+    let t = 0;
+    const reset = () => { setIdle(false); clearTimeout(t); t = window.setTimeout(() => setIdle(true), ms); };
+    reset();
+    document.addEventListener('pointerdown', reset, true);
+    return () => { clearTimeout(t); document.removeEventListener('pointerdown', reset, true); };
+  }, [on, ms]);
+  return idle;
+}
+
+// 手指示範：at 是要點的東西（CSS 選擇器）。first（第一下還沒做對）或停住 8 秒沒點 → 手指在那裡點點點，目標條也閃一下。
+// 對話、任務卡、目標飛入蓋著的時候先不出來；at 找不到東西也不出來。
+export function Hand({ at, first }: { at: string | null; first?: boolean }) {
+  const idle = useIdle(!!at);
+  const show = !!at && (!!first || idle);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  useEffect(() => { if (idle && at) { goalHub.flash++; emit(); } }, [idle]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!show || !at) { setPos(null); return; }
+    const find = () => {
+      const el = document.querySelector(at);
+      const r = el?.getBoundingClientRect();
+      if (!r || (!r.width && !r.height) || document.querySelector(`${BUSY}, .quest-fly`)) { setPos(null); return; }
+      setPos((o) => (o && Math.abs(o.x - r.left - r.width / 2) < 1 && Math.abs(o.y - r.top - r.height / 2) < 1 ? o : { x: r.left + r.width / 2, y: r.top + r.height / 2 }));
+    };
+    find();
+    const id = setInterval(find, 250);
+    return () => clearInterval(id);
+  }, [show, at]);
+  if (!pos) return null;
+  return createPortal(
+    <div className="hand-tip" style={{ left: pos.x, top: pos.y }} aria-hidden><b /><i>👆</i></div>,
+    document.body,
+  );
 }
 
 // 放進上方資訊列的目標（不是 floating 的那幾關）：一行短句，點一下展開說明

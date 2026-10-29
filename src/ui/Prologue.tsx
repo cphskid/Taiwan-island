@@ -11,17 +11,22 @@ import { Say, Talk } from './Talk';
 import { ambience, jingle, music, sfx } from '../audio';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
-import { Beacon, Goal, compass } from './Guide';
+import { Beacon, Goal, Hand, compass } from './Guide';
 import { playMark } from '../net/playlog';
 
 type Phase = 'tower' | 'oops' | 'warp' | 'find' | 'drift' | 'land' | 'village' | 'end';
 const STEP_MS = 380;
-const HINT_AT = 3; // 失敗幾次羅盤上亮出建議
-const DEMO_AT = 5;
+const HINT_AT = 2; // 失敗幾次羅盤上亮出建議（進場引導原則：錯 2 次亮出正確位置、錯 3 次看示範）
+const DEMO_AT = 3;
 
 // 序章《認識臺灣》：時光鐘塔 → 找到臺灣 → 海上漂流兩關 → 上岸認識地形氣候 → 選地蓋村 → 大地圖
+// 網址 ?prologue=drift 直接跳到某一段（find、drift、land、village，測試用）
+const JUMP: Phase[] = ['find', 'drift', 'land', 'village'];
 export function Prologue({ onDone }: { onDone: () => void }) {
-  const [phase, setPhase] = useState<Phase>('tower');
+  const [phase, setPhase] = useState<Phase>(() => {
+    const q = new URLSearchParams(location.search).get('prologue') as Phase | null;
+    return q && JUMP.includes(q) ? q : 'tower';
+  });
   const [fact, setFact] = useState<{ fact: Fact; then: () => void } | null>(null);
   const showFact = (f: Fact, then: () => void) => { sfx('SE-36'); setFact({ fact: f, then }); };
   useEffect(() => { music(null); return () => ambience(null); }, []);
@@ -243,6 +248,8 @@ function DriftLevelView({ lv, onPass }: { lv: DriftLevel; onPass: () => void }) 
     : fails >= 1 ? { who: 'tick', mood: 'thinking', text: lv.hint }
     : null;
   const busy = anim !== null;
+  // 手指示範：從現在的位置，下一步該轉哪一季
+  const firstSeason = useMemo(() => (result ? null : shortest({ ...lv, start: boat, legs: lv.legs - legs })?.[0] ?? null), [boat, legs, result, lv]);
   const harbor = useMemo(() => { let h: Pos = lv.start; lv.map.forEach((r, row) => { const col = r.indexOf('H'); if (col >= 0) h = { col, row }; }); return h; }, [lv]);
   const away = compass(harbor.col - boat.col, harbor.row - boat.row);
 
@@ -251,8 +258,9 @@ function DriftLevelView({ lv, onPass }: { lv: DriftLevel; onPass: () => void }) 
       <div className="levels">
         {MAIN_DRIFTS.map((d) => <span key={d.id} className={`lv ${d.id === lv.id ? 'on' : d.id < lv.id ? 'past' : ''}`}>{d.id}</span>)}
         <span className="hint plain"><b>{lv.title}</b></span>
-        <Goal text={`轉天氣羅盤、按出航，把 ⛵ 漂到 ⚓ 港口`} />
       </div>
+      <Goal floating id={`drift${lv.id}`} text={season ? '按「出航」，看船漂去哪。把 ⛵ 漂到 ⚓ 港口，每一季的風往不同方向吹。' : '在天氣羅盤點一個季節。看風往哪裡吹，把 ⛵ 漂到 ⚓ 港口。'} />
+      <Hand at={busy || result ? null : season && (season === firstSeason || !firstSeason) ? '.compass .btn.green' : firstSeason ? `.compass .season-btn.${firstSeason}` : null} first={lv.id === 1 && legs === 0 && !fails} />
       <SeaChart lv={lv} boat={boat} wind={season} trail={trail} spot={!intro} />
       <div className="food">🍙 糧食 <b>{lv.legs - legs}</b></div>
       <div className="compass panel">

@@ -6,7 +6,7 @@ import {
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
 import { Decide, FireChain } from './Story';
@@ -31,15 +31,17 @@ export function Knap({ p, set, next, oops }: Step1Props) {
     <div className={`scene ch1-cave ${lit ? 'lit' : ''}`}>
       <img className="scene-bg" src={art(phase === 'beach' ? 'w-03' : lit ? 's-05' : 'w-01')} alt="" />
       {lit && <img className="cave-fire" src={art('o-05-fire')} alt="" />}
-      {phase === 'beach' && (intro ? <Talk lines={STONES_INTRO} onDone={() => setIntro(false)} /> : <Beach onDone={() => setPhase('knapIntro')} />)}
-      {phase === 'knapIntro' && <Talk lines={KNAP_INTRO} onDone={() => setPhase('knap')} />}
-      {phase === 'knap' && (
+      {/* 先看到再教：石頭先擺出來，對話蓋在上面講 */}
+      {phase === 'beach' && <Beach onDone={() => setPhase('knapIntro')} />}
+      {phase === 'beach' && intro && <Talk lines={STONES_INTRO} onDone={() => setIntro(false)} />}
+      {(phase === 'knap' || phase === 'knapIntro') && (
         <KnapBoard key={lv} n={lv} oops={oops} onDone={() => {
           jingle('MU-13');
           if (lv + 1 < KNAPS.length) { setLv(lv + 1); return; }
           setPhase('tool');
         }} />
       )}
+      {phase === 'knapIntro' && <Talk lines={KNAP_INTRO} onDone={() => setPhase('knap')} />}
       {phase === 'tool' && <Decide id="tool" set={set} onDone={() => setPhase('drillIntro')} />}
       {phase === 'drillIntro' && <Talk lines={DRILL_INTRO} onDone={() => setPhase('drill')} />}
       {phase === 'drill' && <Drill onDone={() => { sfx('SE-43'); setPhase('back'); }} />}
@@ -69,6 +71,8 @@ function Beach({ onDone }: { onDone: () => void }) {
     const t = setTimeout(onDone, 1200);
     return () => clearTimeout(t);
   }, [got]); // eslint-disable-line react-hooks/exhaustive-deps
+  // 手指指下一顆要的石頭（先材料、再槌子）
+  const want = BEACH.findIndex((b, i) => !gone.includes(i) && b.kind !== 'soft' && !got[b.kind]);
   const tap = (i: number) => {
     if (gone.includes(i)) return;
     const k = BEACH[i].kind;
@@ -81,9 +85,10 @@ function Beach({ onDone }: { onDone: () => void }) {
   };
   return (
     <>
-      <Goal floating text={`挑石頭：硬的材料 ${got.hard ? '✓' : '○'}　圓的槌子 ${got.hammer ? '✓' : '○'}`} />
+      <Goal floating text={`點石頭，挑材料和槌子（${+got.hard + +got.hammer} / 2）。硬的當材料、圓的當槌子，軟的一敲就碎。`} />
+      <Hand at={want >= 0 ? `.beach-stone[data-i="${want}"]` : null} first={!gone.length} />
       {BEACH.map((b, i) => (
-        <button key={i} className={`beach-stone ${gone.includes(i) ? (b.kind === 'soft' ? 'crumble' : 'picked') : ''}`}
+        <button key={i} data-i={i} className={`beach-stone ${gone.includes(i) ? (b.kind === 'soft' ? 'crumble' : 'picked') : ''}`}
           style={{ left: `${b.x * 100}%`, top: `${b.y * 100}%` }} onClick={() => tap(i)} aria-label="石頭">
           <img src={art(STONE_IMG[b.kind])} alt="" />
         </button>
@@ -149,7 +154,10 @@ function KnapBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
   const demo = useRef<number[]>([]);
   const chipId = useRef(0);
   const rows = def.level.rows.length, cols = def.level.rows[0].length;
-  const hint = fails >= 3 && !done ? knapSolve(stone)?.[0] ?? null : null;
+  const [struck, setStruck] = useState(false);
+  // 下一步該敲哪一格、從哪邊敲：手指示範用；錯 2 次就在石頭上亮出來
+  const move = useMemo(() => (done || shake ? null : knapSolve(stone)?.[0] ?? null), [stone, done, shake]);
+  const hint = fails >= 2 ? move : null;
   useEffect(() => () => demo.current.forEach(clearTimeout), []);
 
   // 石片飛走、敲擊的火花，播完就收掉
@@ -176,6 +184,7 @@ function KnapBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
     }
     sfx('SE-42');
     setStone(r.stone);
+    setStruck(true);
     if (knapDone(r.stone)) { setDone(true); setSay(null); window.setTimeout(onDone, 1800); }
   };
   const tapCell = (c: Cell) => {
@@ -206,6 +215,15 @@ function KnapBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
 
   const preview = sel && aim ? flake(stone, sel, aim) : [];
   const bad = preview.some((x) => stone.keep.has(ck(x)));
+  // 目標條跟著步驟變：點格子 → 點槌子 → 再點一次敲下去
+  const about = `要敲出「${def.name}」（${n + 1} / ${KNAPS.length}），${def.use}。`;
+  const goal = done ? `敲好了！是一把${def.name}。${about}`
+    : aim ? (bad ? `紅色會敲到虛線裡面，換一邊。${about}` : `再點一次槌子，敲下去。${about}`)
+    : sel ? `點旁邊的槌子，選從哪一邊敲。${about}`
+    : `點虛線外面、石頭邊邊的一格。${about}`;
+  const handAt = !move ? null
+    : sel && ck(sel) === ck(move.cell) && !(aim && bad) ? `.knap-svg [data-dir="${move.dir}"]`
+    : `.knap-svg [data-cell="${move.cell.col},${move.cell.row}"]`;
   const left = cellsOf(stone.left);
   const all = cellsOf(start.left);
   const seams = left.flatMap((c) => [
@@ -216,7 +234,8 @@ function KnapBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
   const vb = `${-S * 1.2} ${-S * 1.2} ${(cols + 2.4) * S} ${(rows + 2.6) * S}`;
   return (
     <div className="knap-wrap">
-      <Goal floating text={`敲出「${def.name}」（${n + 1} / ${KNAPS.length}）：${def.use}`} />
+      <Goal floating id={`knap${n}`} text={goal} />
+      <Hand at={handAt} first={n === 0 && !struck} />
       <div className={`knap-board ${shake ? 'shake' : ''} ${done ? 'done' : ''}`}>
         <svg viewBox={vb} className="knap-svg">
           <defs>
@@ -239,7 +258,7 @@ function KnapBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
           {!done && <path d={outline(start.keep, rows, cols)} className="target" />}
           {sel && <rect x={sel.col * S + 3} y={sel.row * S + 3} width={S - 6} height={S - 6} rx={12} className="sel" />}
           {/* 點擊區 */}
-          {all.map((c) => <rect key={ck(c)} x={c.col * S} y={c.row * S} width={S} height={S} className="hit" onClick={() => tapCell(c)} />)}
+          {all.map((c) => <rect key={ck(c)} x={c.col * S} y={c.row * S} width={S} height={S} className="hit" data-cell={`${c.col},${c.row}`} onClick={() => tapCell(c)} />)}
           {/* 掉下來的石片 */}
           {chips.map((x) => (
             <g key={x.id} className={`chip chip-${x.dir} ${x.bad ? 'bad' : ''}`} style={{ transformOrigin: `${x.cells[0].col * S + S / 2}px ${x.cells[0].row * S + S / 2}px` }}>
@@ -253,7 +272,7 @@ function KnapBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
             const cx = from.col * S + S / 2, cy = from.row * S + S / 2;
             const isHint = hint && ck(hint.cell) === ck(sel) && hint.dir === d;
             return (
-              <g key={d} className={`hammer ${aim === d ? 'on' : ''} ${isHint ? 'hint' : ''}`} onClick={() => tapArrow(d)}>
+              <g key={d} data-dir={d} className={`hammer ${aim === d ? 'on' : ''} ${isHint ? 'hint' : ''}`} onClick={() => tapArrow(d)}>
                 <circle cx={cx} cy={cy} r={S * 0.48} className="halo" />
                 <g transform={`rotate(${TILT[d]} ${cx} ${cy})`}>
                   <path d={`M${cx + S * 0.3} ${cy - 12}l16 12l-16 12z`} className="tip" />
@@ -268,9 +287,8 @@ function KnapBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
           })()}
         </svg>
         {done && <img className="knap-tool" src={def.tool} alt={def.name} />}
-        <p className="knap-tip">{done ? `敲好了！是一把${def.name}。` : aim ? (bad ? '紅色會敲到要留的地方，換一邊吧' : '再點一次槌子，敲下去！') : sel ? '點旁邊的槌子石，選從哪一邊敲' : '點虛線外面、石頭邊邊的一塊'}</p>
       </div>
-      {fails >= 5 && !done && <button className="btn demo corner-btn" onClick={play}>看示範</button>}
+      {fails >= 3 && !done && <button className="btn demo corner-btn" onClick={play}>看示範</button>}
       <img className="yan-side" src={art(done ? 'f-04a-cheer' : 'f-04a-knap')} alt="" />
       <Say line={say} />
     </div>
@@ -290,16 +308,20 @@ function Drill({ onDone }: { onDone: () => void }) {
   useEffect(() => { if (heat >= 100 && !lit) { setLit(true); setTimeout(onDone, 900); } }, [heat]); // eslint-disable-line react-hooks/exhaustive-deps
   const smoke = Math.max(0, (heat - 25) / 75);
   return (
-    <div className="drill">
-      <div className="drill-stage">
-        <img className="drill-smoke" src={art('g-04-dust')} alt="" style={{ opacity: smoke, scale: `${0.6 + smoke * 0.8}` }} />
-        {lit && <img className="drill-flame" src={art('o-05-fire')} alt="" />}
-        <img key={turn} className={`drill-img ${turn ? 'spin' : ''}`} src={art('g-03-drill')} alt="" />
-        {heat > 60 && !lit && <i className="ember" />}
+    <>
+      <Goal floating text={lit ? '著火了！' : '一直點「鑽！」，把溫度衝到最上面。停太久會冷掉。'} />
+      <Hand at={lit ? null : '.drill .go'} first={turn === 0} />
+      <div className="drill">
+        <div className="drill-stage">
+          <img className="drill-smoke" src={art('g-04-dust')} alt="" style={{ opacity: smoke, scale: `${0.6 + smoke * 0.8}` }} />
+          {lit && <img className="drill-flame" src={art('o-05-fire')} alt="" />}
+          <img key={turn} className={`drill-img ${turn ? 'spin' : ''}`} src={art('g-03-drill')} alt="" />
+          {heat > 60 && !lit && <i className="ember" />}
+        </div>
+        <div className="meter"><i style={{ height: `${Math.min(100, heat)}%` }} className={heat > 70 ? 'hot' : ''} /></div>
+        <button className="btn orange go" disabled={lit} onClick={() => { sfx('SE-09'); setTurn((t) => t + 1); setHeat((h) => h + 9); }}>{lit ? '🔥 著火了！' : '鑽！'}</button>
+        <small>{heat > 60 ? '冒煙了，快一點！' : '一直點「鑽！」'}</small>
       </div>
-      <div className="meter"><i style={{ height: `${Math.min(100, heat)}%` }} className={heat > 70 ? 'hot' : ''} /></div>
-      <button className="btn orange go" disabled={lit} onClick={() => { sfx('SE-09'); setTurn((t) => t + 1); setHeat((h) => h + 9); }}>{lit ? '🔥 著火了！' : '鑽！'}</button>
-      <small>{heat > 60 ? '冒煙了，快一點！' : '一直點「鑽！」'}</small>
-    </div>
+    </>
   );
 }

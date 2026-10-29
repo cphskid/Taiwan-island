@@ -1,10 +1,10 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { grind, grindDone, grindSolve, tooThin } from '../../core/stone-age';
 import { CARDS1, GRIND_DONE, GRIND_FAIL, GRIND_HINT, GRIND_INTRO, GRIND_LEAVE, GRINDS, art } from '../../data/ch1';
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
 import { Decide, EraJump } from './Story';
@@ -74,7 +74,10 @@ function GrindBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: 
   useEffect(() => () => demo.current.forEach(clearTimeout), []);
   const top = Math.max(...lv.from);
   const cols = lv.from.length;
-  const plan = fails >= 3 && !done ? grindSolve({ from: h, to: lv.to }) : null;
+  // 下一下該磨哪一格：手指示範用；錯 2 次整個解法亮出來
+  const next = useMemo(() => (done || snap !== null ? null : grindSolve({ from: h, to: lv.to })), [h, done, snap, lv]);
+  const plan = fails >= 2 ? next : null;
+  const col = next ? next.findIndex((k) => k > 0) : -1;
   const total = lv.from.reduce((a, v, j) => a + v - lv.to[j], 0);
   const left = h.reduce((a, v, j) => a + v - lv.to[j], 0);
   const shine = done ? 1 : 1 - left / total;
@@ -113,12 +116,18 @@ function GrindBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: 
       }, 650 * (j + 1)));
     });
   };
+  const bad = aim !== null && h.some((v, i) => { const L = i === aim ? 2 : Math.abs(i - aim) === 1 ? 1 : 0; return L > 0 && v - L < lv.to[i]; });
+  const about = `要磨出「${def.name}」（${n + 1} / ${GRINDS.length}），${def.use}。`;
+  const goal = done ? `磨好了！又光滑又鋒利。${about}`
+    : aim !== null ? (bad ? `紅色會磨過頭，換一格。${about}` : `再點同一格，磨下去。${about}`)
+    : `點石頭上面一格，看會磨掉哪些。${about}`;
   const loss = (i: number) => (aim === null ? 0 : i === aim ? 2 : Math.abs(i - aim) === 1 ? 1 : 0);
   const W = cols * CW, H = (top + 1) * UH;
   const img = { href: def.raw, x: -10, y: -top * UH - 14, width: W + 20, height: top * UH + 24, preserveAspectRatio: 'none' };
   return (
     <div className="grind-wrap">
-      <Goal floating text={`磨「${def.name}」（${n + 1} / ${GRINDS.length}）：${def.use}`} />
+      <Goal floating id={`grind${n}`} text={goal} />
+      <Hand at={col >= 0 ? `.grind-svg [data-col="${col}"]` : null} first={n === 0 && strokes === 0 && !fails} />
       <div className={`grind-board ${done ? 'done' : ''} ${snap !== null ? 'snap' : ''}`}>
         <svg viewBox={`${-CW * 0.6} ${-H - 10} ${W + CW * 1.2} ${H + 30}`} className="grind-svg" style={{ width: `min(${cols * 13}vh, ${cols * 100}px)` }}>
           <defs>
@@ -153,12 +162,12 @@ function GrindBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: 
           </g>
           {!done && <path d={topLine(lv.to)} className="target" />}
           {rub && <image key={`d${rub.k}`} className="grind-dust" href={art('g-04-dust')} x={rub.i * CW - CW * 0.4} y={-h[rub.i] * UH - CW * 1.3} width={CW * 1.8} height={CW * 1.5} />}
-          {h.map((_, i) => <rect key={i} x={i * CW} y={-H - 10} width={CW} height={H + 20} className="hit" onClick={() => tap(i)} />)}
+          {h.map((_, i) => <rect key={i} x={i * CW} y={-H - 10} width={CW} height={H + 20} className="hit" data-col={i} onClick={() => tap(i)} />)}
         </svg>
         {done && <img className="grind-done" src={def.img} alt={def.name} />}
-        <p className="grind-tip">{done ? '磨好了！又光滑又鋒利。' : aim !== null ? '再點一次同一個地方，磨下去！' : '點石頭上面的一個地方，看看磨下去會少哪些'}　已經磨了 {strokes} 下</p>
+        <p className="grind-tip">已經磨了 {strokes} 下</p>
       </div>
-      {fails >= 5 && !done && <button className="btn demo corner-btn" onClick={play}>看示範</button>}
+      {fails >= 3 && !done && <button className="btn demo corner-btn" onClick={play}>看示範</button>}
       <Say line={say} />
     </div>
   );

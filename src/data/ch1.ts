@@ -112,10 +112,10 @@ export const STONES_INTRO: Line[] = [
   { who: 'yan', mood: 'happy', text: '到海邊了！月亮好亮。點一點石頭，敲敲看哪一顆聲音最清脆。' },
   { who: 'yan', mood: 'determined', text: '要一顆硬的當材料、一顆圓的當槌子。阿爸說，好石頭會「叩」一聲。' },
 ];
-// 海灘上的石頭：soft 一敲就碎、hard 當材料、hammer 當槌子
+// 海灘上的石頭：soft 一敲就碎、hard 當材料、hammer 當槌子（左下角留給目標條，不要擺石頭）
 export const BEACH: { kind: 'soft' | 'hard' | 'hammer'; x: number; y: number }[] = [
-  { kind: 'soft', x: 0.22, y: 0.78 }, { kind: 'hard', x: 0.38, y: 0.86 }, { kind: 'soft', x: 0.55, y: 0.8 },
-  { kind: 'hammer', x: 0.7, y: 0.88 }, { kind: 'soft', x: 0.84, y: 0.76 }, { kind: 'hard', x: 0.46, y: 0.72 },
+  { kind: 'soft', x: 0.18, y: 0.72 }, { kind: 'hard', x: 0.34, y: 0.74 }, { kind: 'soft', x: 0.54, y: 0.8 },
+  { kind: 'hammer', x: 0.7, y: 0.86 }, { kind: 'soft', x: 0.82, y: 0.6 }, { kind: 'hard', x: 0.5, y: 0.64 },
 ];
 export const STONE_SAY = {
   soft: { who: 'yan', mood: 'frown', text: '沙沙的、一敲就碎，這種軟石頭不行。' } as Line,
@@ -123,8 +123,8 @@ export const STONE_SAY = {
   hammer: { who: 'yan', mood: 'thumbs', text: '圓圓的、拿起來剛好，這顆當槌子！' } as Line,
 };
 export const KNAP_INTRO: Line[] = [
-  { who: 'yan', mood: 'determined', text: '虛線是要留下來的形狀。點石頭邊邊的一格，再選從哪一邊敲。' },
-  { who: 'tick', mood: 'thinking', text: '小心，石片很大片，會連後面那一格一起掉下來。先看黃色的預告再敲！' },
+  { who: 'yan', mood: 'determined', text: '看到石頭上的虛線嗎？虛線裡面要留下來，外面的都要敲掉。' },
+  { who: 'tick', mood: 'thinking', text: '一敲會掉一大片，連後面那一格一起掉。跟著手指先敲一下試試！' },
 ];
 export const KNAPS: { name: string; use: string; tool: string; level: KnapLevel }[] = [
   { name: '砍砸器', use: '可以砍樹枝、敲開貝殼', tool: art('g-03-chopper'), level: { rows: ['.oooo.', 'oo##oo', 'o####o', 'o####o', '.oooo.'] } },

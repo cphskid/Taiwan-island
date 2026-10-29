@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { fire, fireSolve, heat, SIDES, SLOT_CAP, SLOTS, used, HEAT_MAX, HEAT_MIN, type Pile, type Slot } from '../../core/stone-age';
 import { CARDS1, CLAY_ASK, CORD_ASK, FIRE_FAIL, FIRE_HINT, FIRE_INTRO, FIRES, POT_DONE, POT_INTRO, POT_LEAVE, SAND_RESULT, art } from '../../data/ch1';
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
 import { Decide, EraJump } from './Story';
@@ -55,28 +55,34 @@ export function Pottery({ p, set, next, oops }: Step1Props) {
 function Clay({ onDone, oops }: { onDone: () => void; oops: () => void }) {
   const [sand, setSand] = useState(0);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [tried, setTried] = useState(false);
   const test = () => {
+    setTried(true);
     const r = SAND_RESULT[sand];
     setResult(r);
     sfx(r.ok ? 'SE-05' : 'SE-71');
     if (r.ok) setTimeout(onDone, 1500); else oops();
   };
   return (
-    <div className="clay panel">
-      <h3>黏土裡拌幾匙砂？</h3>
-      <div className="clay-mix">
-        <img src={art('g-03-clay')} alt="黏土" />
-        <span>＋</span>
-        <div className="sand-spoons">{Array.from({ length: sand }, (_, i) => <img key={i} src={art('g-03-sand')} alt="" />)}{sand === 0 && <em>不加砂</em>}</div>
+    <>
+      <Goal floating id="clay" text={result?.ok ? '成功了！不會裂也不會散。' : sand === 0 ? '按「多一匙」把砂拌進黏土。砂太少燒了會裂、太多會散掉，試燒看看就知道。' : '按「做小罐子試燒」看看。砂太少燒了會裂、太多會散掉，可以再加減。'} />
+      <Hand at={result?.ok ? null : sand === 0 ? '.clay [data-more]' : '.clay [data-test]'} first={!tried} />
+      <div className="clay panel">
+        <h3>黏土裡拌幾匙砂？</h3>
+        <div className="clay-mix">
+          <img src={art('g-03-clay')} alt="黏土" />
+          <span>＋</span>
+          <div className="sand-spoons">{Array.from({ length: sand }, (_, i) => <img key={i} src={art('g-03-sand')} alt="" />)}{sand === 0 && <em>不加砂</em>}</div>
+        </div>
+        <div className="row">
+          <button className="btn orange" disabled={sand === 0} onClick={() => { sfx('SE-01'); setSand(sand - 1); setResult(null); }}>少一匙</button>
+          <b className="sand-n">{sand} 匙</b>
+          <button className="btn orange" data-more disabled={sand === 4} onClick={() => { sfx('SE-01'); setSand(sand + 1); setResult(null); }}>多一匙</button>
+        </div>
+        <button className="btn green" data-test onClick={test}>做小罐子試燒</button>
+        {result && <p className={result.ok ? 'yes' : 'no'}>{result.text}</p>}
       </div>
-      <div className="row">
-        <button className="btn orange" disabled={sand === 0} onClick={() => { sfx('SE-01'); setSand(sand - 1); setResult(null); }}>少一匙</button>
-        <b className="sand-n">{sand} 匙</b>
-        <button className="btn orange" disabled={sand === 4} onClick={() => { sfx('SE-01'); setSand(sand + 1); setResult(null); }}>多一匙</button>
-      </div>
-      <button className="btn green" onClick={test}>做小罐子試燒</button>
-      {result && <p className={result.ok ? 'yes' : 'no'}>{result.text}</p>}
-    </div>
+    </>
   );
 }
 
@@ -93,7 +99,12 @@ function FireBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
   const [burn, setBurn] = useState<'ok' | 'cold' | 'crack' | null>(null);
   const h = heat(level, pile);
   const left = level.wood - used(pile);
-  const sol = fails >= 3 ? fireSolve(level) : null;
+  const plan = useMemo(() => fireSolve(level), [level]);
+  const sol = fails >= 2 ? plan : null;
+  // 手指：第一窯指一個該放柴的格子；柴放完指「點火！」
+  const first = n === 0 && !fails && !burn;
+  const want = left > 0 && plan ? SLOTS.find((g) => (plan[g] ?? 0) > (pile[g] ?? 0)) : undefined;
+  const handAt = burn === 'ok' ? null : left > 0 ? (want ? `.fire-slot[data-slot="${want}"]` : null) : '.fire-foot .btn.green';
 
   const tap = (s: Slot) => {
     if (burn === 'ok' || level.wet.includes(s)) return;
@@ -115,7 +126,8 @@ function FireBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
   };
   return (
     <div className="fire-wrap">
-      <Goal floating text={`野燒第 ${n + 1} / ${FIRES.length} 窯：${tip}`} />
+      <Goal floating id={`fire${n}`} text={burn === 'ok' ? `燒好了！（第 ${n + 1} / ${FIRES.length} 窯）` : left > 0 ? `點陶罐旁的格子放柴（還有 ${left} 捆）。第 ${n + 1} / ${FIRES.length} 窯：${tip}` : `柴放好了，按「點火！」。第 ${n + 1} / ${FIRES.length} 窯：${tip}`} />
+      <Hand at={handAt} first={first && (used(pile) === 0 || left === 0)} />
       <div className={`fire-board panel ${burn ? `burn-${burn}` : ''}`}>
         {level.wind && <div className={`wind wind-${level.wind}`}>💨 {WIND_NAME[level.wind]}</div>}
         <div className="fire-grid">
@@ -127,7 +139,7 @@ function FireBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
               ))}
             </div>
           ) : (
-            <button key={g} className={`fire-slot ${level.wet.includes(g) ? 'wet' : ''} ${sol && (sol[g] ?? 0) > 0 ? 'hint' : ''}`} onClick={() => tap(g)}>
+            <button key={g} data-slot={g} className={`fire-slot ${level.wet.includes(g) ? 'wet' : ''} ${sol && (sol[g] ?? 0) > 0 ? 'hint' : ''}`} onClick={() => tap(g)}>
               {level.wet.includes(g) ? <span className="puddle">💧</span>
                 : Array.from({ length: pile[g] ?? 0 }, (_, i) => <img key={i} src={art('o-05-woodpile')} alt="柴" style={{ translate: `${i * 10}px ${-i * 14}px` }} />)}
               {burn && (pile[g] ?? 0) > 0 && <img className="flame" src={art('o-05-fire')} alt="" />}
@@ -141,7 +153,7 @@ function FireBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
         </div>
         {burn === 'ok' && <p className="yes big">燒好了！四面都是漂亮的紅褐色。</p>}
       </div>
-      {fails >= 5 && burn !== 'ok' && <button className="btn demo corner-btn" onClick={() => setPile(fireSolve(level) ?? {})}>看示範</button>}
+      {fails >= 3 && burn !== 'ok' && <button className="btn demo corner-btn" onClick={() => setPile(fireSolve(level) ?? {})}>看示範</button>}
       <Say line={say} />
     </div>
   );
@@ -158,9 +170,13 @@ function Cord({ onDone }: { onDone: () => void }) {
     if (m === 3) { jingle('MU-13'); setTimeout(onDone, 1000); }
   };
   return (
-    <div className="cord panel">
-      <h3>用繩子在罐子上拍一拍（{n} / 3）</h3>
-      <button className={`cord-pot cord-${n}`} onClick={tap}><img src={art('g-03-pot')} alt="陶罐" /></button>
-    </div>
+    <>
+      <Goal floating text={`點罐子，用繩子拍出花紋（${n} / 3）`} />
+      <Hand at={n < 3 ? '.cord-pot' : null} first={n === 0} />
+      <div className="cord panel">
+        <h3>用繩子在罐子上拍一拍（{n} / 3）</h3>
+        <button className={`cord-pot cord-${n}`} onClick={tap}><img src={art('g-03-pot')} alt="陶罐" /></button>
+      </div>
+    </>
   );
 }

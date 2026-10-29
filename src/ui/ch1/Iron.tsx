@@ -4,7 +4,7 @@ import { CARDS1, FOREST, goodbye, IRON_DONE, IRON_INTRO, IRON_RULES, IRON_SAY, I
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
 import { Decide, EraJump } from './Story';
@@ -57,6 +57,18 @@ function ForestBoard({ onDone, oops }: { onDone: (deer: boolean) => void; oops: 
     if (trees.length === 1 && col.some((i) => f.trees[i] === 'stump')) guard.add(trees[0]);
   }
   const needWood = Math.max(0, (FOREST.iron - f.iron) * FOREST.woodPerIron - f.wood);
+  // 目標寫現在該按什麼：砍樹 → 煉一爐 → 體力用完就結束這一季；手指優先指遠的緩坡（砍了不會土石流）
+  const canSmelt = f.wood >= FOREST.woodPerIron && f.iron < FOREST.iron;
+  const rest = `陡坡同一直排要留一棵樹。${IRON_RULES}`;
+  const goal = f.iron >= FOREST.iron ? `鐵都煉好了！（${f.iron} / ${FOREST.iron}）`
+    : canSmelt ? `按「煉一爐」把木材煉成鐵（${f.iron} / ${FOREST.iron}）。${rest}`
+    : f.left <= 0 ? `體力用完了，按「結束這一季」。${rest}`
+    : `點樹砍木材（還要 ${needWood} 份）。${rest}`;
+  const tree = [...f.trees.keys()].filter((i) => f.trees[i] === 'tree' && !guard.has(i) && cutCost(FOREST, i) <= f.left).sort((a, b) => +isFar(FOREST, b) - +isFar(FOREST, a))[0];
+  const handAt = rain || smelting || ask || f.iron >= FOREST.iron ? null
+    : canSmelt ? '.iron-hud .btn.orange'
+    : f.left <= 0 || tree === undefined ? '.iron-hud .btn.green'
+    : `.hill-tree[data-i="${tree}"]`;
 
   const fail = (line: Line) => {
     oops();
@@ -113,7 +125,8 @@ function ForestBoard({ onDone, oops }: { onDone: (deer: boolean) => void; oops: 
 
   return (
     <div className="iron-wrap hill-wrap">
-      <Goal floating text={`煉鐵 ${f.iron}/${FOREST.iron}：還要砍 ${needWood} 份木材，陡坡同一直排要留一棵樹。${IRON_RULES}`} />
+      <Goal floating id="iron" text={goal} />
+      <Hand at={handAt} first={f.season === 1 && f.iron === 0 && !fails && (f.wood === 0 || canSmelt)} />
       <div className="iron-hud">
         <div className="seasons">
           {Array.from({ length: FOREST.seasons }, (_, k) => (
@@ -138,7 +151,7 @@ function ForestBoard({ onDone, oops }: { onDone: (deer: boolean) => void; oops: 
           const far = isFar(FOREST, i);
           const cost = t === 'tree' ? cutCost(FOREST, i) : t === 'stump' ? 1 : 0;
           return (
-            <button key={i} className={`hill-tree ${far ? 'far' : 'steep'} ${t} ${rain?.includes(col) && !far ? 'slide' : ''}`}
+            <button key={i} data-i={i} className={`hill-tree ${far ? 'far' : 'steep'} ${t} ${rain?.includes(col) && !far ? 'slide' : ''}`}
               style={{ left: `${colX(row, col) * 100}%`, top: `${ROW_Y[row] * 100}%`, ['--s' as string]: ROW_S[row] }}
               onClick={() => tap(i)} aria-label={t === 'tree' ? '砍樹' : t === 'stump' ? '種樹苗' : '樹苗'}>
               <img src={art(`o-05-${t}`)} alt="" />
