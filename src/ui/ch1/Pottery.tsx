@@ -1,17 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
-import { fire, fireSolve, heat, SIDES, SLOT_CAP, SLOTS, used, HEAT_MAX, HEAT_MIN, type Pile, type Slot } from '../../core/stone-age';
-import { CARDS1, CLAY_ASK, CORD_ASK, FIRE_FAIL, FIRE_HINT, FIRE_INTRO, FIRES, POT_DONE, POT_INTRO, POT_LEAVE, SAND_RESULT, art } from '../../data/ch1';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { fire, fireEasySolve, fireSolve, heat, heatEasy, SIDES, SLOT_CAP, SLOTS, used, HEAT_MAX, HEAT_MIN, type Pile, type Side, type Slot } from '../../core/stone-age';
+import { CARDS1, CLAY_ASK, CORD_ASK, FIRE_EASY_INTRO, FIRE_EASY_SAY, FIRE_EASY_TIPS, FIRE_FAIL, FIRE_HINT, FIRE_INTRO, FIRES, POT_DONE, POT_INTRO, POT_LEAVE, SAND_RESULT, art } from '../../data/ch1';
 import type { Line } from '../../data/babao-chapter';
 import { addCard1 } from '../../core/save1';
 import { CardPop, Say, Talk } from '../Talk';
 import { Goal, Hand } from '../Guide';
+import { ChallengeOffer, ChallengeTag } from '../Challenge';
+import { challengeDone } from '../Medal';
 import type { Step1Props } from '../Ch1';
 import { jingle, sfx } from '../../audio';
 import { Decide, EraJump } from './Story';
 
-type Phase = 'jump' | 'intro' | 'clayAsk' | 'clay' | 'fireIntro' | 'fire' | 'cordAsk' | 'cord' | 'done' | 'pick' | 'cards' | 'leave' | 'warp';
+type Phase = 'jump' | 'intro' | 'clayAsk' | 'clay' | 'fireIntro' | 'fire' | 'offer' | 'cIntro' | 'challenge' | 'cordAsk' | 'cord' | 'done' | 'pick' | 'cards' | 'leave' | 'warp';
 
-// 步驟 2 陶器（大坌坑文化）：黏土拌砂試燒 → 野燒三關（柴放在罐子四周，四面都要剛剛好）→ 拍繩紋
+// 步驟 2 陶器（大坌坑文化）：黏土拌砂試燒 → 野燒三窯（柴放在罐子四周，四面都燒成紅褐色）→ 拍繩紋
+// 野燒過了可以選⭐⭐⭐再挑戰：原本算分數、柴要剛好用完的版本
 export function Pottery({ p, set, next, oops }: Step1Props) {
   const [phase, setPhase] = useState<Phase>('jump');
   const [lv, setLv] = useState(0);
@@ -29,11 +32,20 @@ export function Pottery({ p, set, next, oops }: Step1Props) {
       {phase === 'intro' && <Talk lines={POT_INTRO} onDone={() => setPhase('clayAsk')} />}
       {phase === 'clayAsk' && <Talk lines={CLAY_ASK} onDone={() => setPhase('clay')} />}
       {phase === 'clay' && <Clay oops={oops} onDone={() => setPhase('fireIntro')} />}
-      {phase === 'fireIntro' && <Talk lines={FIRE_INTRO} onDone={() => setPhase('fire')} />}
-      {phase === 'fire' && <FireBoard key={lv} n={lv} oops={oops} onDone={() => {
+      {phase === 'fireIntro' && <Talk lines={FIRE_EASY_INTRO} onDone={() => setPhase('fire')} />}
+      {phase === 'fire' && <FireEasy key={lv} n={lv} oops={oops} onDone={() => {
         jingle('MU-13');
-        if (lv + 1 < FIRES.length) setLv(lv + 1); else setPhase('cordAsk');
+        if (lv + 1 < FIRES.length) setLv(lv + 1); else { setLv(0); setPhase('offer'); }
       }} />}
+      {phase === 'offer' && <ChallengeOffer text="進階版：柴的數量剛好、要全部用完，正面的柴熱 2 分、角落兩面各 1 分，四面都要 3～4 分。你排得出來嗎？" onTry={() => setPhase('cIntro')} onSkip={() => setPhase('cordAsk')} />}
+      {phase === 'cIntro' && <Talk lines={FIRE_INTRO} onDone={() => setPhase('challenge')} />}
+      {phase === 'challenge' && <>
+        <FireBoard key={lv} n={lv} oops={() => {}} onDone={() => {
+          jingle('MU-13');
+          if (lv + 1 < FIRES.length) setLv(lv + 1); else { challengeDone('ch1:fire'); setPhase('cordAsk'); }
+        }} />
+        <ChallengeTag onQuit={() => setPhase('cordAsk')} />
+      </>}
       {phase === 'cordAsk' && <Talk lines={CORD_ASK} onDone={() => setPhase('cord')} />}
       {phase === 'cord' && <Cord onDone={() => setPhase('done')} />}
       {phase === 'done' && <Talk lines={POT_DONE} onDone={() => setPhase('pick')} />}
@@ -86,10 +98,82 @@ function Clay({ onDone, oops }: { onDone: () => void; oops: () => void }) {
   );
 }
 
-// 野燒：罐子在中間，周圍 8 個位置放柴；點一下加一捆（最多 2 捆），再點會拿掉
+// ⭐⭐⭐ 進階版野燒：罐子在中間，周圍 8 個位置放柴；點一下加一捆（最多 2 捆），再點會拿掉；柴要剛好用完、四面 3～4 分
 const GRID: (Slot | 'pot')[] = ['NW', 'N', 'NE', 'W', 'pot', 'E', 'SW', 'S', 'SE'];
 const SIDE_NAME = { N: '北', E: '東', S: '南', W: '西' } as const;
 const WIND_NAME: Record<Slot, string> = { N: '北風', NE: '東北季風', E: '東風', SE: '東南風', S: '南風', SW: '西南風', W: '西風', NW: '西北風' };
+
+// 故事版野燒：沒有分數、柴不限量（一格最多疊 2 捆）。罐子每一面直接寫「還沒熟／剛好／太燙」並變色，
+// 四面都剛好就自己點火。太燙那一面算失誤一次，夥伴提醒拿掉；錯 2 次亮出放法、錯 3 次看示範。
+const LOOK = { cold: '沒熟', ok: '剛好', hot: '太燙' } as const;
+function FireEasy({ n, onDone, oops }: { n: number; onDone: () => void; oops: () => void }) {
+  const { level } = FIRES[n];
+  const [pile, setPile] = useState<Pile>({});
+  const [fails, setFails] = useState(0);
+  const [say, setSay] = useState<Line | null>(null);
+  const [lit, setLit] = useState(false);
+  const plan = useMemo(() => fireEasySolve(level), [level]);
+  const h = heatEasy(level, pile);
+  const look = (s: Side) => (h[s] < HEAT_MIN ? 'cold' : h[s] > HEAT_MAX ? 'hot' : 'ok');
+  const hot = SIDES.filter((s) => look(s) === 'hot');
+  const good = SIDES.every((s) => look(s) === 'ok');
+  const tapped = useRef(0);
+  useEffect(() => {
+    if (!good || lit) return;
+    const t = setTimeout(() => { setLit(true); setSay(null); sfx('SE-60'); setTimeout(onDone, 1700); }, 600);
+    return () => clearTimeout(t);
+  }, [good]); // eslint-disable-line react-hooks/exhaustive-deps
+  const tap = (s: Slot) => {
+    if (lit) return;
+    if (level.wet.includes(s)) { sfx('SE-04'); setSay(FIRE_EASY_SAY.wet); return; }
+    tapped.current++;
+    const cur = pile[s] ?? 0;
+    const nextN = cur < SLOT_CAP ? cur + 1 : 0;
+    sfx(nextN > cur ? 'SE-07' : 'SE-02');
+    const np = { ...pile, [s]: nextN };
+    setPile(np);
+    const nh = heatEasy(level, np);
+    const newHot = SIDES.some((x) => nh[x] > HEAT_MAX && h[x] <= HEAT_MAX);
+    if (newHot) { sfx('SE-71'); oops(); setFails(fails + 1); setSay(FIRE_EASY_SAY.hot); }
+    else if (level.wind && tapped.current >= 6 && look(level.wind[0] as Side) === 'cold' && !say) setSay(FIRE_EASY_SAY.wind);
+  };
+  const sol = fails >= 2 ? plan : null;
+  const want = plan ? SLOTS.find((g) => (plan[g] ?? 0) > (pile[g] ?? 0)) : undefined;
+  const fix = hot.length ? SLOTS.find((g) => (pile[g] ?? 0) > (plan?.[g] ?? 0) && [...g].some((x) => hot.includes(x as Side))) : undefined;
+  const handAt = lit ? null : fix ? `.fire-slot[data-slot="${fix}"]` : want ? `.fire-slot[data-slot="${want}"]` : null;
+  const goal = lit ? `燒好了！（第 ${n + 1} / ${FIRES.length} 窯）`
+    : hot.length ? `有一面太燙了，點那邊的柴拿掉一捆。${FIRE_EASY_TIPS[n]}`
+    : `點罐子旁的格子放柴，四面都要剛好。${FIRE_EASY_TIPS[n]}太冷燒不熟、太燙會裂，柴再點一下會多一捆，點到第三下拿掉。`;
+  return (
+    <div className="fire-wrap">
+      <Goal floating id={`fire${n}`} text={goal} />
+      <Hand at={handAt} first={n === 0 && used(pile) === 0} />
+      <div className={`fire-board panel easy ${lit ? 'burn-ok' : ''}`}>
+        {level.wind && <div className={`wind wind-${level.wind}`}>💨 {WIND_NAME[level.wind]}</div>}
+        <div className="fire-grid">
+          {GRID.map((g) => g === 'pot' ? (
+            <div key="pot" className={`fire-pot ${hot.length ? 'cracking' : ''}`}>
+              <img src={art('g-03-pot')} alt="陶罐" />
+              {SIDES.map((s) => <span key={s} className={`side-heat side-${s} ${look(s)}`}>{LOOK[look(s)]}</span>)}
+            </div>
+          ) : (
+            <button key={g} data-slot={g} className={`fire-slot ${level.wet.includes(g) ? 'wet' : ''} ${sol && (sol[g] ?? 0) > (pile[g] ?? 0) ? 'hint' : ''}`} onClick={() => tap(g)}>
+              {level.wet.includes(g) ? <span className="puddle">💧</span>
+                : Array.from({ length: pile[g] ?? 0 }, (_, i) => <img key={i} src={art('o-05-woodpile')} alt="柴" style={{ translate: `${i * 10}px ${-i * 14}px` }} />)}
+              {lit && (pile[g] ?? 0) > 0 && <img className="flame" src={art('o-05-fire')} alt="" />}
+            </button>
+          ))}
+        </div>
+        <div className="fire-foot">
+          <span className="fire-legend">四面都「剛好」就會自己點火</span>
+        </div>
+        {lit && <p className="yes big">燒好了！四面都是漂亮的紅褐色。</p>}
+      </div>
+      {fails >= 3 && !lit && <button className="btn demo corner-btn" onClick={() => setPile(plan ?? {})}>看示範</button>}
+      <Say line={say} />
+    </div>
+  );
+}
 
 function FireBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: () => void }) {
   const { level, tip } = FIRES[n];
@@ -101,8 +185,7 @@ function FireBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
   const left = level.wood - used(pile);
   const plan = useMemo(() => fireSolve(level), [level]);
   const sol = fails >= 2 ? plan : null;
-  // 手指：第一窯指一個該放柴的格子；柴放完指「點火！」
-  const first = n === 0 && !fails && !burn;
+  // 手指（停住 8 秒才出現，進階版不主動帶）：指一個該放柴的格子；柴放完指「點火！」
   const want = left > 0 && plan ? SLOTS.find((g) => (plan[g] ?? 0) > (pile[g] ?? 0)) : undefined;
   const handAt = burn === 'ok' ? null : left > 0 ? (want ? `.fire-slot[data-slot="${want}"]` : null) : '.fire-foot .btn.green';
 
@@ -126,8 +209,8 @@ function FireBoard({ n, onDone, oops }: { n: number; onDone: () => void; oops: (
   };
   return (
     <div className="fire-wrap">
-      <Goal floating id={`fire${n}`} text={burn === 'ok' ? `燒好了！（第 ${n + 1} / ${FIRES.length} 窯）` : left > 0 ? `點陶罐旁的格子放柴（還有 ${left} 捆）。第 ${n + 1} / ${FIRES.length} 窯：${tip}` : `柴放好了，按「點火！」。第 ${n + 1} / ${FIRES.length} 窯：${tip}`} />
-      <Hand at={handAt} first={first && (used(pile) === 0 || left === 0)} />
+      <Goal floating id={`cfire${n}`} text={burn === 'ok' ? `燒好了！（第 ${n + 1} / ${FIRES.length} 窯）` : left > 0 ? `點陶罐旁的格子放柴（還有 ${left} 捆）。第 ${n + 1} / ${FIRES.length} 窯：${tip}` : `柴放好了，按「點火！」。第 ${n + 1} / ${FIRES.length} 窯：${tip}`} />
+      <Hand at={handAt} />
       <div className={`fire-board panel ${burn ? `burn-${burn}` : ''}`}>
         {level.wind && <div className={`wind wind-${level.wind}`}>💨 {WIND_NAME[level.wind]}</div>}
         <div className="fire-grid">

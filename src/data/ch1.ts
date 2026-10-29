@@ -175,6 +175,23 @@ export const FIRES: { level: FireLevel; tip: string }[] = [
   { level: { wood: 7, wind: 'N', wet: [] }, tip: '北邊吹來冷風，北面會少 1 分。' },
   { level: { wood: 7, wind: 'NE', wet: ['S'] }, tip: '東北季風來了，北面和東面各少 1 分；南邊地上濕濕的，不能放柴。' },
 ];
+// 故事版野燒（2026-10-29 遊戲設計原則：不算數學）：沒有分數、柴不限量，罐子每一面直接變色，四面都剛好就自己點火。
+// 每一窯一個關鍵決定：第一窯學正面燒一面、角落燒兩面；第二窯風吹來那面要多放；第三窯濕地不能放，用旁邊角落燒南面。
+// 原本算分數、柴要剛好用完的版本留作⭐⭐⭐再挑戰（FIRES、FIRE_INTRO）。
+export const FIRE_EASY_INTRO: Line[] = [
+  { who: 'potter', text: '我們不用窯，把柴堆在罐子四周直接燒，叫做野燒。' },
+  { who: 'potter', text: '罐子四面都要燒成紅褐色才算剛好。太冷燒不熟，太燙就會裂開。' },
+];
+export const FIRE_EASY_TIPS = [
+  '正面的柴燒一面，角落的柴同時燒兩面。',
+  '北風吹過來，北面比較冷，要多放一點柴。',
+  '東北季風吹過來，北面和東面比較冷。南邊地上濕濕的不能放柴，用旁邊的角落燒南面。',
+];
+export const FIRE_EASY_SAY = {
+  hot: { who: 'potter', text: '啪啦——那一面太燙，陶土快裂開了！柴不要全堆在同一邊。' } as Line,
+  wind: { who: 'yan', mood: 'thinking', text: '風一直吹，北面好像怎麼燒都不夠熱……那邊多放一點柴？' } as Line,
+  wet: { who: 'yan', mood: 'thinking', text: '南邊放不了柴，那旁邊的兩個角落呢？角落可以同時燒到南面。' } as Line,
+};
 export const FIRE_FAIL = {
   cold: { who: 'potter', text: '有一面還是灰灰的，沒燒熟。那一面附近再多放一點柴。' } as Line,
   crack: { who: 'potter', text: '啪！太燙的那一面裂了。柴不要全堆在同一邊。' } as Line,

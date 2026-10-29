@@ -749,6 +749,11 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .burn-ok .fire-pot img{filter:saturate(1.3) drop-shadow(0 0 16px rgba(255,140,40,.8))}
 .side-heat{position:absolute;padding:2px 8px;border-radius:12px;font-weight:900;font-size:15px;color:#fff;border:2px solid #fff;white-space:nowrap}
 .side-heat.ok{background:#3fae3a}.side-heat.cold{background:#4f8fd1}.side-heat.hot{background:#e0452c}
+/* 故事版野燒：每一面用陶土的顏色說話（灰＝還沒熟、紅褐＝剛好、黑＝太燙快裂） */
+.fire-board.easy .side-heat.cold{background:#8f949c}
+.fire-board.easy .side-heat.ok{background:#b4532a}
+.fire-board.easy .side-heat.hot{background:#2b2420;border-color:#ff5a3a;animation:pulse .4s ease-in-out infinite alternate}
+.fire-board.easy .fire-pot.cracking img{animation:shake .12s linear 3}
 .side-N{top:-4px;left:50%;translate:-50% 0}.side-S{bottom:-4px;left:50%;translate:-50% 0}
 .side-W{left:-8px;top:50%;translate:0 -50%}.side-E{right:-8px;top:50%;translate:0 -50%}
 /*

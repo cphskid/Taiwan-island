@@ -129,6 +129,34 @@ export function fireSolve(lv: FireLevel): Pile | null {
   return go(0, lv.wood) ? Object.fromEntries(Object.entries(pile).filter(([, n]) => n)) as Pile : null;
 }
 
+// 故事版野燒（2026-10-29）：柴不限量、一格最多 2 捆，風比較強（風吹來那面再少 1 分，共少 2），
+// 不然每一面正面放 2 捆就能過，看不出「風吹來那面要多放」。四面都 3～4 分就算燒好。
+export function heatEasy(lv: FireLevel, pile: Pile): Record<Side, number> {
+  const h = heat(lv, pile);
+  if (lv.wind) sidesOf(lv.wind).forEach((side) => { h[side] -= 1; });
+  return h;
+}
+export const easyFired = (lv: FireLevel, pile: Pile) => SIDES.every((s) => { const v = heatEasy(lv, pile)[s]; return v >= HEAT_MIN && v <= HEAT_MAX; });
+
+// 故事版的一種放法（手指示範、看示範用）：柴用得最少的那種
+export function fireEasySolve(lv: FireLevel): Pile | null {
+  const free = SLOTS.filter((s) => !lv.wet.includes(s));
+  let best: Pile | null = null;
+  let bestN = Infinity;
+  const pile: Pile = {};
+  const go = (i: number, n: number) => {
+    if (n >= bestN) return;
+    if (i === free.length) {
+      if (easyFired(lv, pile)) { best = { ...pile }; bestN = n; }
+      return;
+    }
+    for (let k = 0; k <= SLOT_CAP; k++) { pile[free[i]] = k; go(i + 1, n + k); }
+    delete pile[free[i]];
+  };
+  go(0, 0);
+  return best ? Object.fromEntries(Object.entries(best as Pile).filter(([, n]) => n)) as Pile : null;
+}
+
 // ── 磨製石器 ──────────────────────────────────
 // 石頭側面看是一排高度；在第 i 格磨一下：那格少 2、左右兩格各少 1（石頭是一整塊，旁邊也會被帶到）。
 // 要剛好磨到虛線（目標高度）；有一格磨到虛線以下就太薄、斷掉了。
