@@ -159,13 +159,32 @@ export function Goal({ text, floating, id }: { text: string; floating?: boolean;
     seen.current = text;
     if (same) { goalHub.flash++; emit(); }
   }, [text, floating]); // eslint-disable-line react-hooks/exhaustive-deps
+  // 目標條蓋到能點的東西（手機上常發生）：變半透明、點擊穿過去，底下的東西還點得到
+  const dock = useRef<HTMLDivElement>(null);
+  const [over, setOver] = useState(false);
+  useEffect(() => {
+    if (!floating) return;
+    const check = () => {
+      const r = dock.current?.getBoundingClientRect();
+      if (!r) { setOver(false); return; }
+      const hit = [...document.querySelectorAll(TAPPABLE)].some((el) => {
+        if (dock.current?.contains(el)) return false;
+        const b = el.getBoundingClientRect();
+        return b.width > 0 && b.left < r.right && b.right > r.left && b.top < r.bottom && b.bottom > r.top;
+      });
+      setOver(hit);
+    };
+    check();
+    const id = setInterval(check, 400);
+    return () => clearInterval(id);
+  }, [floating]);
   if (floating) {
     return (
       <>
         {fly}
         {/* 沒人說話的時候，目標自己帶著滴答待在左下角（位置跟說話框一樣） */}
         {hub.says === 0 && (
-          <div className="say goal-dock">
+          <div ref={dock} className={`say goal-dock ${over ? 'over' : ''}`}>
             <div className="face small tick" style={{ borderColor: '#c99a3a' }}><img src={`${import.meta.env.BASE_URL}img/tick/happy.webp`} alt="" /></div>
             <GoalStrip text={text} />
           </div>
@@ -176,6 +195,8 @@ export function Goal({ text, floating, id }: { text: string; floating?: boolean;
   return <InlineGoal text={text} />;
 }
 
+// 關卡裡能點的東西（目標條不能蓋住它們；蓋到了就讓開）
+const TAPPABLE = '.stage button:not(:disabled), .stage .hit, [data-cell], [data-dir], [data-slot], [data-col], .beach-stone, .dig-spot, .hill-tree';
 const IDLE_MS = 8000;
 // 停住 ms 毫秒沒點畫面就變 true；一點畫面就重算
 export function useIdle(on = true, ms = IDLE_MS) {

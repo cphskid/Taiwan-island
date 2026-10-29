@@ -700,6 +700,14 @@ img.gear{width:110px;height:110px;object-fit:contain}
 @keyframes fadeaway{to{opacity:0}}
 @keyframes shine{50%{filter:brightness(1.4) drop-shadow(0 0 20px #ffe9a8)}}
 .knap-tool{position:absolute;left:50%;top:50%;width:min(30vh,220px);translate:-50% -50%;filter:drop-shadow(0 0 18px #ffe9a8);animation:pop .5s .5s both}
+/* 手機橫拿：石頭放大、往上，左下角留給目標條（進場引導原則：要點的東西不能被蓋住） */
+@media (max-height:600px){
+  .knap-wrap{align-items:center;padding:44px 10px 64px}
+  .knap-svg{width:auto;height:calc(100dvh - 44px - 72px);max-height:none;max-width:62vw}
+  .knap-wrap .yan-side{height:min(38vh,150px)}
+  .grind-wrap{padding-bottom:64px}
+  .ch1-cave .beach-stone{translate:-50% calc(-50% - 9vh)}
+}
 .knap-tip,.grind-tip{margin:4px 0 0;font-weight:700;font-size:17px;color:#fff;background:rgba(30,25,20,.6);padding:4px 14px;border-radius:14px}
 .yan-side{height:min(46vh,300px);align-self:flex-end;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35))}
 .drill{position:absolute;left:50%;bottom:4vh;translate:-50% 0;z-index:3;display:grid;grid-template-columns:auto auto;align-items:end;gap:8px 16px;justify-items:center}
@@ -2825,6 +2833,8 @@ button.v-chip{cursor:pointer}
 .say.mini.with-goal,.say.goal-dock{border-radius:999px;padding:4px 12px 4px 4px;gap:8px;align-items:center;max-width:min(520px,calc(100% - 24px))}
 .say.mini.with-goal .say-dot{right:auto;left:40px}
 .say.goal-dock{cursor:default}
+.say.goal-dock.over{opacity:.5;pointer-events:none;transition:opacity .2s}
+.say.goal-dock.over *{pointer-events:none}
 .say.with-goal:not(.mini){max-width:min(480px,46%)}
 .quest.strip.flash{animation:questflash .32s ease-in-out 4 alternate}
 @keyframes questflash{from{transform:scale(1);box-shadow:0 0 0 0 #ffe066}to{transform:scale(1.08);box-shadow:0 0 0 5px #ffe066,0 0 18px 4px #ffe066}}
