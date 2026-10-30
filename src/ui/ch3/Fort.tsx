@@ -3,7 +3,7 @@ import { harborFree, harborSolve, parseHarbor, slide, slideRange, type Boat } fr
 import { FLEET, FORT_DONE, FORT_SAY, HARBORS, art3 } from '../../data/ch3';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards3, type Step3Props } from '../Ch3';
 import { EraJump3 } from './Story3';
 import { jingle, sfx } from '../../audio';
@@ -58,7 +58,8 @@ function HarborBoard({ li, oops, onDone }: { li: number; oops: () => void; onDon
   useEffect(() => () => { alive.current = false; }, []);
   const n = h.size;
   // 失敗 3 次以後，標出下一步該動哪一艘船
-  const nextMove = useMemo(() => (fails >= 2 && !won ? harborSolve({ ...h, boats })?.[0] ?? null : null), [fails, won, h, boats]);
+  const solved = useMemo(() => (won ? null : harborSolve({ ...h, boats })?.[0] ?? null), [won, h, boats]);
+  const nextMove = fails >= 2 ? solved : null;
 
   const commit = async (id: string, by: number, bs = boats, mv = moves, lastId = last) => {
     const nb = slide(h, bs, id, by);
@@ -121,7 +122,8 @@ function HarborBoard({ li, oops, onDone }: { li: number; oops: () => void; onDon
 
   return (
     <div className="ch3-harbor-wrap">
-      <Goal floating text={`把紅帆船滑出右邊的出口。船只能前後滑，${info.moves} 步以內要排好。`} />
+      <Hand at={busy || !solved ? null : `.ch3-boat[data-id="${solved.id}"]`} first={!moves && !fails} />
+      <Goal floating text={`拖著船前後滑，讓紅帆船滑出右邊的出口。船只能前後滑，${info.moves} 步以內要排好。`} />
       <div className="ch3-harbor-side panel">
         <h3>{info.title}</h3>
         <p className={`ch3-moves ${moves >= info.moves - 2 ? 'warn' : ''}`}>已經 {moves} 步<small>／最多 {info.moves} 步</small></p>
@@ -136,7 +138,7 @@ function HarborBoard({ li, oops, onDone }: { li: number; oops: () => void; onDon
             const off = drag?.id === b.id ? drag.by : 0;
             const col = b.col + (b.across ? off : 0), row = b.row + (b.across ? 0 : off);
             return (
-              <div key={b.id} className={`ch3-boat ${b.id === 'A' ? 'red' : ''} ${b.across ? 'across' : 'down'} ${drag?.id === b.id ? 'drag' : ''} ${nextMove?.id === b.id ? 'ch3-hint' : ''}`}
+              <div key={b.id} data-id={b.id} className={`ch3-boat ${b.id === 'A' ? 'red' : ''} ${b.across ? 'across' : 'down'} ${drag?.id === b.id ? 'drag' : ''} ${nextMove?.id === b.id ? 'ch3-hint' : ''}`}
                 style={{ left: `${(col / n) * 100}%`, top: `${(row / n) * 100}%`, width: `${((b.across ? b.len : 1) / n) * 100}%`, height: `${((b.across ? 1 : b.len) / n) * 100}%` }}
                 onPointerDown={(e) => down(e, b)} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
                 <img className="ch3-boat-img" src={art3(b.id === 'A' ? 'o-12-redship' : b.len === 3 ? 'o-12-junk' : 'o-12-sampan')} alt="" draggable={false}

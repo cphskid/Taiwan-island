@@ -3,7 +3,7 @@ import { campSolutions, checkCamps, ck, type Cell, type CampCheck } from '../../
 import { CAMPS, CAMP_DONE, CAMP_INTRO, CAMP_NAMES, CAMP_RULES, CAMP_SAY, art4 } from '../../data/ch4';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { Terrain } from '../Terrain';
 import { NewCards, type Step4Props } from '../Ch4';
 import { Decide4 } from './Story4';
@@ -22,6 +22,10 @@ export function Camps({ p, set, next, oops }: Step4Props) {
   const [fails, setFails] = useState(0);
   const [say, setSay] = useState<Line | null>(null);
   const sol = fails >= 2 ? campSolutions(CAMPS, 1)[0] : null;
+  // 手指：指一個還沒紮的正解營盤；紮滿了指「檢查」
+  const plan = campSolutions(CAMPS, 1)[0];
+  const nextCamp = plan?.find((c) => !camps.some((x) => ck(x) === ck(c)));
+  const handAt = phase !== 'place' ? null : camps.length >= CAMPS.camps ? '.scene .btn.green' : nextCamp ? `.ch4-tile[aria-label="${nextCamp.col},${nextCamp.row}"]` : null;
   const has = (c: Cell) => camps.findIndex((x) => ck(x) === ck(c));
 
   const tap = (c: Cell) => {
@@ -48,7 +52,8 @@ export function Camps({ p, set, next, oops }: Step4Props) {
     <div className="scene ch4-camps">
       <img className="scene-bg" src={art4('s-16')} alt="" />
       {phase === 'intro' && <Talk lines={CAMP_INTRO} onDone={() => setPhase('place')} />}
-      {phase === 'place' && <Goal floating text={camps.length < CAMPS.camps ? `紮 ${CAMPS.camps} 個營盤：還有 ${CAMPS.camps - camps.length} 個` : '紮好了，按「檢查」'} />}
+      {phase === 'place' && <Goal floating text={camps.length < CAMPS.camps ? `點空地紮營盤（還有 ${CAMPS.camps - camps.length} 個）。照右邊的規矩放。` : '紮好了，按「檢查」'} />}
+      <Hand at={handAt} first={!fails && (!camps.length || camps.length >= CAMPS.camps)} />
       {phase !== 'intro' && (
         <div className="ch4-camp-wrap">
           <div className="ch4-map panel" style={{ ['--cols' as string]: CAMPS.rows[0].length }}>

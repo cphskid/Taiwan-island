@@ -3,7 +3,7 @@ import { calendarCheck, SEASONS } from '../../core/mountain';
 import { CAL_INTRO, CAL_WRONG, CHORE_IMG, CHORES, CLUES, art2 } from '../../data/ch2';
 import { PEOPLE, type Line } from '../../data/babao-chapter';
 import { Face, Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards, type Step2Props } from '../Ch2';
 import { jingle, sfx } from '../../audio';
 
@@ -46,7 +46,8 @@ export function Calendar({ p, set, next, oops }: Step2Props) {
     <div className="scene ch2-cal">
       <img className="scene-bg" src={art2('s-10')} alt="" />
       {phase === 'intro' && <Talk lines={CAL_INTRO} onDone={() => setPhase('sort')} />}
-      {phase === 'sort' && <Goal floating text={left.length ? `把 ${CHORES.length} 件事放進對的季節：還有 ${left.length} 件` : '都放好了，按「這樣對嗎？」'} />}
+      {phase === 'sort' && <Goal floating id="cal" text={!left.length ? '都放好了，按「這樣對嗎？」' : pick ? `再點它的季節（還有 ${left.length} 件）。看左邊大家說的話找線索。` : `點一件事（還有 ${left.length} 件），再點它的季節。看左邊大家說的話找線索。`} />}
+      {phase === 'sort' && <Hand at={!left.length ? '.cal .btn.green' : pick ? `.cal-slot[data-s="${CHORES.find((c) => c.id === pick)!.season}"]` : '.cal .ruler-item'} first={!Object.keys(placed).length || !left.length} />}
       {phase !== 'intro' && (
         <div className="cal-wrap">
           <div className="clues panel">
@@ -66,7 +67,7 @@ export function Calendar({ p, set, next, oops }: Step2Props) {
             </div>
             <div className="ruler-line">
               {SEASONS.map((name, s) => (
-                <div key={name} role="button" className={`ruler-slot cal-slot ${pick ? 'ready' : ''}`} onClick={() => put(s)}>
+                <div key={name} role="button" data-s={s} className={`ruler-slot cal-slot ${pick ? 'ready' : ''}`} onClick={() => put(s)}>
                   <b>{SEASON_ICON[s]} {name}</b>
                   <span className="cal-got">
                     {CHORES.filter((c) => placed[c.id] === s).map((c) => (

@@ -3,7 +3,7 @@ import { grainSolutions, runGrain } from '../../core/tuntian';
 import { GRAIN, GRAIN_INTRO, GRAIN_SAY, HISTORY4, SHILANG4, art4 } from '../../data/ch4';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards, type Step4Props } from '../Ch4';
 import { Decide4, Jump4 } from './Story4';
 import { jingle, sfx } from '../../audio';
@@ -45,7 +45,8 @@ export function Future({ p, set, next, oops }: Step4Props) {
     <div className="scene ch4-future">
       <img className="scene-bg" src={art4('s-16')} alt="" />
       {phase === 'intro' && <Talk lines={GRAIN_INTRO} onDone={() => setPhase('plan')} />}
-      {phase === 'plan' && <Goal floating text={`排好五年要開幾塊新田：糧倉不能空，最後存到 ${GRAIN.target} 份`} />}
+      {phase === 'plan' && <Goal floating id="future" text={`按＋決定每年開幾塊新田，再按「試著過五年」。糧倉不能空，最後要存到 ${GRAIN.target} 份。`} />}
+      {phase === 'plan' && <Hand at={plan.every((k) => !k) ? 'button[aria-label="多開一塊"]' : '.scene .btn.green'} first={!fails && shown === 0} />}
       {(phase === 'plan' || phase === 'run') && (
         <div className="ch4-grain-wrap">
           <div className="ch4-grain panel">

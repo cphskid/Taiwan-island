@@ -3,7 +3,7 @@ import { checkTemple, ck, type Bld, type Cell } from '../../core/tuntian';
 import { BLDS, TEMPLE, TEMPLE_CLUES, TEMPLE_DONE, TEMPLE_INTRO, TEMPLE_SAY, art4 } from '../../data/ch4';
 import { PEOPLE, type Line } from '../../data/babao-chapter';
 import { Face, Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards, type Step4Props } from '../Ch4';
 import { Decide4, Jump4 } from './Story4';
 import { jingle, sfx } from '../../audio';
@@ -59,7 +59,8 @@ export function School({ p, set, next, oops }: Step4Props) {
       <img className="scene-bg" src={art4('s-18')} alt="" />
       {phase === 'jump' && <Jump4 to={2} onDone={() => setPhase('intro')} />}
       {phase === 'intro' && <Talk lines={TEMPLE_INTRO} onDone={() => setPhase('build')} />}
-      {phase === 'build' && <Goal floating text={left.length ? `照大家說的，把孔廟的建築放好：還有 ${left.length} 座` : '都放好了，按「蓋好了！」'} />}
+      {phase === 'build' && <Goal floating id="school" text={!left.length ? '都放好了，按「蓋好了！」' : pick ? `再點空地把它放上去（還有 ${left.length} 座）。照左邊大家說的放。` : `點一座建築，再點空地放上去（還有 ${left.length} 座）。照左邊大家說的放。`} />}
+      {phase === 'build' && <Hand at={!left.length ? '.scene .btn.green' : pick ? `.ch4-lot[data-cell="${ck(TEMPLE.answer[pick])}"]` : '.ch4-bld'} first={!fails && (!Object.keys(placed).length || !left.length)} />}
       {phase !== 'jump' && phase !== 'intro' && (
         <div className="ch4-temple-wrap">
           <div className="clues panel">
@@ -86,7 +87,7 @@ export function School({ p, set, next, oops }: Step4Props) {
                   const b = whoAt(c);
                   const info = b && BLDS.find((x) => x.id === b)!;
                   return (
-                    <button key={ck(c)} className={`ch4-lot ${col === Math.floor(TEMPLE.cols / 2) ? 'axis' : ''} ${pick ? 'ready' : ''} ${b && wrong.includes(b) ? 'wrong' : ''} ${target === ck(c) ? 'hint' : ''}`} onClick={() => tapCell(c)}>
+                    <button key={ck(c)} data-cell={ck(c)} className={`ch4-lot ${col === Math.floor(TEMPLE.cols / 2) ? 'axis' : ''} ${pick ? 'ready' : ''} ${b && wrong.includes(b) ? 'wrong' : ''} ${target === ck(c) ? 'hint' : ''}`} onClick={() => tapCell(c)}>
                       {info && <img src={info.img} alt="" className={info.id === 'westWing' ? 'flip' : ''} />}
                       {info && <small>{info.name}</small>}
                     </button>

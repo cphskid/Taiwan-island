@@ -6,7 +6,7 @@ import { CardPop, Say, Talk } from '../Talk';
 import type { Line } from '../../data/babao-chapter';
 import type { StepProps } from '../Chapter';
 import { sfx } from '../../audio';
-import { BoardBeacon, Goal } from '../Guide';
+import { BoardBeacon, Goal, Hand } from '../Guide';
 
 // 溪水一漲一退：退的時候才撿得到溪邊的石頭。阿穆聽得出溪水要漲了，會先提醒。
 const LOW_MS = 6000;
@@ -107,6 +107,7 @@ export function Craft({ p, set, next }: StepProps) {
       {!finished && !intro && nearStone && p.stone < need * CAGE_COST.stone && <BoardBeacon board={board} cell={nearStone} label="石堆：水退時點這裡" small />}
       {splash > 0 && <div className="splash">撲通！</div>}
       {!finished && <Goal floating text={canCraft(p) ? '材料夠了！按下面「編竹蛇籠」' : '點竹林砍竹子、溪水退時點石堆撿石頭'} />}
+      <Hand at={canCraft(p) && !weaving && !intro ? '.tray .btn.green' : null} first />
       <div className="mats">
         <span><img src={img('g-bamboo')} alt="" />竹子 <b>{p.bamboo}</b></span>
         <span><img src={img('g-stone')} alt="" />石頭 <b>{p.stone}</b></span>

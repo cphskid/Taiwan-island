@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { nextNeeded, peek, yardDone, yardMove, yardSolve, yardStart, type Car, type From, type To, type Yard } from '../../core/jianan';
 import { NORTH, RAIL_DONE, RAIL_INTRO, YARD_INTRO, YARD_SAY, YARDS, art7 } from '../../data/ch7';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards7, type Step7Props } from '../Ch7';
 import { Decide7, EraJump7 } from './Story7';
 import { jingle, sfx } from '../../audio';
@@ -54,6 +54,10 @@ function YardBoard({ level, oops, onDone }: { level: number; oops: () => void; o
 
   const plan = (fails >= 2 || demo) && !leaving ? yardSolve(lv, y) : null;
   const tip = plan?.moves[0];
+  // 手指：照解法指下一步（先點哪節車廂，再點放到哪裡）
+  const next1 = useMemo(() => (leaving ? null : yardSolve(lv, y)?.moves[0] ?? null), [lv, y, leaving]);
+  const where = (k: From | To) => (k === 'in' ? '.ch7-track-in .ch7-car-btn:not(:disabled)' : k === 'out' ? '.ch7-train' : `.ch7-side[data-k="${k}"]`);
+  const handAt = !next1 || demo ? null : sel === null ? (next1[0] === 'in' ? where('in') : `${where(next1[0])} .ch7-car-btn:not(:disabled)`) : sel === next1[0] ? where(next1[1]) : null;
   const need = nextNeeded(lv, y);
   const reset = () => { setY(yardStart(lv)); setSel(null); };
 
@@ -113,7 +117,8 @@ function YardBoard({ level, oops, onDone }: { level: number; oops: () => void; o
 
   return (
     <div className="ch7-yard-wrap">
-      <Goal floating text={`第 ${level + 1} / ${YARDS.length} 列火車：最遠的站掛在火車頭後面。點一節車廂，再點「火車」或「岔道」`} />
+      <Hand at={handAt} first={!fails && !y.out.length && y.sideMoves === 0} />
+      <Goal floating id={`yard${level}`} text={`${sel === null ? '點一節車廂，把它拉起來。' : '再點「火車」或「岔道」放下去。'}第 ${level + 1} / ${YARDS.length} 列火車：最遠的站掛在火車頭後面。`} />
       <div className="ch7-yard panel">
         <div className="ch7-order">
           <small>火車往北開，掛的順序：</small>
@@ -139,7 +144,7 @@ function YardBoard({ level, oops, onDone }: { level: number; oops: () => void; o
         </div>
         <div className="ch7-sides">
           {y.sides.map((s, k) => (
-            <div key={k} role="button" className={`ch7-side ${sel !== null && sel !== k ? 'ready' : ''} ${tip?.[1] === k ? 'ch7-hint' : ''}`} onClick={() => dropTo(k)}>
+            <div key={k} data-k={k} role="button" className={`ch7-side ${sel !== null && sel !== k ? 'ready' : ''} ${tip?.[1] === k ? 'ch7-hint' : ''}`} onClick={() => dropTo(k)}>
               <small>岔道 {k + 1}<br />（死巷）</small>
               <span className="ch7-side-end">▮</span>
               {s.map((c, i) => (

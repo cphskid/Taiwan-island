@@ -3,7 +3,7 @@ import { BOATS, depthAt, rcell, rch, riverSolve, riverStart, sail, type Boat, ty
 import { BOAT_IMG, BOAT_NAME, PORT_DONE, PORT_INTRO, PORT_SAY, RIVERS, art6, type RiverStage } from '../../data/ch6';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Beacon, Goal } from '../Guide';
+import { Beacon, Goal, Hand } from '../Guide';
 import { NewCards6, type Step6Props } from '../Ch6';
 import { Jump6 } from './Story6';
 import { jingle, sfx } from '../../audio';
@@ -44,7 +44,8 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
   const [going, setGoing] = useState(false); // 船正在開：這時候不能改路線、潮水、船
   const [fails, setFails] = useState(0);
   const [say, setSay] = useState<Line | null>(null);
-  const sol = fails >= 2 ? riverSolve(lv) : null;
+  const plan = useMemo(() => riverSolve(lv), [lv]);
+  const sol = fails >= 2 ? plan : null;
   const H = lv.map.length, W = lv.map[0].length;
   const last = path[path.length - 1];
   const dest = (() => { for (let y = 0; y < H; y++) { const x = lv.map[y].indexOf('B'); if (x >= 0) return { x, y }; } return null; })();
@@ -108,7 +109,13 @@ function River({ stage, onDone, oops }: { stage: number; onDone: () => void; oop
   const boatLeft = !!(shown && prevAt && shown.x < prevAt.x);
   return (
     <div className="ch6-port-wrap">
-      <Goal floating text={reached ? '路線接到了！按「開船！」' : `第 ${stage + 1} / ${RIVERS.length} 關：把路線一格一格接到${st.to}。${st.goal}。從出發的碼頭開始點，發亮的格子是下一步可以走的。`} />
+      <Goal floating id={`port${stage}`} text={reached ? '路線接到了！按「開船！」' : `點發亮的格子，把路線接到${st.to}。第 ${stage + 1} / ${RIVERS.length} 關：${st.goal}。從出發的碼頭開始點，發亮的格子是下一步可以走的。`} />
+      <Hand at={going || !plan ? null : reached ? '.ch6-port-board .btn.green' : (() => {
+        // 照示範路線：路線還跟得上，就指下一格
+        const ok = path.every((q, i) => plan.path[i] && same(q, plan.path[i]));
+        const nx = ok ? plan.path[path.length] : null;
+        return nx ? `.rv-hit button[data-cell="${nx.x},${nx.y}"]` : null;
+      })()} first={stage === 0 && !fails && path.length < 3} />
       <div className="ch6-port-board panel">
         <div className="ch6-port-bar">
           <div className="ch6-seg">
@@ -248,7 +255,7 @@ function RiverMap({ lv, st, tide, path, sol, stuck, nextOk, tap, dest, going, bo
       })}
       {wet.filter((c) => dock(rch(lv, c))).map((c) => <b key={`t${c.x},${c.y}`} className="rv-tag" style={pct(c)}>{tagOf(rch(lv, c))}</b>)}
       <div className="rv-hit" style={{ gridTemplateColumns: `repeat(${W}, 1fr)`, gridTemplateRows: `repeat(${H}, 1fr)` }}>
-        {cells.map((c) => <button key={`${c.x},${c.y}`} onClick={() => tap(c)} aria-label={CELL_NAME[rch(lv, c)] || (water(c) ? tagOf(rch(lv, c)) : '陸地')} />)}
+        {cells.map((c) => <button key={`${c.x},${c.y}`} data-cell={`${c.x},${c.y}`} onClick={() => tap(c)} aria-label={CELL_NAME[rch(lv, c)] || (water(c) ? tagOf(rch(lv, c)) : '陸地')} />)}
       </div>
       {dest && <Beacon style={{ ...pct(dest), visibility: going ? 'hidden' : undefined }} label={`${st.to}：船開到這裡`} spot />}
       {boat && <img className={`ch6-boat ${boat.id} ${boat.left ? 'left' : ''}`} src={BOAT_IMG[boat.id]} alt="" style={pct(boat.at)} />}

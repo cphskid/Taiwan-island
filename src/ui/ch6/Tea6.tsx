@@ -3,7 +3,7 @@ import { teaGood, teaRun, type TeaRun } from '../../core/railway';
 import { TEA, TEA_DONE, TEA_EASY_INTRO, TEA_EASY_SAY, TEA_INTRO, TEA_RULE, TEA_SAY, TEA_STEPS, art6 } from '../../data/ch6';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { ChallengeOffer, ChallengeTag } from '../Challenge';
 import { challengeDone } from '../Medal';
 import { NewCards6, type Step6Props } from '../Ch6';
@@ -69,7 +69,8 @@ function Journey({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const step = (id: string) => TEA_STEPS.find((t) => t.id === id)!;
   return (
     <div className="ch6-tea-wrap">
-      <Goal floating text={demo ? '先看阿春放第一站。' : '點卡片，照順序排出一片茶葉從茶園到外國的旅程。'} />
+      <Goal floating text={demo ? '先看阿春放第一站。' : '點下一站的卡片。照順序排出一片茶葉從茶園到外國的旅程。'} />
+      <Hand at={demo || !want ? null : `.tea-card[data-id="${want.id}"]`} first={placed.length === 1 && !miss} />
       <div className="panel tea-journey">
         <div className="tea-road">
           {TEA_STEPS.map((t, i) => {
@@ -86,7 +87,7 @@ function Journey({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           {SHUFFLE.filter((id) => !placed.includes(id)).map((id) => {
             const t = step(id);
             return (
-              <button key={id} className={`tea-card ${bad === id ? 'bad' : ''} ${miss >= 2 && id === want?.id ? 'hint' : ''}`} disabled={demo || done} onClick={() => tap(id)}>
+              <button key={id} data-id={id} className={`tea-card ${bad === id ? 'bad' : ''} ${miss >= 2 && id === want?.id ? 'hint' : ''}`} disabled={demo || done} onClick={() => tap(id)}>
                 <img src={art6(t.img)} alt="" />
                 <b>{t.name}</b>
                 <small>{t.text}</small>

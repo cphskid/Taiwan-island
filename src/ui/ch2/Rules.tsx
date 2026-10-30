@@ -3,7 +3,7 @@ import { simulate, type RuleId, type SimResult } from '../../core/mountain';
 import { DEER, ROT, RULES, RULES_DONE, RULES_HOOK, RULES_INTRO, RULES_SAY, art2 } from '../../data/ch2';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards, type Step2Props } from '../Ch2';
 import { jingle, sfx } from '../../audio';
 import { Decide2, Passage } from './Story2';
@@ -58,13 +58,13 @@ export function Rules({ p, set, next, oops }: Step2Props) {
       {phase === 'intro' && <Talk lines={RULES_INTRO} onDone={() => setPhase('pick')} />}
       {phase === 'pick' && (
         <div className="rules-wrap">
+          <Hand at={busy || sim?.ok ? null : left <= 0 && !sim ? '.rules .btn.green' : !on.length ? '.rule-list .rule' : null} first={!on.length && !fails && !sim} />
           <Goal floating text={goal} />
           <div className="rules panel">
             <div className="rule-list">
               {RULES.map((r, k) => (
                 <button key={r.id} className={`rule ${on.includes(r.id) ? 'on' : ''} ${fails >= 2 && r.good ? 'hint' : ''}`} onClick={() => toggle(r.id)}>
                   <i>{on.includes(r.id) ? '✔' : ''}</i>{r.text}
-                  {!on.length && !sim && !fails && k === 0 && <em className="tap-me" aria-hidden>👆</em>}
                 </button>
               ))}
             </div>

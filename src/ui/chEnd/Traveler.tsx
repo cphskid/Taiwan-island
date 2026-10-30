@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { glanceChapter } from '../../core/saveEnd';
 import { FRIENDS_END, NOTES_ALL, REVEAL_BEFORE, TOWER_TURN, TRAVELER_MEET, artE, endLines, revealLines } from '../../data/chEnd';
 import { Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import type { StepEndProps } from '../ChEnd';
 import { DecideEnd, FriendFace } from './StoryEnd';
 import { jingle, sfx } from '../../audio';
@@ -60,7 +60,8 @@ export function Traveler({ p, set, next, name }: StepEndProps) {
       {phase === 'reveal' && <Talk lines={revealLines(name)} onDone={() => setPhase('key')} />}
       {phase === 'key' && (
         <>
-          <Goal floating text="把時光鐘塔鑰匙插進鐘塔的門" />
+          <Hand at=".end-tower-door" first />
+          <Goal floating text="點鐘塔的門，插進時光鐘塔鑰匙。" />
           <button className="end-tower-door" onClick={() => { sfx('SE-126'); jingle('MU-17'); setPhase('turn'); setTimeout(() => setPhase('turnTalk'), 2200); }} aria-label="鐘塔的門">
             <img src={artE('g-09-key')} alt="" />
             <span>點一下，插進去！</span>

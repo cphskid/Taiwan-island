@@ -8,7 +8,7 @@ import type { Mark } from '../../render/board';
 import { useBoard } from '../useBoard';
 import { Say, Talk } from '../Talk';
 import { Legend } from './Legend';
-import { BoardBeacon, Goal, towards } from '../Guide';
+import { BoardBeacon, Goal, Hand, towards } from '../Guide';
 import type { StepProps } from '../Chapter';
 import { jingle, sfx } from '../../audio';
 
@@ -268,7 +268,7 @@ export function FlowLevel({ p, set, level, levels, helper, intro: introLines, on
           <span key={lv.id} className={`lv ${i === idx ? 'on' : i < idx ? 'past' : ''}`}>{lv.id}</span>
         ))}
         <span className="hint plain"><b>{level.title}</b></span>
-        <Goal floating text={goal ?? `把溪水導到分水閘（要 ${level.need} 份水）`} />
+        <Goal floating text={pieces.length || goal ? goal ?? `把溪水導到分水閘（要 ${level.need} 份水）。` : `把竹蛇籠拖到溪水裡。把溪水導到分水閘（要 ${level.need} 份水）。`} />
       </div>
 
       {spots.gate && <BoardBeacon board={board} cell={spots.gate} label="分水閘：水送到這裡" spot={!intro && ready > 0} />}
@@ -292,6 +292,7 @@ export function FlowLevel({ p, set, level, levels, helper, intro: introLines, on
         </button>
       </div>
 
+      <Hand at={!pieces.length && !running && !intro && remaining > 0 ? '.tray .item' : null} first={!fails} />
       <div className="tray">
         <div
           className={`item ${remaining > 0 && !running ? '' : 'empty'}`}

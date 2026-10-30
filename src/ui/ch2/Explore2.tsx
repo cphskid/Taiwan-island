@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { EXPLORE2_INTRO, SPOTS, art2 } from '../../data/ch2';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards, type Step2Props } from '../Ch2';
 import { jingle, sfx } from '../../audio';
 
@@ -30,13 +30,14 @@ export function Explore2({ p, set, next }: Step2Props) {
       <div className={`art-frame look-frame ${glasses ? 'glasses' : ''}`}>
         <img className="art" src={art2('s-10')} alt="" />
         {SPOTS.map((s) => (
-          <button key={s.id} className={`look-spot ${found.includes(s.id) ? 'got' : ''} ${glasses && s.id === 'cliff' ? 'steep' : ''}`}
+          <button key={s.id} data-id={s.id} className={`look-spot ${found.includes(s.id) ? 'got' : ''} ${glasses && s.id === 'cliff' ? 'steep' : ''}`}
             style={{ left: `${s.x * 100}%`, top: `${s.y * 100}%`, width: `${s.r * 200}%` }} onClick={() => tap(s.id)} aria-label={s.name}>
             {found.includes(s.id) && <span>{s.name}</span>}
           </button>
         ))}
       </div>
-      <Goal floating text={found.length < SPOTS.length ? `找出：${SPOTS.filter((s) => !found.includes(s.id)).map((s) => s.name).join('、')}` : '全部找到了！'} />
+      <Goal floating text={found.length < SPOTS.length ? `點圖上的地方找一找（${found.length} / ${SPOTS.length}）。還要找：${SPOTS.filter((s) => !found.includes(s.id)).map((s) => s.name).join('、')}。` : '全部找到了！'} />
+      {phase === 'look' && <Hand at={found.length < SPOTS.length ? `.look-spot[data-id="${SPOTS.find((s) => !found.includes(s.id))!.id}"]` : null} first={!found.length} />}
       {phase === 'look' && (
         <button className={`btn ${glasses ? 'green' : 'orange'} corner-btn`} onClick={() => { sfx('SE-03'); setGlasses(!glasses); }}>👓 {glasses ? '拿下' : '戴上'}地形眼鏡</button>
       )}

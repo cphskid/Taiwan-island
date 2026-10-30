@@ -3,7 +3,7 @@ import { cropUse, pondSolutions, runPond, type Crop, type PondRun } from '../../
 import { POND, POND_INTRO, POND_SAY, art4 } from '../../data/ch4';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards, type Step4Props } from '../Ch4';
 import { Decide4 } from './Story4';
 import { jingle, sfx } from '../../audio';
@@ -69,7 +69,8 @@ export function Pond({ p, set, next, oops }: Step4Props) {
     <div className="scene ch4-pond">
       <img className="scene-bg" src={art4('s-16')} alt="" />
       {phase === 'intro' && <Talk lines={POND_INTRO} onDone={() => setPhase('plan')} />}
-      {phase === 'plan' && <Goal floating text={`挖埤、種田，讓一整年都有水，收到 ${POND.need} 份糧`} />}
+      {phase === 'plan' && <Goal floating id="pond" text={food === 0 ? `點田選要種什麼，再按「放水，試一年」。要收到 ${POND.need} 份糧，一整年都要有水；水埤可以按＋多挖。` : `按「放水，試一年」看看。要收到 ${POND.need} 份糧，一整年都要有水；水埤可以按＋多挖。`} />}
+      {phase === 'plan' && <Hand at={food === 0 ? '.ch4-field' : '.scene .btn.green:not(:disabled)'} first={!fails && !run} />}
       {phase !== 'intro' && (
         <div className="ch4-pond-wrap">
           <div className="ch4-pond-board panel">

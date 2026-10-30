@@ -3,7 +3,7 @@ import { WATER, gateCheck, rotaSolutions, type Crop } from '../../core/jianan';
 import { CROP_IMG, CROP_NAME, GATE_INTRO, GATE_SAY, HOME_ZONE, OPEN_DAY, ROTA, art7 } from '../../data/ch7';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards7, type Step7Props } from '../Ch7';
 import { jingle, sfx } from '../../audio';
 
@@ -34,6 +34,10 @@ function Gates({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const total = open.reduce((a, b) => a + b, 0);
   const need = YEAR1.map((c, z) => ROTA.areas[z] * WATER[c]);
 
+  // 手指：指第一個還沒調對的水門，都對了指開閘
+  const off = open.findIndex((v, k) => v !== need[k]);
+  const handAt = won ? null : off < 0 ? '.ch7-gate-foot .btn.green' : `.ch7-gate[data-k="${off}"] .stepper button:${open[off] < need[off] ? 'last' : 'first'}-child`;
+
   const turn = (z: number, d: number) => {
     if (won) return;
     const v = Math.max(0, Math.min(MAX, open[z] + d));
@@ -62,7 +66,8 @@ function Gates({ oops, onDone }: { oops: () => void; onDone: () => void }) {
 
   return (
     <div className="ch7-gate-wrap">
-      <Goal floating text={`轉水門：每一區放的水要剛剛好（田的塊數×作物要的水），加起來 ${ROTA.supply[0]} 份`} />
+      <Hand at={handAt} first={!fails && total === 0} />
+      <Goal floating id="gate" text={`${off < 0 ? '調好了！按「開閘放水」。' : '按＋把水門打開。'}每一區要剛剛好：田的塊數×作物要的水，加起來 ${ROTA.supply[0]} 份。`} />
       <div className="ch7-gate-board panel">
         <div className="ch7-supply">
           <img src={art7('g-08-gate')} alt="" />
@@ -74,7 +79,7 @@ function Gates({ oops, onDone }: { oops: () => void; onDone: () => void }) {
             const c = YEAR1[k];
             const st = res?.dry.includes(k) ? 'dry' : res?.flood.includes(k) ? 'flood' : won ? 'good' : '';
             return (
-              <div key={z} className={`ch7-gate ${st}`}>
+              <div key={z} data-k={k} className={`ch7-gate ${st}`}>
                 <b>{z}{k === HOME_ZONE && <em>阿雄家</em>}</b>
                 <div className="ch7-gate-crop"><img src={CROP_IMG[c]} alt="" /><span>{CROP_NAME[c]}<small>每塊 {WATER[c]} 份</small></span></div>
                 <span className="ch7-plots big">{Array.from({ length: ROTA.areas[k] }, (_, i) => <i key={i} className={st === 'good' || st === 'flood' ? 'wet' : ''} />)}</span>

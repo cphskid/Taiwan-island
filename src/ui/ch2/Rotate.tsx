@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { farmYear, rotSolve } from '../../core/mountain';
 import { ROT, ROT_INTRO, ROT_SAY, art2 } from '../../data/ch2';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards, type Step2Props } from '../Ch2';
 import { jingle, sfx } from '../../audio';
 import { Decide2, Passage } from './Story2';
@@ -40,6 +40,10 @@ function Fields({ onDone, oops }: { onDone: () => void; oops: () => void }) {
   const plan = fails >= 2 || demo ? rotSolve({ ...ROT, start: fert, years: ROT.years - year }) : null;
   const sum = pick.reduce((a, i) => a + fert[i], 0);
   const left = ROT.plotsPerYear - pick.length;
+  // 手指：照解法指今年還沒選的田，選滿了指「種下去」
+  const sol0 = useMemo(() => rotSolve({ ...ROT, start: fert, years: ROT.years - year })?.[0] ?? null, [fert, year]);
+  const nextPlot = sol0?.find((i) => !pick.includes(i));
+  const handAt = reaping ? null : left <= 0 ? '.rot-board .btn.green' : nextPlot !== undefined && pick.every((i) => sol0?.includes(i)) ? `.plot[data-i="${nextPlot}"]` : null;
   // 目標條跟著進度變（變了會自己再打開）：還沒選 → 選了幾塊 → 選滿了按「種下去」
   const goal = reaping ? `第 ${year + 1} / ${ROT.years} 年：小米長大中…`
     : !pick.length ? `第 ${year + 1} / ${ROT.years} 年：點 ${ROT.plotsPerYear} 塊田來種小米。收成要有 ${ROT.need} 份。`
@@ -82,19 +86,19 @@ function Fields({ onDone, oops }: { onDone: () => void; oops: () => void }) {
   };
   return (
     <div className="rot-wrap">
+      <Hand at={handAt} first={!year && !pick.length && !fails} />
       <Goal floating text={goal} />
       <div className="rot-board panel">
         <div className="plots">
           {fert.map((f, i) => {
             const on = pick.includes(i);
             return (
-              <button key={i} className={`plot ${on ? 'on' : ''} ${plan?.[0]?.includes(i) ? 'hint' : ''} ${ROT.steep.includes(i) ? 'steep' : ''}`} onClick={() => tap(i)}>
+              <button key={i} data-i={i} className={`plot ${on ? 'on' : ''} ${plan?.[0]?.includes(i) ? 'hint' : ''} ${ROT.steep.includes(i) ? 'steep' : ''}`} onClick={() => tap(i)}>
                 <img src={art2(`o-06-${on && reaping ? 'golden' : LOOK[f]}`)} alt="" />
                 <span className="fert">{Array.from({ length: ROT.max }, (_, k) => <i key={k} className={k < f ? 'on' : ''} />)}</span>
                 <b>{f}</b>
                 {ROT.steep.includes(i) && <small className="steep-tag">陡坡</small>}
                 {on && !reaping && <img className="seed" src={art2('g-04-seeds')} alt="" />}
-                {!year && !pick.length && !log.length && !fails && i === 0 && <i className="tap-me" aria-hidden>👆</i>}
               </button>
             );
           })}

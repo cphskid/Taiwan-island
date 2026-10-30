@@ -219,6 +219,7 @@ export function Hand({ at, first }: { at: string | null; first?: boolean }) {
   const idle = useIdle(!!at);
   const show = !!at && (!!first || idle);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const scrolled = useRef<string | null>(null); // 每個目標只幫忙捲一次
   useEffect(() => { if (idle && at) { goalHub.flash++; emit(); } }, [idle]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!show || !at) { setPos(null); return; }
@@ -226,6 +227,13 @@ export function Hand({ at, first }: { at: string | null; first?: boolean }) {
       const el = document.querySelector(at);
       const r = el?.getBoundingClientRect();
       if (!r || (!r.width && !r.height) || document.querySelector(`${BUSY}, .quest-fly`)) { setPos(null); return; }
+      // 要點的東西藏在會捲動的板子外面（手機常見）：捲過去
+      const box = el && scrolled.current !== at ? scrollBox(el) : null;
+      if (box) {
+        scrolled.current = at;
+        const b = box.getBoundingClientRect();
+        if (r.top < b.top || r.bottom > b.bottom || r.left < b.left || r.right > b.right) { el!.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); return; }
+      }
       setPos((o) => (o && Math.abs(o.x - r.left - r.width / 2) < 1 && Math.abs(o.y - r.top - r.height / 2) < 1 ? o : { x: r.left + r.width / 2, y: r.top + r.height / 2 }));
     };
     find();
@@ -237,6 +245,14 @@ export function Hand({ at, first }: { at: string | null; first?: boolean }) {
     <div className="hand-tip" style={{ left: pos.x, top: pos.y }} aria-hidden><b /><i>👆</i></div>,
     document.body,
   );
+}
+
+function scrollBox(el: Element): HTMLElement | null {
+  for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+    const o = getComputedStyle(p);
+    if ((/(auto|scroll)/.test(o.overflowY) && p.scrollHeight > p.clientHeight) || (/(auto|scroll)/.test(o.overflowX) && p.scrollWidth > p.clientWidth)) return p;
+  }
+  return null;
 }
 
 // 放進上方資訊列的目標（不是 floating 的那幾關）：一行短句，點一下展開說明

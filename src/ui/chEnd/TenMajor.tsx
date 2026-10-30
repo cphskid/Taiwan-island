@@ -3,7 +3,7 @@ import { allPlaced, wrongPlaces } from '../../core/today';
 import { KINDS, PINS, TEN_DONE, TEN_INTRO, TEN_SAY, TENS, artE, islE, type Kind, type Pin, type TenId } from '../../data/chEnd';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCardsEnd, type StepEndProps } from '../ChEnd';
 import { jingle, sfx } from '../../audio';
 
@@ -76,15 +76,19 @@ function Sort({ mode, oops, onDone }: { mode: 'kind' | 'map'; oops: () => void; 
       <img src={ten(id).img} alt="" /><small>{ten(id).name}</small>
     </button>
   );
-  const goal = left.length
-    ? mode === 'kind' ? `把十大建設分成三類：還有 ${left.length} 項` : `把十大建設放到地圖上：還有 ${left.length} 項。點一張卡，讀線索，再點地圖上的地方。`
-    : '都放好了，按「這樣對嗎？」';
+  const goal = !left.length ? '都放好了，按「這樣對嗎？」。'
+    : !pick ? `點一張卡拿起來。${mode === 'kind' ? '把十大建設分成三類' : '把十大建設放到地圖上'}，還有 ${left.length} 項。`
+    : mode === 'kind' ? `再點它屬於的那一類。還有 ${left.length} 項。` : `讀線索，再點地圖上的地方。還有 ${left.length} 項。`;
+  // 手指：沒拿卡時指第一張卡；拿了卡只在錯兩次後指答案
+  const handAt = passed ? null : !left.length ? '.end-tray .btn.green' : !pick ? `.ruler-item[data-id="${left[0]}"]`
+    : fails >= 2 ? `${mode === 'kind' ? '.end-bin' : '.end-pin'}[data-id="${answer[pick]}"]` : null;
   return (
     <div className={`end-sort ${mode}`}>
-      <Goal floating text={goal} />
+      <Hand at={handAt} first={!fails && !Object.keys(placed).length && !pick} />
+      <Goal floating id={`ten-${mode}`} text={goal} />
       <div className="end-tray panel">
         {left.map((id) => (
-          <button key={id} className={`ruler-item ${pick === id ? 'on' : ''}`} onClick={() => { sfx('SE-01'); setPick(pick === id ? null : id); }}>
+          <button key={id} data-id={id} className={`ruler-item ${pick === id ? 'on' : ''}`} onClick={() => { sfx('SE-01'); setPick(pick === id ? null : id); }}>
             <img src={ten(id).img} alt="" /><small>{ten(id).name}</small>
           </button>
         ))}
@@ -94,7 +98,7 @@ function Sort({ mode, oops, onDone }: { mode: 'kind' | 'map'; oops: () => void; 
       {mode === 'kind' ? (
         <div className="end-bins">
           {KINDS.map((k) => (
-            <div key={k.id} role="button" className={`end-bin panel ${pick ? 'ready' : ''} ${glow === k.id ? 'glow' : ''}`} onClick={() => put(k.id)}>
+            <div key={k.id} data-id={k.id} role="button" className={`end-bin panel ${pick ? 'ready' : ''} ${glow === k.id ? 'glow' : ''}`} onClick={() => put(k.id)}>
               <b>{k.icon} {k.name}</b>
               <span>{IDS.filter((id) => placed[id] === k.id).map(chip)}</span>
             </div>
@@ -104,7 +108,7 @@ function Sort({ mode, oops, onDone }: { mode: 'kind' | 'map'; oops: () => void; 
         <div className="end-map">
           <img src={islE('m01')} alt="臺灣地圖" />
           {PINS.map((pin) => (
-            <div key={pin.id} role="button" className={`end-pin ${pick ? 'ready' : ''} ${glow === pin.id ? 'glow' : ''} ${pin.id === 'west' ? 'line' : ''}`}
+            <div key={pin.id} data-id={pin.id} role="button" className={`end-pin ${pick ? 'ready' : ''} ${glow === pin.id ? 'glow' : ''} ${pin.id === 'west' ? 'line' : ''}`}
               style={{ left: `${pin.x * 100}%`, top: `${pin.y * 100}%` }} onClick={() => put(pin.id)}>
               <i>📍</i><em>{pin.name}</em>
               <span>{IDS.filter((id) => placed[id] === pin.id).map((id) => (

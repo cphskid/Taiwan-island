@@ -3,7 +3,7 @@ import { flow, heightOf, openings, rotate, type PipeLevel, type Tile } from '../
 import { CITIES, PIPE_DEMO, PIPE_SAY, PIPES, SHAO_STORY, SUN_INTRO, art7 } from '../../data/ch7';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { jitter } from '../Terrain';
 import { NewCards7, type Step7Props } from '../Ch7';
 import { Decide7, EraJump7 } from './Story7';
@@ -66,6 +66,11 @@ function Pipes({ oops, onDone }: { oops: () => void; onDone: () => void }) {
     return openings(t) === openings({ ...t, rot: PIPE_DEMO[i] });
   };
 
+  // 手指：指第一根還沒轉對的水管，都對了指開閘
+  const wrong = lv.tiles.findIndex((_, i) => !want(i));
+  const touched = lv.tiles.some((t, i) => t !== PIPES.tiles[i]);
+  const handAt = won ? null : wrong < 0 ? '.ch7-power .btn.green' : `.ch7-tile[data-i="${wrong}"]`;
+
   const spin = (i: number) => {
     if (won || lv.tiles[i].k !== 'pipe') return;
     sfx('SE-07');
@@ -90,7 +95,8 @@ function Pipes({ oops, onDone }: { oops: () => void; onDone: () => void }) {
 
   return (
     <div className="ch7-pipe-wrap">
-      <Goal floating text={`轉水管，把日月潭的水接到發電所，要點亮 ${CITIES.length} 座城市。水只會往一樣高或更低的地方流，不能漏水`} />
+      <Hand at={handAt} first={!fails && !touched} />
+      <Goal floating id="pipe" text={`${wrong < 0 ? '接好了！按「開閘放水」。' : '點水管轉一轉，接到發電所。'}要點亮 ${CITIES.length} 座城市。水只會往一樣高或更低的地方流，不能漏水。`} />
       <div className="ch7-pipe-board panel">
         {/* 一整片畫好的山坡（山頂松林→草坡→茶園→山下溪谷），水管擺在上面；高度用左邊的木牌標，不畫格子 */}
         <div className="ch7-slope-row">
@@ -105,7 +111,7 @@ function Pipes({ oops, onDone }: { oops: () => void; onDone: () => void }) {
             <img className="ch7-slope-bg" src={art7('s-sunmoon')} alt="" />
             <div className="ch7-pipes" style={{ gridTemplateColumns: `repeat(${lv.cols}, 1fr)`, gridTemplateRows: `repeat(${lv.rows}, 1fr)` }}>
               {lv.tiles.map((t, i) => (
-                <button key={i} className={`ch7-tile ${t.k} ${f.wet[i] ? 'wet' : ''} ${f.leaks.includes(i) && lit !== null ? 'leak' : ''} ${fails >= 2 && !want(i) ? 'ch7-hint' : ''}`}
+                <button key={i} data-i={i} className={`ch7-tile ${t.k} ${f.wet[i] ? 'wet' : ''} ${f.leaks.includes(i) && lit !== null ? 'leak' : ''} ${fails >= 2 && !want(i) ? 'ch7-hint' : ''}`}
                   onClick={() => spin(i)} disabled={t.k !== 'pipe'} aria-label={t.k === 'plant' ? t.name : t.k}>
                   <PipeArt tile={t} wet={f.wet[i]} i={i} />
                   {t.k === 'plant' && <small>{t.name}</small>}

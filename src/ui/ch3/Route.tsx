@@ -3,7 +3,7 @@ import { HEADINGS, SEASON_WAIT, cellAt, harborOf, highTide, routeSolve, routeSte
 import { ROUTES, ROUTE_OUTCOME, art3, type RouteInfo } from '../../data/ch3';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Beacon, Goal, compass } from '../Guide';
+import { Beacon, Goal, Hand, compass } from '../Guide';
 import { NewCards3, type Step3Props } from '../Ch3';
 import { EraJump3 } from './Story3';
 import { Terrain } from '../Terrain';
@@ -105,9 +105,16 @@ function RouteSail({ info, oops, onDone }: { info: RouteInfo; oops: () => void; 
   const high = highTide(ship.day);
   const allowed = HEADINGS[ship.monsoon];
   const startPos = startShip(lv).pos;
+  // 手指：還在起點時，指示範路線的第一步
+  const atStart = ship.day === startShip(lv).day && ship.pos.col === startPos.col && ship.pos.row === startPos.row;
+  const first = plan[0];
+  const handAt = busy || won || !atStart || !first ? null
+    : first === 'tide' ? '.ch3-waits .btn:nth-child(1)' : first === 'season' ? '.ch3-waits .btn:nth-child(2)'
+    : `.ch3-compass button[aria-label="往${first.go}"]`;
   return (
     <div className="ch3-route">
-      <Goal floating text={`把船開進${info.to}的港口（${lv.days} 天內）。從${info.from}出發，帆船只能順著季風走，黑水溝會把船往北推，水道要漲潮才進得去。`} />
+      <Hand at={handAt} first={!fails} />
+      <Goal floating text={`按方向鈕開船，開進${info.to}的港口（${lv.days} 天內）。從${info.from}出發，帆船只能順著季風走，黑水溝會把船往北推，水道要漲潮才進得去。`} />
       <div className="ch3-chart" style={{ aspectRatio: `${cols} / ${rows}` }}>
         <img className="ch3-sea-bg" src={art3('t-sea')} alt="" />
         <Terrain cols={cols} rows={rows} layers={[

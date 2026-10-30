@@ -3,7 +3,7 @@ import { clinicCheck, clinicFit, clinicSolve } from '../../core/railway';
 import { CLINIC, CLINIC_DONE, CLINIC_INTRO, CLINIC_SAY, NEED_NAME, art6 } from '../../data/ch6';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards6, type Step6Props } from '../Ch6';
 import { Decide6 } from './Story6';
 import { jingle, sfx } from '../../audio';
@@ -65,7 +65,8 @@ function Match({ onDone, oops }: { onDone: () => void; oops: () => void }) {
   };
   return (
     <div className="ch6-clinic-wrap">
-      <Goal floating text={left.length ? `幫 ${CLINIC.patients.length} 個病人找到對的人：還有 ${left.length} 個。病要會治、話要聽得懂，一個人最多看 ${CLINIC.cap} 個。` : '都分好了，按「這樣可以嗎？」'} />
+      <Hand at={ok ? null : !left.length ? '.scene .btn.green' : pick ? `.ch6-healer[data-id="${answer[pick]}"]` : '.ch6-patient'} first={!fails && (!Object.keys(plan).length || !left.length)} />
+      <Goal floating id="clinic" text={left.length ? `${pick ? '再點要看他的人' : '點一個病人，再點要看他的人'}（還有 ${left.length} 個）。病要會治、話要聽得懂，一個人最多看 ${CLINIC.cap} 個。` : '都分好了，按「這樣可以嗎？」'} />
       <div className="ch6-clinic-board panel">
         <div className="ch6-queue">
           <small>候診的病人（點一個，再點要看他的人）</small>
@@ -85,7 +86,7 @@ function Match({ onDone, oops }: { onDone: () => void; oops: () => void }) {
             const mine = CLINIC.patients.filter((x) => plan[x.id] === h.id);
             const glow = fails >= 2 && pick && answer[pick] === h.id;
             return (
-              <div key={h.id} role="button" className={`ch6-healer ${pick ? 'ready' : ''} ${full.includes(h.id) ? 'full' : ''} ${glow ? 'hint' : ''}`} onClick={() => put(h.id)}>
+              <div key={h.id} role="button" data-id={h.id} className={`ch6-healer ${pick ? 'ready' : ''} ${full.includes(h.id) ? 'full' : ''} ${glow ? 'hint' : ''}`} onClick={() => put(h.id)}>
                 <div className="ch6-healer-head">
                   {HEALER_IMG[h.id] ? <img src={art6(HEALER_IMG[h.id])} alt="" /> : <span className="ch6-healer-ico">🧑‍🎓</span>}
                   <div>
