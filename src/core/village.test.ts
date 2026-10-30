@@ -1,9 +1,10 @@
+import sql from '../../supabase/island_pioneer.sql?raw';
 import { describe, expect, it } from 'vitest';
 import {
   advance, assign, build, canDive, canFestival, canPlace, canSeine, capacity, combosOf, dive, festival, festivalCoins,
-  freshVillage, idle, loadVillage, monthIndex, prepare, rating, rollWeather, seine, stars, type Village,
+  freshVillage, idle, loadVillage, monthIndex, prepare, rating, rollWeather, seine, stars, yearGoal, type Village,
 } from './village';
-import { BUILDINGS, COVE, REEF, VH, VW, zoneAt, type Kind } from '../data/village';
+import { BUILDINGS, CATCHES, COVE, REEF, VH, VW, zoneAt, type Kind } from '../data/village';
 
 const have = new Set(Object.keys(import.meta.glob('/public/img/village/*.webp')));
 const existsSync = (f: string) => have.has(`/${f}`);
@@ -190,5 +191,57 @@ describe('新手教學', () => {
     expect(pickVillage(a, b).month).toBe(9);
     expect(pickVillage(b, a).month).toBe(9);
     expect(pickVillage(a, null)).toBe(a);
+  });
+});
+
+describe('月底結算、漁獲圖鑑、年度小挑戰', () => {
+  it('結算卡記下這個月收成和賺的錢，夏天碼頭抓到小卷進圖鑑', () => {
+    let s = rich();
+    s = build(s, 'pier', { x: 1060, y: 660 });
+    s = { ...s, month: 7, weather: 'sun' };
+    const { s: n, r } = advance(s, fixed(0.9));
+    expect(r.month).toBe(7);
+    expect(r.made.fish).toBeGreaterThan(0);
+    expect(r.dex).toContain('squid');
+    expect(n.dex).toContain('squid');
+    expect(n.ys.fish).toBe(r.made.fish);
+    // 同一種第二次不算新的
+    expect(advance({ ...n, month: 7, weather: 'sun' }, fixed(0.9)).r.dex).not.toContain('squid');
+  });
+  it('牽罟抓到丁香魚', () => {
+    const s: Village = { ...rich(), b: [...rich().b, { id: 99, kind: 'netshed', at: { x: 420, y: 760 }, worker: null }] };
+    expect(seine(s, 3).dex).toEqual(['anchovy']);
+  });
+  it('五顆星之後每年一個挑戰：牽罟三次就完成、只領一次', () => {
+    let s: Village = { ...rich(), done: true, year: 3, seineAt: -1 };
+    expect(yearGoal(s)?.id).toBe('seine');
+    s = { ...s, b: [...s.b, { id: 99, kind: 'netshed', at: { x: 420, y: 760 }, worker: null }] };
+    const c0 = s.coins;
+    for (let i = 0; i < 3; i++) s = seine({ ...s, seineAt: -1 }, 0);
+    expect(s.yrs).toEqual([3]);
+    expect(s.coins).toBeGreaterThan(c0 + 50);
+    s = seine({ ...s, seineAt: -1 }, 0);
+    expect(s.yrs).toEqual([3]);
+  });
+  it('平安的一年：12 月底沒有建築被吹壞才算，過年紀錄歸零', () => {
+    const s: Village = { ...rich(), done: true, year: 4, month: 12, weather: 'wind' };
+    expect(yearGoal(s)?.id).toBe('safe');
+    const { s: n, r } = advance(s, fixed(0.9));
+    expect(n.yrs).toContain(4);
+    expect(r.year).toBeTruthy();
+    expect(n.year).toBe(5);
+    expect(n.ys).toEqual({ fish: 0, broken: 0, drum: 0, seines: 0 });
+    const bad = advance({ ...s, ys: { fish: 0, broken: 1, drum: 0, seines: 0 } }, fixed(0.9)).s;
+    expect(bad.yrs).not.toContain(4);
+  });
+  it('漁獲代號跟資料庫一樣（勳章、時光幣兩處）', () => {
+    const list = `(${CATCHES.map((c) => `'${c.id}'`).join(', ')})`;
+    expect(sql.split(list).length - 1).toBe(2);
+  });
+  it('還沒五顆星沒有年度挑戰；舊存檔讀得到新欄位', () => {
+    expect(yearGoal(freshVillage())).toBeNull();
+    const old = loadVillage({ getItem: () => JSON.stringify({ v: 1, intro: true, tut: 9 }) });
+    expect(old.dex).toEqual([]);
+    expect(old.ys.fish).toBe(0);
   });
 });

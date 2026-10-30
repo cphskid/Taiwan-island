@@ -199,6 +199,28 @@ export const QUESTS: Quest[] = [
   { id: 'star5', text: '讓村子評價到 ⭐⭐⭐⭐⭐，漁村又熱鬧起來了！', reward: 100 },
 ];
 
+// 漁獲圖鑑（漁村四季）：哪個季節、哪一棟在工作才會捕到。內容待老師審（季節漁業的說法）
+export interface Catch { id: string; name: string; icon: string; hint: string; fact: string }
+export const CATCHES: Catch[] = [
+  { id: 'squid', name: '小卷（鎖管）', icon: '🦑', hint: '夏天（6～8 月）的漁港碼頭', fact: '夏天晚上，漁船點亮集魚燈，小卷會朝著燈光游過來。' },
+  { id: 'eel', name: '鰻苗', icon: '🪱', hint: '冬天（11～2 月）的漁港碼頭', fact: '冬天透明的鰻魚寶寶會游到河口，漁民在河口撈，又叫「白金」。' },
+  { id: 'milkfish', name: '虱目魚', icon: '🐟', hint: '魚塭（寒流月份不行）', fact: '虱目魚養在魚塭裡，最怕冷，寒流來之前要把水加深。' },
+  { id: 'agar', name: '石花菜', icon: '🌿', hint: '春夏（3～9 月）的海女小屋', fact: '退潮時海女在礁岩上採石花菜，煮成石花凍很消暑。' },
+  { id: 'urchin', name: '海膽', icon: '🟣', hint: '夏天（6～8 月）的海女小屋', fact: '夏天海女潛到礁岩下抓海膽，要小心刺。' },
+  { id: 'anchovy', name: '丁香魚', icon: '🐠', hint: '全村一起牽罟', fact: '牽罟拉上岸的小魚，是全村一起拉網的收穫。' },
+  { id: 'salt', name: '海鹽', icon: '🧂', hint: '晴天的鹽田', fact: '把海水引進鹽田，晴天曬乾就變成鹽；下雨就曬不出來。' },
+];
+
+// 五顆星之後：每一年一個小挑戰（照年份輪流）
+export interface YearGoal { id: string; text: string; reward: number }
+export const YEAR_GOALS: YearGoal[] = [
+  { id: 'safe', text: '平安的一年：今年颱風來都不讓建築被吹壞（記得先做防颱）', reward: 60 },
+  { id: 'fish', text: '豐收年：今年碼頭和魚塭捕到 150 條魚', reward: 60 },
+  { id: 'drum', text: '熱鬧廟會：今年三月自己打鼓，打中 10 下以上', reward: 60 },
+  { id: 'seine', text: '全村出動：今年牽罟 3 次', reward: 60 },
+];
+export const YEAR_FISH = 150, YEAR_DRUM = 10, YEAR_SEINE = 3;
+
 export const VILLAGE_LINES = {
   intro: [
     '這裡是東北角的一個小漁村。年輕人都去城市工作了，只剩阿海伯和春花姨，還有放暑假回來的小孫子。',

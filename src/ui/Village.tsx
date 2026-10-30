@@ -1,12 +1,12 @@
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPE, type WheelEvent as RWE } from 'react';
 import {
-  AREAS, BUILDINGS, BUILD_ORDER, COMBOS, GOODS, JOB_ART, MONTH_SEASON, PLAZA, SEASON_NAME, STAR_AT, TAGS, TUTORIAL,
+  AREAS, BUILDINGS, BUILD_ORDER, CATCHES, COMBOS, GOODS, JOB_ART, MONTH_SEASON, PLAZA, SEASON_NAME, STAR_AT, TAGS, TUTORIAL,
   VH, VW, VILLAGE_LINES, dist, vimg, type Good, type Kind,
 } from '../data/village';
 import {
   PREPARE, REPAIR, WEATHER, advance, assign, build, canDive, canFestival, canPlace, canSeine, dive, festival, hasDiver, capacity, checkQuests, combosOf, currentQuest,
   demolish, freshVillage, idle, loadVillage, move, prepare, rating, repair, saveVillage, seine, seineFish, stars, threat, unassign,
-  workerOf, type Bld, type MonthReport, type Village as V,
+  workerOf, yearGoal, yearGoalDone, type Bld, type MonthReport, type Village as V,
 } from '../core/village';
 import type { Pt } from '../core/world';
 import { pushCloud } from '../net/cloud';
@@ -52,6 +52,8 @@ export function Village({ onExit }: { onExit: () => void }) {
   const [toast, setToast] = useState<string[]>([]);
   const [pops, setPops] = useState<{ key: number; id: number; text: string }[]>([]);
   const [restart, setRestart] = useState(false);
+  const [card, setCard] = useState<MonthReport | null>(null); // 月底結算卡
+  const [dexOpen, setDexOpen] = useState(false);
   const live = useRef(s);
   live.current = s;
   // 進場：底圖、已經蓋好的建築、村民的圖先讀好才掀開
@@ -172,6 +174,7 @@ export function Village({ onExit }: { onExit: () => void }) {
   // 一進來剛好碰上颱風／寒流月，也要先跳警報
   useEffect(() => { const th = threat(s); if (th && !s.prepared && s.tut > TUTORIAL.length) setAlert({ kind: th }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const cardT = useRef(0);
   const flash = (msgs: string[]) => { setToast(msgs); setTimeout(() => setToast([]), 4000); };
   const report = (r: MonthReport) => {
     if (r.pops.length) {
@@ -183,7 +186,10 @@ export function Village({ onExit }: { onExit: () => void }) {
     const msgs = [...r.arrived.map((n) => `🏠 ${n}搬回村子了！`), ...(r.quest ? [`🎯 任務完成！${r.quest.split('。')[0]}`] : [])];
     if (msgs.length) flash(msgs);
     if (r.quest) sfx('SE-36');
-    if (r.news.length) setSay(r.news.join(''));
+    // 月底結算卡：5 秒自己收起來（點一下也收）
+    if (live.current.tut > TUTORIAL.length) { setCard(r); clearTimeout(cardT.current); cardT.current = window.setTimeout(() => setCard(null), 5500); }
+    else if (r.news.length) setSay(r.news.join(''));
+    if (r.dex.length) sfx('SE-36');
   };
 
   // 蓋、搬完馬上檢查任務（不用等月底）
@@ -307,6 +313,7 @@ export function Village({ onExit }: { onExit: () => void }) {
           <span>{'⭐'.repeat(st)}<em>{'☆'.repeat(5 - st)}</em></span>
           {nextAt !== null && <i className="v-month"><i style={{ width: `${Math.min(1, (rt - STAR_AT[st - 1]) / (nextAt - STAR_AT[st - 1])) * 100}%` }} /></i>}
         </div>
+        {s.tut > TUTORIAL.length && <button className="v-chip v-dex" onClick={() => { sfx('SE-03'); setDexOpen(true); }}>📖 漁獲 {s.dex.length}/{CATCHES.length}</button>}
         <div className="v-chip v-speed">
           {([0, 1, 2] as const).map((v) => <button key={v} className={speed === v ? 'on' : ''} aria-label={['暫停', '播放', '快轉'][v]} onClick={() => { sfx('SE-01'); setSpeed(v); if (tutEnd && endStep === 'speed' && v > 0) { setEndStep('wait'); setPick(null); } }}>{['⏸', '▶', '⏩'][v]}</button>)}
         </div>
@@ -321,7 +328,40 @@ export function Village({ onExit }: { onExit: () => void }) {
       </>}
       <Hand at={questHand} first={!!menu} />
       {!tut && !tutEnd && quest && intro < 0 && !placing && <Goal id={quest.id} text={quest.text} floating />}
-      {s.done && !quest && <div className="quest floating"><i>🎉</i><span>五顆星！漁村又熱鬧起來了</span></div>}
+      {s.done && !quest && intro < 0 && !placing && (() => {
+        const yg = yearGoal(s);
+        return yg && <Goal floating id={`year${s.year}-${yearGoalDone(s)}`} text={yearGoalDone(s) ? `今年的挑戰完成了！明年還有新挑戰。漁獲圖鑑 ${s.dex.length}/${CATCHES.length}。` : `第 ${s.year} 年挑戰・${yg.text}。完成送 💰${yg.reward}。`} />;
+      })()}
+      {card && (
+        <div className="v-report panel" onClick={() => setCard(null)}>
+          <b>📅 {card.month} 月結算</b>
+          <p>
+            {(Object.keys(card.made) as Good[]).map((gd) => <span key={gd}>{GOODS[gd].icon}+{card.made[gd]}</span>)}
+            {card.earned > 0 && <span>💰+{card.earned}</span>}
+            {!Object.keys(card.made).length && !card.earned && <span>這個月沒有收成</span>}
+          </p>
+          {card.dex.map((id) => { const c = CATCHES.find((x) => x.id === id)!; return <p key={id} className="new">🆕 圖鑑：{c.icon}{c.name}</p>; })}
+          {card.arrived.length > 0 && <p>🏠 {card.arrived.join('、')}搬回來了</p>}
+          {card.year && <p className="new">🏅 年度挑戰完成：{card.year}</p>}
+          {card.news[0] && <p className="news">{card.news[0]}</p>}
+          {card.tip && <p className="tip">💡 {card.tip}</p>}
+        </div>
+      )}
+      {dexOpen && (
+        <div className="talk-cover t-cover" onClick={() => setDexOpen(false)}>
+          <div className="v-alert panel v-dexbook" onClick={(e) => e.stopPropagation()}>
+            <h2>📖 漁獲圖鑑 {s.dex.length}/{CATCHES.length}</h2>
+            <div className="v-dexgrid">
+              {CATCHES.map((c) => { const got = s.dex.includes(c.id); return (
+                <div key={c.id} className={`v-dexitem ${got ? 'got' : ''}`}>
+                  <i>{got ? c.icon : '❔'}</i><b>{got ? c.name : '？？？'}</b><small>{got ? c.fact : `提示：${c.hint}`}</small>
+                </div>
+              ); })}
+            </div>
+            <button className="btn green" onClick={() => setDexOpen(false)}>關起來</button>
+          </div>
+        </div>
+      )}
 
       <div className="v-zoom">
         <button onClick={() => zoomAt(1.3)} aria-label="放大">＋</button>

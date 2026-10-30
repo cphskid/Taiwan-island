@@ -6,7 +6,7 @@ import type { Pt } from './world';
 import { keyFor } from './owner';
 import { onRoad } from '../data/villageRoads';
 import {
-  AREAS, BUILDINGS, COMBOS, COMBO_R, GOODS, NAMES, QUESTS, STAR_AT, areaAt, dist, isHouse, zoneAt,
+  AREAS, BUILDINGS, CATCHES, COMBOS, COMBO_R, GOODS, NAMES, QUESTS, STAR_AT, YEAR_DRUM, YEAR_FISH, YEAR_GOALS, YEAR_SEINE, areaAt, dist, isHouse, zoneAt,
   type Area, type Good, type Kind,
 } from '../data/village';
 
@@ -46,7 +46,12 @@ export interface Village {
   intro: boolean; // 看過開場說明
   tut: number; // 新手教學做到第幾棟（TUTORIAL.length 以上＝教完）
   done: boolean; // 五顆星
+  dex: string[]; // 漁獲圖鑑抓到哪些（CATCHES 的 id）
+  yrs: number[]; // 完成年度小挑戰的年份
+  ys: YearStat; // 今年的紀錄（過年歸零）
 }
+export interface YearStat { fish: number; broken: number; drum: number; seines: number }
+const freshYear = (): YearStat => ({ fish: 0, broken: 0, drum: 0, seines: 0 });
 
 export const freshVillage = (): Village => ({
   v: 1, year: 1, month: 4, weather: 'sun', prepared: false, coins: 160,
@@ -54,6 +59,7 @@ export const freshVillage = (): Village => ({
   b: [{ id: 1, kind: 'stilt', at: { x: 760, y: 440 }, worker: null }],
   people: [{ id: 2, name: '阿海伯' }, { id: 3, name: '春花姨' }, { id: 4, name: '小孫子', kid: true }],
   next: 5, quests: [], seineAt: -1, seines: 0, diveAt: -1, dives: 0, festAt: -1, typhoons: 0, festivals: 0, tyYear: 0, scared: 0, intro: false, tut: 0, done: false,
+  dex: [], yrs: [], ys: freshYear(),
 });
 
 export const monthIndex = (s: Village) => s.year * 12 + s.month;
@@ -155,7 +161,8 @@ export const prepare = (s: Village): Village => (s.coins < PREPARE || s.prepared
 export const canSeine = (s: Village) => s.b.some((b) => b.kind === 'netshed') && s.seineAt !== monthIndex(s) && s.weather !== 'typhoon';
 export const seineFish = (s: Village, good: number) => good * 3 + s.people.length;
 export const seine = (s: Village, good: number): Village => !canSeine(s) ? s
-  : { ...s, seineAt: monthIndex(s), seines: s.seines + 1, goods: { ...s.goods, fish: s.goods.fish + seineFish(s, good) } };
+  : yearCheck({ ...s, seineAt: monthIndex(s), seines: s.seines + 1, goods: { ...s.goods, fish: s.goods.fish + seineFish(s, good) },
+      dex: addDex(s.dex, ['anchovy']), ys: { ...s.ys, seines: s.ys.seines + 1 } });
 
 // ── 趕海（海女）：三到九月退潮時，跟海女下礁岩採石花菜；漲潮前要上岸 ──
 export const DIVE_MONTHS = [3, 4, 5, 6, 7, 8, 9];
@@ -177,7 +184,34 @@ export const FEST_BASE = 20, FEST_HIT = 5, FEST_AUTO = 20;
 export const canFestival = (s: Village) => s.month === 3 && s.b.some((b) => b.kind === 'temple' && !b.broken && b.worker !== null) && s.festAt !== monthIndex(s);
 export const festivalCoins = (hits: number) => FEST_BASE + FEST_HIT * hits;
 export const festival = (s: Village, hits: number): Village => !canFestival(s) ? s
-  : { ...s, festAt: monthIndex(s), festivals: s.festivals + 1, coins: s.coins + festivalCoins(hits) };
+  : yearCheck({ ...s, festAt: monthIndex(s), festivals: s.festivals + 1, coins: s.coins + festivalCoins(hits), ys: { ...s.ys, drum: Math.max(s.ys.drum, hits) } });
+
+// ── 漁獲圖鑑 ──
+const addDex = (dex: string[], ids: string[]) => (ids.every((i) => dex.includes(i)) ? dex : [...dex, ...ids.filter((i) => !dex.includes(i))]);
+// 這個月會捕到哪些（看季節、天氣、哪一棟在工作）
+export function catchesNow(s: Village, working: (k: Kind) => boolean): string[] {
+  const m = s.month, w = s.weather, out: string[] = [];
+  if (working('pier') && w !== 'typhoon') { if (m >= 6 && m <= 8) out.push('squid'); if (m >= 11 || m <= 2) out.push('eel'); }
+  if (working('pond') && w !== 'cold') out.push('milkfish');
+  if (working('divehut') && w !== 'typhoon') { if (m >= 3 && m <= 9) out.push('agar'); if (m >= 6 && m <= 8) out.push('urchin'); }
+  if (working('salt') && w === 'sun') out.push('salt');
+  return out;
+}
+export const dexDone = (s: Village) => CATCHES.every((c) => s.dex.includes(c.id));
+
+// ── 年度小挑戰（五顆星之後，每一年一個） ──
+export const yearGoal = (s: Village) => (s.done ? YEAR_GOALS[s.year % YEAR_GOALS.length] : null);
+export const yearGoalDone = (s: Village) => s.yrs.includes(s.year);
+// 做到了就領（平安的一年要等過完年才算）
+export function yearCheck(s: Village, r?: MonthReport, yearEnd = false): Village {
+  const g = yearGoal(s);
+  if (!g || yearGoalDone(s)) return s;
+  const ok = g.id === 'fish' ? s.ys.fish >= YEAR_FISH : g.id === 'drum' ? s.ys.drum >= YEAR_DRUM : g.id === 'seine' ? s.ys.seines >= YEAR_SEINE
+    : yearEnd && s.ys.broken === 0;
+  if (!ok) return s;
+  if (r) r.year = g.text.split('：')[0];
+  return { ...s, yrs: [...s.yrs, s.year], coins: s.coins + g.reward };
+}
 
 // ── 天氣 ──
 export function rollWeather(month: number, year: number, typhoonsThisYear: boolean, rnd: () => number): Weather {
@@ -191,16 +225,23 @@ export function rollWeather(month: number, year: number, typhoonsThisYear: boole
 
 // ── 過一個月 ──
 export interface Pop { id: number; text: string } // 建築頭上冒出來的數字
-export interface MonthReport { pops: Pop[]; news: string[]; arrived: string[]; quest?: string }
+export interface MonthReport {
+  pops: Pop[]; news: string[]; arrived: string[]; quest?: string;
+  month: number; made: Partial<Record<Good, number>>; earned: number; dex: string[]; year?: string; tip: string | null;
+}
 
 export function advance(s0: Village, rnd: () => number = Math.random): { s: Village; r: MonthReport } {
   const s: Village = { ...s0, goods: { ...s0.goods }, b: s0.b.map((b) => ({ ...b })), people: [...s0.people] };
-  const r: MonthReport = { pops: [], news: [], arrived: [] };
+  const r: MonthReport = { pops: [], news: [], arrived: [], month: s0.month, made: {}, earned: 0, dex: [], tip: null };
   const w = s.weather, st = stars(s0);
-  const add = (b: Bld, g: Good, n: number) => { n = Math.round(n); if (n > 0) { s.goods[g] += n; r.pops.push({ id: b.id, text: `+${n}${GOODS[g].icon}` }); } };
-  const earn = (b: Bld, n: number) => { n = Math.round(n); if (n > 0) { s.coins += n; r.pops.push({ id: b.id, text: `+${n}💰` }); } };
+  const add = (b: Bld, g: Good, n: number) => { n = Math.round(n); if (n > 0) { s.goods[g] += n; r.made[g] = (r.made[g] ?? 0) + n; r.pops.push({ id: b.id, text: `+${n}${GOODS[g].icon}` }); } };
+  const earn = (b: Bld, n: number) => { n = Math.round(n); if (n > 0) { s.coins += n; r.earned += n; r.pops.push({ id: b.id, text: `+${n}💰` }); } };
   const working = (k: Kind) => s.b.filter((b) => b.kind === k && !b.broken && (!BUILDINGS[k].job || b.worker !== null));
   const hasTrees = (b: Bld) => s.b.some((o) => o.kind === 'trees' && dist(o.at, b.at) <= COMBO_R);
+
+  // 這個月的漁獲（圖鑑）
+  r.dex = catchesNow(s0, (k) => working(k).length > 0).filter((i) => !s0.dex.includes(i));
+  if (r.dex.length) s.dex = addDex(s.dex, r.dex);
 
   // 生產
   for (const b of working('pier')) add(b, 'fish', 8 * mult(s0, b) * (w === 'typhoon' ? 0 : w === 'wind' ? 0.4 : w === 'rain' ? 0.8 : 1));
@@ -245,6 +286,7 @@ export function advance(s0: Village, rnd: () => number = Math.random): { s: Vill
     } else {
       const hit = s.b.filter((b) => !['trees', 'shelter', 'temple'].includes(b.kind) && !b.broken && !hasTrees(b) && rnd() < 0.35);
       for (const b of hit) { b.broken = true; r.pops.push({ id: b.id, text: '💥' }); }
+      s.ys = { ...s.ys, broken: s.ys.broken + hit.length };
       r.news.push(hit.length ? `颱風吹壞了 ${hit.length} 棟建築（點它修理）。下次颱風警報一出來就先做防颱！旁邊種防風林也比較不會壞。` : '颱風走了，還好沒有東西壞掉。下次記得先做防颱準備。');
     }
     if (!s.b.some((b) => b.kind === 'shelter')) { s.scared = 1; r.news.push('村子沒有避難所，颱風夜大家都好害怕。'); }
@@ -257,13 +299,33 @@ export function advance(s0: Village, rnd: () => number = Math.random): { s: Vill
     s.people.push({ id: s.next, name }); s.next += 1; r.arrived.push(name);
   }
 
-  // 下一個月
-  s.month += 1;
-  if (s.month > 12) { s.month = 1; s.year += 1; }
-  s.weather = rollWeather(s.month, s.year, s.tyYear === s.year, rnd);
-  s.prepared = false;
+  // 今年捕了幾條魚（年度小挑戰）
+  s.ys = { ...s.ys, fish: s.ys.fish + (r.made.fish ?? 0) };
+  let n = yearCheck(s, r, s.month === 12);
 
-  return { s: checkQuests(s, r), r };
+  // 下一個月（過年：今年的紀錄歸零）
+  n.month += 1;
+  if (n.month > 12) { n = { ...n, month: 1, year: n.year + 1, ys: freshYear() }; }
+  n.weather = rollWeather(n.month, n.year, n.tyYear === n.year, rnd);
+  n.prepared = false;
+  n = checkQuests(n, r);
+  r.tip = tipFor(n);
+  return { s: n, r };
+}
+
+// 月底結算卡最後一句：下個月要注意什麼
+export function tipFor(s: Village): string | null {
+  const has = (k: Kind) => s.b.some((b) => b.kind === k);
+  if (s.weather === 'typhoon') return '🌀 颱風要來了！先做防颱準備。';
+  if (s.weather === 'cold' && has('pond')) return '🥶 寒流要來了，魚塭要先防寒。';
+  if (s.month === 7 && !has('shelter')) return '7～9 月是颱風季，記得蓋避難所和防風林。';
+  if (s.month === 3 && has('temple')) return '三月媽祖生日，記得去打鼓辦廟會！';
+  if (s.month === 6 && has('pier')) return '夏天到了，碼頭可能捕到小卷。';
+  if (s.month === 11 && has('pier')) return '東北季風來了，浪大魚少；河口開始有鰻苗。';
+  if (s.month === 3 && has('divehut')) return '三月起，可以跟海女去趕海。';
+  if (s.people.length >= capacity(s)) return '房子住滿了，多蓋房子才會有人搬回來。';
+  if (idle(s).length) return `有 ${idle(s).length} 個人閒著，點建築派他去工作。`;
+  return null;
 }
 
 export function questDone(s: Village, id: string): boolean {
@@ -301,7 +363,7 @@ export function loadVillage(store: Pick<Storage, 'getItem'> | undefined = global
     if (!raw) return freshVillage();
     const p = JSON.parse(raw) as Partial<Village>;
     // 教學是後來加的：之前玩過的人不用再教一次
-    return p.v === 1 ? { ...freshVillage(), ...(p.intro && p.tut === undefined ? { tut: 99 } : {}), ...p } : freshVillage();
+    return p.v === 1 ? { ...freshVillage(), ...(p.intro && p.tut === undefined ? { tut: 99 } : {}), ...p, ys: { ...freshYear(), ...p.ys } } : freshVillage();
   } catch {
     return freshVillage();
   }
@@ -309,7 +371,7 @@ export function loadVillage(store: Pick<Storage, 'getItem'> | undefined = global
 // 換平板登入：本機和雲端兩份，留玩得比較久的那份
 export function pickVillage(local: Village, cloud: Partial<Village> | null | undefined): Village {
   if (!cloud || cloud.v !== 1) return local;
-  const c = { ...freshVillage(), ...cloud } as Village;
+  const c = { ...freshVillage(), ...cloud, ys: { ...freshYear(), ...cloud.ys } } as Village;
   const score = (x: Village) => monthIndex(x) * 100 + x.b.length;
   return score(c) > score(local) ? c : local;
 }
