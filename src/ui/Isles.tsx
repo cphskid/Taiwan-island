@@ -5,6 +5,7 @@ import { pushCloud } from '../net/cloud';
 import { sfx } from '../audio';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
+import { Goal, Hand } from './Guide';
 
 // 現在篇「離島巡航」：點地圖上的小島 → 先答它在臺灣的哪個方向、哪片海 → 搭船（金門、馬祖坐飛機或過夜船）過去
 // → 島上一個小事件（賞鯨、浮潛、堆菜宅、畫拼板舟、海底溫泉、量距離）→ 蓋郵戳。
@@ -63,6 +64,10 @@ export function Isles({ onExit }: { onExit: () => void }) {
         </div>
       </div>
 
+      {!cur && !islesDone(s) && <>
+        <Hand at={`.isle-pin:not(.done)`} first={!s.stamps.length} />
+        <Goal floating id="isles" text={`點一座小島，出發去看看。集滿 ${ISLES.length} 個郵戳。`} />
+      </>}
       <header className="v-hud">
         <button className="v-chip v-back" onClick={() => { sfx('SE-02'); if (cur) setCur(null); else onExit(); }}>{cur ? '← 回地圖' : '← 大地圖'}</button>
         <span className="v-chip">⛴️ 離島巡航</span>

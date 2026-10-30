@@ -226,7 +226,9 @@ export function Hand({ at, first }: { at: string | null; first?: boolean }) {
     const find = () => {
       const el = document.querySelector(at);
       const r = el?.getBoundingClientRect();
-      if (!r || (!r.width && !r.height) || document.querySelector(`${BUSY}, .quest-fly`)) { setPos(null); return; }
+      // 對話、卡片蓋著就先不出來（要點的東西就在那張卡片裡的除外）
+      const covered = !!document.querySelector('.quest-fly') || [...document.querySelectorAll(BUSY)].some((c) => !c.contains(el!));
+      if (!r || (!r.width && !r.height) || covered) { setPos(null); return; }
       // 要點的東西藏在會捲動的板子外面（手機常見）：捲過去
       const box = el && scrolled.current !== at ? scrollBox(el) : null;
       if (box) {

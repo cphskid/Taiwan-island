@@ -8,6 +8,7 @@ import { pushCloud } from '../net/cloud';
 import { sfx } from '../audio';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
+import { Goal, Hand } from './Guide';
 import { PlaceLoading, useImagesReady } from './Ready';
 
 // 現在篇「天空港」：塔台小調度員。按住飛機或貨櫃輪，畫一條線拉到目的地；飛機能飛過陸地，船只能走海上。
@@ -202,6 +203,17 @@ export function Sky({ onExit }: { onExit: () => void }) {
         </div>
       </div>
 
+      {!g && !intro && <Hand at=".t-case:not(:disabled):not(.done)" first={!Object.keys(s.best).length} />}
+      {g && !g.over && (() => {
+        // 目標：還有在等的飛機／船 → 叫你畫線；都在路上了 → 看著別撞
+        const wait = g.vs.find((v) => !v.done && !v.path);
+        const what = (v: { kind: string }) => (v.kind === 'ship' ? '貨輪' : '飛機');
+        const text = drawing ? `拉到${portById(drawing.to).name}再放開。` : wait ? `按住${what(wait)}，畫線拉到${portById(wait.to).name}。` : '看著它們，別撞在一起。';
+        return <>
+          <Hand at={wait && !drawing ? '.veh.wait' : null} first={g.delivered === 0} />
+          <Goal floating id={`sky${g.lv.id}`} text={`${text}送達 ${g.lv.trips.length} 趟就過關。`} />
+        </>;
+      })()}
       <header className="v-hud">
         <button className="v-chip v-back" onClick={() => { sfx('SE-02'); if (g) setG(null); else onExit(); }}>{g ? '← 換一關' : '← 大地圖'}</button>
         <span className="v-chip">✈️ 天空港</span>
