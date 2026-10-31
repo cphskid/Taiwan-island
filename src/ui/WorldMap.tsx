@@ -9,7 +9,6 @@ import { ambience, jingle, music, preload, sfx, type SeCode } from '../audio';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
 import { NOW_LINES, NOW_ON, NOW_PLACES, NOW_URL, unlockNow, type Era, type NowPlace } from '../data/now';
-import { PARK_MAP } from '../net/park';
 import { warm } from './warm';
 import { mark } from '../perf';
 
@@ -70,8 +69,8 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
   const [leverNew, setLeverNew] = useState(false); // 撥桿剛出現：亮一陣子提醒
   const allDone = allCleared(world, ALL);
   if (allDone) unlockNow(); // 剛打完終章回來：地圖要一起準備好「現在」
-  // 下面的導覽列（有撥桿）：?now=1 一律有；沒加的人要全破、看完整篇通關才出現
-  const navOn = NOW_URL || (allDone && world.finale);
+  // 下面的導覽列（有撥桿）一直都在；全破後的整篇通關縮時照樣播一次當獎勵
+  const navOn = true;
   const live = useRef({ world, busy });
   live.current = { world, busy };
 
@@ -387,9 +386,6 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
           <button className="nav-btn" onClick={() => { sfx('SE-03'); setBook(true); }}>
             <span className="nav-icon">📖</span><span>圖鑑 {CARD_ORDER.filter((id) => world.cards.includes(id)).length}</span>
           </button>
-          <a className="nav-btn" href={PARK_MAP ?? undefined}>
-            <img src={`${BASE}img/park.webp`} alt="" /><span>回樂園</span>
-          </a>
         </nav>
       )}
       {eraWarp > 0 && <div key={eraWarp} className={`era-warp to-${era}`} />}

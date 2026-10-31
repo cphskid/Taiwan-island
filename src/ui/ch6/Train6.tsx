@@ -3,7 +3,7 @@ import { timeline, trainCheck, trainSolve, type Meet, type TrainLevel } from '..
 import { TRAIN_DONE, TRAIN_INTRO, TRAIN_NAME, TRAIN_SAY, TRAINS, art6 } from '../../data/ch6';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards6, type Step6Props } from '../Ch6';
 import { Decide6, Jump6 } from './Story6';
 import { jingle, sfx } from '../../audio';
@@ -99,7 +99,13 @@ function Timetable({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops
   const COL = ['#2f6fd1', '#c0702a'];
   return (
     <div className="ch6-train-wrap">
-      <Goal floating text={`排好兩列車在各站停多久，不撞車、也不遲到。一格是 10 分鐘；客車最晚第 ${lv.deadline[0]} 格、貨車最晚第 ${lv.deadline[1]} 格要到。`} />
+      <Hand at={running || res?.ok ? null : (() => {
+        // 還沒排的時候，指示範答案第一個要停的站的「＋」；排過了指「發車！」
+        if (waits.some((w) => w.some((x) => x > 0))) return '.ch6-train .btn.green, .scene .btn.green';
+        for (const k of [0, 1] as const) { const i = (k === 0 ? sol.down : sol.up).findIndex((x) => x > 0); if (i >= 0) return `.ch6-wait[data-ki="${k}-${i}"] .stepper button:last-child`; }
+        return null;
+      })()} first={!fails && !res} />
+      <Goal floating text={`按＋決定兩列車在各站停幾格，再按「發車！」。不撞車、也不遲到。一格是 10 分鐘；客車最晚第 ${lv.deadline[0]} 格、貨車最晚第 ${lv.deadline[1]} 格要到。`} />
       <div className="ch6-train-board panel">
         <div className="ch6-train-plan">
           {([0, 1] as const).map((k) => (
@@ -108,7 +114,7 @@ function Timetable({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops
               <small className={res?.late[k] ? 'late' : ''}>最晚第 {lv.deadline[k]} 格到{res ? `（第 ${res.arrive[k]} 格到）` : ''}</small>
               <div className="ch6-waits">
                 {mid.map((name, i) => (
-                  <div key={name} className={`ch6-wait ${fails >= 3 && sol && (k === 0 ? sol.down : sol.up)[i] > 0 ? 'hint' : ''}`}>
+                  <div key={name} data-ki={`${k}-${i}`} className={`ch6-wait ${fails >= 2 && sol && (k === 0 ? sol.down : sol.up)[i] > 0 ? 'hint' : ''}`}>
                     <span>{name}</span>
                     <div className="stepper">
                       <button disabled={running || waits[k][i] <= 0} onClick={() => bump(k, i, -1)}>−</button>
@@ -143,7 +149,7 @@ function Timetable({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops
           <button className="btn green" disabled={running || !!res?.ok} onClick={go}>發車！</button>
         </div>
       </div>
-      {fails >= 5 && !res?.ok && <button className="btn demo corner-btn" onClick={() => { setWaits([[...sol.down], [...sol.up]]); setRes(null); setT(null); }}>看示範</button>}
+      {fails >= 3 && !res?.ok && <button className="btn demo corner-btn" onClick={() => { setWaits([[...sol.down], [...sol.up]]); setRes(null); setT(null); }}>看示範</button>}
       <Say line={say} />
     </div>
   );

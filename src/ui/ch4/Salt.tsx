@@ -3,7 +3,7 @@ import { canDo, doAct, easyCan, easyDay, freshEasy, freshPans, saltBest, saltDay
 import { SALT, SALT_DONE, SALT_EASY, SALT_EASY_INTRO, SALT_EASY_SAY, SALT_INTRO, SALT_SAY, art4 } from '../../data/ch4';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { ChallengeOffer, ChallengeTag } from '../Challenge';
 import { challengeDone } from '../Medal';
 import { NewCards, type Step4Props } from '../Ch4';
@@ -57,7 +57,8 @@ function SaltEasy({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const sky = lv.days[Math.min(day, lv.days.length - 1)];
   const ripe = pans.v.filter((x) => x >= lv.ready).length;
   const showHint = fails >= 2 && !over;
-  const tip = useMemo(() => (showHint ? saltEasyBest(lv, day, pans).plan[0] : undefined), [showHint, day, pans, lv]);
+  const best = useMemo(() => (over ? undefined : saltEasyBest(lv, day, pans).plan[0]), [over, day, pans, lv]);
+  const tip = showHint ? best : undefined;
 
   const endDay = (a: EasyAct = act ?? { kind: 'wait' }, c = cover) => {
     const r = easyDay(lv, pans, a, c, day);
@@ -127,7 +128,10 @@ function SaltEasy({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const total = pans.salt + (over ? ripe : 0);
   return (
     <div className="ch4-salt-wrap">
-      <Goal floating text={demo ? '先看小蓮做第一天。' : `一天做一件事，下雨天蓋草蓆。${lv.days.length} 天收 ${lv.need} 籃鹽。`} />
+      <Goal floating id="salt" text={demo ? '先看小蓮做第一天。' : `點今天要做的事，再按「過完這一天」。一天做一件事，下雨天蓋草蓆；${lv.days.length} 天收 ${lv.need} 籃鹽。`} />
+      <Hand at={demo || over || won || !best ? null
+        : !act && best.act.kind !== 'wait' && 'pan' in best.act ? `.ch4-pan:nth-child(${best.act.pan + 1}) .ch4-act`
+        : best.cover !== cover ? '.salt-mat' : '.ch4-salt-foot .btn.green'} first={day === 1 && !fails} />
       <div className="ch4-salt-board panel salt-easy">
         <div className="ch4-days">
           {lv.days.map((s, d) => <span key={d} className={`${d < day ? 'past' : d === day ? 'on' : ''} sky-${s}`}><small>第{d + 1}天</small>{SKY_ICON[s]}</span>)}
@@ -165,7 +169,7 @@ function SaltPlan({ onDone }: { onDone: () => void }) {
   const [say, setSay] = useState<Line | null>(null);
   const now = acts.reduce((cur, a) => (a.kind === 'cover' ? cur : doAct(cur, a)), start);
   const cover = (acts.find((a) => a.kind === 'cover') as { pan: number } | undefined)?.pan ?? -1;
-  const showHint = fails >= 3 || auto;
+  const showHint = fails >= 2 || auto;
   const best = useMemo(() => (showHint && day < SALT.days.length ? saltBest(SALT, day, start).plan[0] ?? [] : []), [showHint, day, start]);
   const tip = best;
   const sky = SALT.days[day];
@@ -264,7 +268,7 @@ function SaltPlan({ onDone }: { onDone: () => void }) {
           </div>
         </div>
       )}
-      {fails >= 5 && phase === 'work' && !auto && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && phase === 'work' && !auto && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       <Say line={phase === 'work' ? say : null} />
     </>
   );

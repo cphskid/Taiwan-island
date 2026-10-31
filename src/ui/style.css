@@ -10,8 +10,8 @@ body{background:var(--sky);color:var(--ink);font-family:var(--f);overflow:hidden
 .app{height:100%;display:flex;flex-direction:column}
 .top{display:flex;align-items:center;gap:12px;padding:8px 12px;background:linear-gradient(#8a5429,#6b3f1f);color:var(--cream);box-shadow:0 2px 6px rgba(0,0,0,.25);z-index:2}
 .top h1{flex:1;margin:0;font-size:20px;letter-spacing:1px}
-.park-btn{display:flex;align-items:center;gap:6px;color:var(--cream);text-decoration:none;font-weight:700;min-height:48px;padding:0 6px}
-.park-btn img{width:44px;height:44px;object-fit:contain}
+/* 回樂園的樣子在樂園的 css/park-back.css；關卡、現在篇地點裡只放「← 大地圖」，不放回樂園（一個畫面一種出口） */
+.app:has(.chapter, .prologue, .town, .village) .top .park-back{display:none}
 .who{background:rgba(255,244,220,.15);border:2px solid var(--gold);border-radius:20px;padding:4px 12px;font-weight:700}
 .center{flex:1;display:flex;align-items:center;justify-content:center;font-size:20px;padding:16px}
 .panel{background:var(--cream);border:6px solid var(--wood-2);border-radius:24px;box-shadow:inset 0 0 0 3px var(--gold),0 8px 20px rgba(0,0,0,.25);padding:24px}
@@ -241,8 +241,6 @@ img.gear{width:110px;height:110px;object-fit:contain}
 @media (max-height:600px){
   .top{padding:2px 10px;gap:8px}
   .top h1{font-size:16px}
-  .park-btn{min-height:34px;font-size:14px}
-  .park-btn img{width:30px;height:30px}
   .who{padding:2px 10px;font-size:13px}
   .steps{padding:3px 8px;gap:4px;border-bottom-width:2px}
   .step{min-height:30px;padding:0 8px;font-size:13px;gap:4px}
@@ -700,6 +698,14 @@ img.gear{width:110px;height:110px;object-fit:contain}
 @keyframes fadeaway{to{opacity:0}}
 @keyframes shine{50%{filter:brightness(1.4) drop-shadow(0 0 20px #ffe9a8)}}
 .knap-tool{position:absolute;left:50%;top:50%;width:min(30vh,220px);translate:-50% -50%;filter:drop-shadow(0 0 18px #ffe9a8);animation:pop .5s .5s both}
+/* 手機橫拿：石頭放大、往上，左下角留給目標條（進場引導原則：要點的東西不能被蓋住） */
+@media (max-height:600px){
+  .knap-wrap{align-items:center;padding:44px 10px 64px}
+  .knap-svg{width:auto;height:calc(100dvh - 44px - 72px);max-height:none;max-width:62vw}
+  .knap-wrap .yan-side{height:min(38vh,150px)}
+  .grind-wrap{padding-bottom:64px}
+  .ch1-cave .beach-stone{translate:-50% calc(-50% - 9vh)}
+}
 .knap-tip,.grind-tip{margin:4px 0 0;font-weight:700;font-size:17px;color:#fff;background:rgba(30,25,20,.6);padding:4px 14px;border-radius:14px}
 .yan-side{height:min(46vh,300px);align-self:flex-end;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35))}
 .drill{position:absolute;left:50%;bottom:4vh;translate:-50% 0;z-index:3;display:grid;grid-template-columns:auto auto;align-items:end;gap:8px 16px;justify-items:center}
@@ -749,6 +755,11 @@ img.gear{width:110px;height:110px;object-fit:contain}
 .burn-ok .fire-pot img{filter:saturate(1.3) drop-shadow(0 0 16px rgba(255,140,40,.8))}
 .side-heat{position:absolute;padding:2px 8px;border-radius:12px;font-weight:900;font-size:15px;color:#fff;border:2px solid #fff;white-space:nowrap}
 .side-heat.ok{background:#3fae3a}.side-heat.cold{background:#4f8fd1}.side-heat.hot{background:#e0452c}
+/* 故事版野燒：每一面用陶土的顏色說話（灰＝還沒熟、紅褐＝剛好、黑＝太燙快裂） */
+.fire-board.easy .side-heat.cold{background:#8f949c}
+.fire-board.easy .side-heat.ok{background:#b4532a}
+.fire-board.easy .side-heat.hot{background:#2b2420;border-color:#ff5a3a;animation:pulse .4s ease-in-out infinite alternate}
+.fire-board.easy .fire-pot.cracking img{animation:shake .12s linear 3}
 .side-N{top:-4px;left:50%;translate:-50% 0}.side-S{bottom:-4px;left:50%;translate:-50% 0}
 .side-W{left:-8px;top:50%;translate:0 -50%}.side-E{right:-8px;top:50%;translate:0 -50%}
 /*
@@ -2413,6 +2424,25 @@ button.v-chip{cursor:pointer}
 .hunt-toggle:disabled{cursor:default;opacity:.8}
 .hunt-season .hunt-icons{min-height:24px;display:flex;flex-wrap:wrap;justify-content:center;font-size:13px;color:#9c8466;font-weight:700}
 .hunt-season .hunt-icons img{width:24px;height:24px;object-fit:contain}
+/* 手機橫拿：左欄放四季開關＋按鈕，右欄放兩年；下面留給左下角的目標條 */
+@media (max-height:600px){
+  .hunt-wrap{padding:46px 10px 62px}
+  .hunt-board{display:grid;grid-template-columns:minmax(150px,26%) 1fr;column-gap:12px;row-gap:4px;align-content:start;max-height:100%}
+  .hunt-rule{grid-column:1;grid-row:1;grid-template-columns:1fr 1fr;gap:4px}
+  .hunt-foot{grid-column:1;grid-row:2;flex-direction:column;gap:6px;align-items:stretch}
+  .hunt-foot .btn{padding:6px 8px;font-size:15px}
+  .hunt-year{grid-column:2}
+  .hunt-toggle{padding:2px 4px;font-size:15px}
+  .hunt-toggle em{font-size:12px}
+  .hunt-head{gap:8px;margin:0}
+  .hunt-head b{font-size:15px}
+  .hunt-head img{width:22px;height:22px}
+  .hunt-seasons{gap:4px}
+  .hunt-season>b{font-size:13px}
+  .hunt-season .hunt-icons{min-height:18px}
+  .hunt-season .hunt-icons img{width:18px;height:18px}
+  .births{font-size:11px}
+}
 .hunt-season.closed{opacity:.75}
 
 /* 第三章鹿皮（故事版）：點草原上的鹿收鹿皮 */
@@ -2820,6 +2850,8 @@ button.v-chip{cursor:pointer}
 .say.mini.with-goal,.say.goal-dock{border-radius:999px;padding:4px 12px 4px 4px;gap:8px;align-items:center;max-width:min(520px,calc(100% - 24px))}
 .say.mini.with-goal .say-dot{right:auto;left:40px}
 .say.goal-dock{cursor:default}
+.say.goal-dock.over{opacity:.5;pointer-events:none;transition:opacity .2s}
+.say.goal-dock.over *{pointer-events:none}
 .say.with-goal:not(.mini){max-width:min(480px,46%)}
 .quest.strip.flash{animation:questflash .32s ease-in-out 4 alternate}
 @keyframes questflash{from{transform:scale(1);box-shadow:0 0 0 0 #ffe066}to{transform:scale(1.08);box-shadow:0 0 0 5px #ffe066,0 0 18px 4px #ffe066}}
@@ -2828,6 +2860,13 @@ button.v-chip{cursor:pointer}
 .quest.quest-fly{position:fixed;left:50%;top:45%;width:max-content;transform:translate(-50%,-50%);z-index:41;font-size:30px;padding:10px 26px 10px 16px;border-width:4px;box-shadow:0 8px 30px rgba(0,0,0,.45);pointer-events:none;max-width:min(760px,calc(100vw - 32px));animation:questpop .35s cubic-bezier(.3,1.6,.6,1)}
 .quest.quest-fly i{font-size:32px}
 .quest.quest-fly span{white-space:normal;text-align:center}
+/* 手指示範（Guide.tsx 的 <Hand>）：指尖對準要點的東西中間，外面一圈光一直擴散 */
+.hand-tip{position:fixed;z-index:5000;width:0;height:0;pointer-events:none}
+.hand-tip b{position:absolute;left:-26px;top:-26px;width:52px;height:52px;border-radius:50%;border:4px solid #ffe066;box-shadow:0 0 12px #ffe066;animation:hand-ring 1s ease-out infinite}
+.hand-tip i{position:absolute;left:-14px;top:-2px;font-size:46px;font-style:normal;line-height:1;filter:drop-shadow(0 3px 4px rgba(0,0,0,.45));animation:hand-tap 1s ease-in-out infinite}
+@keyframes hand-ring{0%{transform:scale(.5);opacity:1}100%{transform:scale(1.4);opacity:0}}
+@keyframes hand-tap{0%,100%{transform:translateY(16px)}45%{transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.hand-tip b,.hand-tip i{animation:none}}
 @keyframes questpop{from{transform:translate(-50%,-50%) scale(.4);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
 @media (max-height:600px){
   .quest.strip{font-size:14px;padding:2px 8px 2px 4px}
@@ -2840,4 +2879,53 @@ button.v-chip{cursor:pointer}
 @media (max-height:600px){
   .chapter .say.with-goal,.chapter .say.goal-dock,.prologue .say.with-goal,.prologue .say.goal-dock{bottom:4px}
   .chapter .ch6-rail-wrap .say.with-goal,.chapter .ch6-rail-wrap .say.goal-dock{bottom:auto}
+}
+
+/* 手機橫拿共用規則（2026-10-29 進場引導原則：要點的東西不能被左下角的目標條蓋住）：
+   每一關的操作區底部留 62px 給目標條（面板太高的，目標條蓋到會自己變半透明讓點） */
+@media (max-height:600px){
+  .chapter .scene > [class*="-wrap"]:not(.knap-wrap):not(.fire-wrap){padding-bottom:62px}
+  .chapter .board-wrap .say.goal-dock,.chapter .board-wrap .say.with-goal{bottom:62px}
+  .rules{gap:6px;padding:8px 12px}
+  .rule-list{gap:4px}
+  .rule-list .rule{padding:2px 10px;font-size:14px}
+  .sim-year{flex-direction:row;gap:6px;font-size:12px;padding:2px}
+}
+/* 漁村月底結算卡、漁獲圖鑑 */
+.v-report{position:absolute;top:56px;left:50%;translate:-50% 0;z-index:13;min-width:220px;max-width:min(420px,calc(100% - 24px));padding:8px 14px!important;font-weight:700;cursor:pointer;animation:vreport .3s ease-out}
+.v-report b{display:block;font-size:15px;color:#b06d00}
+.v-report p{margin:3px 0;font-size:15px;display:flex;flex-wrap:wrap;gap:10px}
+.v-report p.new{color:#2c7a3f}
+.v-report p.news{font-size:13px;font-weight:600;color:#5a4030}
+.v-report p.tip{font-size:14px;color:#8a4b00}
+@keyframes vreport{from{opacity:0;translate:-50% -10px}to{opacity:1;translate:-50% 0}}
+.v-dex{cursor:pointer;pointer-events:auto}
+.v-dexbook{max-width:min(720px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto}
+.v-dexgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:8px 0}
+.v-dexitem{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px;border:2px dashed #d8bf8f;border-radius:12px;background:#fffaf0;text-align:center}
+.v-dexitem.got{border-style:solid;border-color:#7cb342;background:#f3fbe9}
+.v-dexitem i{font-style:normal;font-size:30px}
+.v-dexitem small{font-size:12px;color:#6a5040}
+@media (max-height:600px){
+  .v-report{top:44px;padding:4px 10px!important}
+  .v-report p{font-size:13px;margin:1px 0}
+}
+/* 漁村蓋房子的格子 */
+.v-slot{position:absolute;translate:-50% -50%;border-radius:10px;pointer-events:none;border:2px dashed rgba(255,255,255,.9);background:rgba(255,255,255,.12)}
+.v-slot.lot{border-style:solid;border-color:rgba(255,255,255,.55);transform:skewX(-14deg)}
+.v-slot.ok{background:rgba(110,210,80,.28);border-color:#e9ffd8}
+.v-slot.no{opacity:.35}
+.v-slot.here.ok{background:rgba(110,210,80,.55);box-shadow:0 0 0 3px #7ee05a,0 0 14px #7ee05a}
+.v-slot.here.no{background:rgba(224,64,42,.4);opacity:1}
+
+/* 樂園介面設計原則（2026-10-31）：出口按鈕點擊高度至少 44px；手機直拿標題列不擠成直排、下方導覽列不被切到 */
+.back-map{min-height:44px}
+.v-chip.v-back{min-height:44px;font-size:15px;cursor:pointer}
+.top h1{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:480px){
+  .top{gap:8px;padding:6px 10px}
+  .top h1{font-size:16px}
+  .navbar{gap:4px;padding-left:4px;padding-right:4px}
+  .nav-btn{min-width:56px;padding:2px 4px}
+  .era-lever{margin:0 2px;padding:0 10px}
 }

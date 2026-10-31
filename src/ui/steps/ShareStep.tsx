@@ -5,7 +5,7 @@ import { CardPop, Face, Say, Talk } from '../Talk';
 import type { StepProps } from '../Chapter';
 import { ambience, jingle, sfx } from '../../audio';
 
-const HINT_AT = 3;
+const HINT_AT = 2;
 const SHOW_AT = 5;
 
 const SAYS: Record<ReturnType<typeof stateOf>, string> = {

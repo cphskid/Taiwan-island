@@ -4,7 +4,7 @@ body:has(.tp){overflow:auto;user-select:text}
 .tp .top h1{font-size:18px}
 /* 2026-10-24 跟守護異世界細節頁合成一套：左上「← 樂園教師入口」是一顆明顯的按鈕、班級一顆一顆、第二列看誰／列印／匯出 */
 .tp .top h1 small{margin-left:10px;font-size:14px;font-weight:700;opacity:.8}
-.tp .tp-back{min-height:40px;padding:0 12px 0 8px;background:var(--cream);color:var(--wood);border:3px solid var(--gold);border-radius:14px;box-shadow:0 3px 0 #4a2a12}
+.tp .tp-back{display:flex;align-items:center;gap:6px;text-decoration:none;font-weight:700;min-height:40px;padding:0 12px 0 8px;background:var(--cream);color:var(--wood);border:3px solid var(--gold);border-radius:14px;box-shadow:0 3px 0 #4a2a12}
 .tp .tp-back img{width:30px;height:30px}
 .tp .tp-back:active{transform:translateY(2px);box-shadow:none}
 .tp-bar{display:flex;flex-direction:column;gap:10px;margin:14px 16px;padding:14px 18px}

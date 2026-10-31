@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { cellKey, findCell, isCity, neighbors, passable, railAt, railRun, railSolve, type Cell, type RailProblem } from '../../core/today';
 import { RAIL, RAIL_DONE, RAIL_INTRO, RAIL_NAMES, RAIL_SAY, artE } from '../../data/chEnd';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Beacon, Goal } from '../Guide';
+import { Beacon, Goal, Hand } from '../Guide';
 import { Terrain, jitter } from '../Terrain';
 import { NewCardsEnd, type StepEndProps } from '../ChEnd';
 import { DecideEnd, EraJumpEnd } from './StoryEnd';
@@ -39,7 +39,8 @@ function Track({ oops, riding, onPass, onRode }: { oops: () => void; riding: boo
   const r = railRun(RAIL, path, stops);
   const onPath = new Map(path.map((c, i) => [cellKey(c), i]));
   const end = path[path.length - 1];
-  const best = fails >= 3 ? railSolve(RAIL) : null;
+  const sol = useMemo(() => railSolve(RAIL), []);
+  const best = fails >= 2 ? sol : null;
   const bestCells = new Set(best?.path.map(cellKey) ?? []);
 
   const tap = (c: Cell) => {
@@ -91,9 +92,15 @@ function Track({ oops, riding, onPass, onRode }: { oops: () => void; riding: boo
     { id: 'slow', text: `${RAIL.limit} 分鐘內` },
   ];
   const reached = railAt(RAIL, end) === 'K';
+  // 手指：路線還照著解法走時，指下一格；到高雄後指還沒停的站，最後指試跑
+  const onTrack = !!sol && path.every((c, i) => sol.path[i] && cellKey(sol.path[i]) === cellKey(c));
+  const missStop = sol?.stops.find((s) => !stops.includes(s) && onPath.has(s));
+  const handAt = riding || !sol ? null : !reached ? (onTrack && sol.path[path.length] ? `.end-rail-cell[data-cell="${cellKey(sol.path[path.length])}"]` : null)
+    : missStop ? `.end-rail-cell[data-cell="${missStop}"]` : '.end-rail-info .btn.green';
   return (
     <div className="end-rail-wrap">
-      <Goal floating text={reached ? '點路線上的城市決定停站，再按「試跑一趟」' : '從台北一格一格點到高雄。路線經過的城市，點一下就會停站。'} />
+      <Hand at={handAt} first={!fails && path.length <= 1} />
+      <Goal floating id="hsr" text={reached ? '點路線上的城市停站，再按「試跑一趟」。' : '從台北一格一格點到高雄。路線經過的城市，點一下就會停站。'} />
       <div className="end-rail-board" style={{ ['--cols' as string]: COLS, ['--rows' as string]: ROWS }}>
         <div className="end-rail-land">
           <img className="end-rail-bg" src={artE('t-grass')} alt="" />
@@ -112,7 +119,7 @@ function Track({ oops, riding, onPass, onRode }: { oops: () => void; riding: boo
           const c = { col, row }, k = cellKey(c);
           const on = onPath.has(k);
           return (
-            <button key={k} className={`end-rail-cell end-t-${ch === '.' ? 'p' : ch} ${on ? 'on' : ''} ${stops.includes(k) || ch === 'T' || ch === 'K' ? 'stop' : ''} ${bestCells.has(k) && !on ? 'hint' : ''} ${cellKey(end) === k ? 'end' : ''}`}
+            <button key={k} data-cell={k} className={`end-rail-cell end-t-${ch === '.' ? 'p' : ch} ${on ? 'on' : ''} ${stops.includes(k) || ch === 'T' || ch === 'K' ? 'stop' : ''} ${bestCells.has(k) && !on ? 'hint' : ''} ${cellKey(end) === k ? 'end' : ''}`}
               onClick={() => tap(c)} aria-label={RAIL_NAMES[k] ?? (ch === 'M' ? '山' : ch === 'W' ? '保護區' : '平地')}>
                                           {isCity(RAIL, c) && <em>{RAIL_NAMES[k]}</em>}
             </button>
@@ -138,7 +145,7 @@ function Track({ oops, riding, onPass, onRode }: { oops: () => void; riding: boo
           <button className="btn green" disabled={riding} onClick={go}>試跑一趟</button>
         </div>
       </div>
-      {fails >= 5 && !riding && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && !riding && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );

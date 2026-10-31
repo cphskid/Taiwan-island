@@ -3,7 +3,7 @@ import { grainSolutions, runGrain } from '../../core/tuntian';
 import { GRAIN, GRAIN_INTRO, GRAIN_SAY, HISTORY4, SHILANG4, art4 } from '../../data/ch4';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards, type Step4Props } from '../Ch4';
 import { Decide4, Jump4 } from './Story4';
 import { jingle, sfx } from '../../audio';
@@ -18,7 +18,7 @@ export function Future({ p, set, next, oops }: Step4Props) {
   const [fails, setFails] = useState(0);
   const [say, setSay] = useState<Line | null>(null);
   const res = runGrain(GRAIN, plan);
-  const sol = fails >= 3 ? grainSolutions(GRAIN)[0] : null;
+  const sol = fails >= 2 ? grainSolutions(GRAIN)[0] : null;
 
   const bump = (y: number, d: number) => {
     const k = plan[y] + d;
@@ -45,7 +45,8 @@ export function Future({ p, set, next, oops }: Step4Props) {
     <div className="scene ch4-future">
       <img className="scene-bg" src={art4('s-16')} alt="" />
       {phase === 'intro' && <Talk lines={GRAIN_INTRO} onDone={() => setPhase('plan')} />}
-      {phase === 'plan' && <Goal floating text={`排好五年要開幾塊新田：糧倉不能空，最後存到 ${GRAIN.target} 份`} />}
+      {phase === 'plan' && <Goal floating id="future" text={`按＋決定每年開幾塊新田，再按「試著過五年」。糧倉不能空，最後要存到 ${GRAIN.target} 份。`} />}
+      {phase === 'plan' && <Hand at={plan.every((k) => !k) ? 'button[aria-label="多開一塊"]' : '.scene .btn.green'} first={!fails && shown === 0} />}
       {(phase === 'plan' || phase === 'run') && (
         <div className="ch4-grain-wrap">
           <div className="ch4-grain panel">
@@ -86,7 +87,7 @@ export function Future({ p, set, next, oops }: Step4Props) {
           </div>
         </div>
       )}
-      {fails >= 5 && phase === 'plan' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && phase === 'plan' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       {phase === 'choice' && <Decide4 id="grain" set={set} onDone={() => setPhase('history')} />}
       {phase === 'history' && <Talk lines={HISTORY4} onDone={() => setPhase('jump')} />}
       {phase === 'jump' && <Jump4 to={3} onDone={() => setPhase('shilang')} />}

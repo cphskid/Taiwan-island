@@ -3,7 +3,7 @@ import { GOODS, buy, canSail, freshTrade, loaded, portOf, sail, sell, tradeWon, 
 import { GOOD_INFO, PORT_INFO, TRADE, TRADE_DEMO, TRADE_INTRO, TRADE_SAY, art3 } from '../../data/ch3';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Beacon, Goal } from '../Guide';
+import { Beacon, Goal, Hand } from '../Guide';
 import { NewCards3, type Step3Props } from '../Ch3';
 import { Decide3 } from './Story3';
 import { jingle, sfx } from '../../audio';
@@ -89,9 +89,13 @@ function TradeBoard({ oops, onDone }: { oops: () => void; onDone: () => void }) 
   const sellHere = GOODS.some((g) => (s.cargo[g] ?? 0) > 0 && port.sell[g] !== undefined);
   const cargo = GOODS.flatMap((g) => Array.from({ length: s.cargo[g] ?? 0 }, () => g));
   const lock = busy || won;
+  // 手指：第一趟指示範的第一件貨；之後停住才出來，指下一件該做的事
+  const firstBuy = TRADE_DEMO.find((a) => a.buy)?.buy;
+  const handAt = lock ? null : sellHere ? '.ch3-good .sell.ready' : loaded(s) && target ? `.ch3-portnode.${target}` : s.legs === 0 && firstBuy ? `.ch3-good[data-good="${firstBuy}"] .buy` : null;
   return (
     <div className="ch3-trade">
-      <Goal floating text={sellHere ? '船上的貨這裡收，先賣掉換銀子' : loaded(s) ? '貨裝好了，開船去標著 ⭐ 的港口賣' : `賺到 ${lv.goal} 兩銀：便宜買、運到貴的港口賣。${lv.legs} 趟船，每一趟都要從大員出發或回到大員。`} />
+      <Hand at={handAt} first={!fails && s.legs === 0 && !loaded(s)} />
+      <Goal floating text={sellHere ? '按「賣」，先把船上的貨賣掉換銀子' : loaded(s) ? '貨裝好了，點標著 ⭐ 的港口開船去賣' : `按「買」裝貨，便宜買、運到貴的港口賣。要賺到 ${lv.goal} 兩銀，${lv.legs} 趟船，每一趟都要從大員出發或回到大員。`} />
       <div className="ch3-seamap panel">
         <img className="ch3-sea-bg" src={art3('t-sea')} alt="" />
         {PORTS.map((id) => <img key={`i${id}`} className={`ch3-isle ${id}`} src={art3('o-12-island')} alt=""
@@ -129,7 +133,7 @@ function TradeBoard({ oops, onDone }: { oops: () => void; onDone: () => void }) 
         <h3>{PORT_INFO[s.at].name}的市場</h3>
         <div className="ch3-goods">
           {GOODS.filter((g) => port.buy[g] !== undefined || port.sell[g] !== undefined).map((g) => (
-            <div key={g} className={`ch3-good ${fails >= 3 && hot(s.at, g) ? 'ch3-hint' : ''}`}>
+            <div key={g} data-good={g} className={`ch3-good ${fails >= 2 && hot(s.at, g) ? 'ch3-hint' : ''}`}>
               <img src={GOOD_INFO[g].img} alt="" />
               <b>{GOOD_INFO[g].name}<small>{GOOD_INFO[g].from}</small></b>
               {port.buy[g] !== undefined && <button className="buy" disabled={lock || buy(lv, s, g) === null} onClick={() => doBuy(g)}>買 {port.buy[g]} 兩</button>}
@@ -140,7 +144,7 @@ function TradeBoard({ oops, onDone }: { oops: () => void; onDone: () => void }) 
         </div>
         <button className="ch3-reset" disabled={lock} onClick={restart}>↺ 從頭再來</button>
       </div>
-      {fails >= 5 && !won && <button className="btn demo corner-btn" disabled={busy} onClick={demo}>看示範</button>}
+      {fails >= 3 && !won && <button className="btn demo corner-btn" disabled={busy} onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );

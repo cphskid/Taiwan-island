@@ -295,6 +295,7 @@ insert into public.park_stamps as s (facility, code, name, hint, art, sort, acti
   ('island_pioneer', 'end-egg', '沒有說明牌的展品', '博物館裡，有一件展品沒有說明牌。', 'img/stamp/time-shard.webp', 85, true, 'egg', 'rainbow', 'past', 'end'),
   ('island_pioneer', 'past', '時光守護者', '過去篇七章和終章全部過關', 'img/stamp/island-past.webp', 100, true, 'era', 'rainbow', 'past', null),
   ('island_pioneer', 'v-village', '漁村開張', '把漁村經營到兩顆星', 'img/stamp/island-village.webp', 201, true, 'clear', 'bronze', 'now', 'v-village'),
+  ('island_pioneer', 'v-village-dex', '漁獲圖鑑全收集', '漁村的漁獲圖鑑 7 種全部抓到', 'img/stamp/island-village.webp', 202, true, 'collect', 'silver', 'now', 'v-village'),
   ('island_pioneer', 'v-village-star', '五星漁村', '漁村升到五顆星', 'img/stamp/island-village.webp', 203, true, 'master', 'gold', 'now', 'v-village'),
   ('island_pioneer', 'v-village-egg', '漁村的時光碎片', '現在篇的漁村藏著一塊時光碎片', 'img/stamp/time-shard.webp', 205, false, 'egg', 'rainbow', 'now', 'v-village'),
   ('island_pioneer', 'v-town', '小鎮偵探', '規則小鎮破完一整區的案子', 'img/stamp/island-town.webp', 211, true, 'clear', 'bronze', 'now', 'v-town'),
@@ -333,6 +334,8 @@ returns setof text language sql stable security definer set search_path = public
   ),
   nq as (
     select array(select jsonb_array_elements_text(case when jsonb_typeof(vil -> 'quests') = 'array' then vil -> 'quests' else '[]' end)) as quests,
+           (select count(distinct d) from jsonb_array_elements_text(case when jsonb_typeof(vil -> 'dex') = 'array' then vil -> 'dex' else '[]' end) d
+             where d in ('squid', 'eel', 'milkfish', 'agar', 'urchin', 'anchovy', 'salt')) as dex,
            (select count(distinct i) from jsonb_array_elements_text(case when jsonb_typeof(isl -> 'stamps') = 'array' then isl -> 'stamps' else '[]' end) i
              where i in ('guishan', 'liuqiu', 'penghu', 'lanyu', 'ludao', 'kinmen', 'matsu')) as stamps,
            (select count(distinct x ->> 'spot') from jsonb_array_elements(case when jsonb_typeof(post -> 'sent') = 'array' then post -> 'sent' else '[]' end) x
@@ -346,6 +349,7 @@ returns setof text language sql stable security definer set search_path = public
   ),
   now_m(x) as (
     select 'v-village' from nq where 'star2' = any(quests)
+    union all select 'v-village-dex' from nq where dex >= 7
     union all select 'v-village-star' from nq where 'star5' = any(quests)
     union all select 'v-town' from nq where town_clear
     union all select 'v-town-star' from nq where coalesce(town_star, false)
@@ -512,6 +516,16 @@ begin
       from (values ('house', 'light'), ('pier', 'light'), ('market', 'light'), ('star2', 'medium'), ('seine', 'medium'),
                    ('typhoon', 'medium'), ('star3', 'medium'), ('festival', 'medium'), ('star4', 'heavy'), ('star5', 'chapter')) q(id, tier)
      where q.id = any(v_q)
+  loop return next; end loop;
+  -- 漁村四季：漁獲圖鑑 7 種全抓到（代號要跟 src/data/village.ts 的 CATCHES 一樣）、五顆星後的年度小挑戰（只算前 5 年）
+  for source, amount, note in
+    select 'island:village:dex', public.park_coin_rate('heavy'), '漁獲圖鑑全收集'
+     where (select count(distinct d) from jsonb_array_elements_text(case when jsonb_typeof(v_village -> 'dex') = 'array' then v_village -> 'dex' else '[]' end) d
+             where d in ('squid', 'eel', 'milkfish', 'agar', 'urchin', 'anchovy', 'salt')) >= 7
+    union all
+    select 'island:village:year:' || y, public.park_coin_rate('medium'), '漁村年度挑戰完成'
+      from (select distinct y::int as y from jsonb_array_elements_text(case when jsonb_typeof(v_village -> 'yrs') = 'array' then v_village -> 'yrs' else '[]' end) y
+             where y ~ '^[0-9]{1,3}$' order by 1 limit 5) t
   loop return next; end loop;
 
   -- 現在篇：規則小鎮（案子代號要跟 src/data/town.ts 一樣）。破一案 10、一次判對再 10、一區解完 3 案 30

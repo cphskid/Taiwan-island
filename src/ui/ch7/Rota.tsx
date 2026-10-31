@@ -3,7 +3,7 @@ import { CROPS, WATER, rotaCheck, rotaSolutions, rotaWater, type Crop, type Rota
 import { CROP_IMG, CROP_NAME, HOME_ZONE, ROTA, ROTA_INTRO, ROTA_SAY, art7 } from '../../data/ch7';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards7, type Step7Props } from '../Ch7';
 import { Decide7, EraJump7 } from './Story7';
 import { jingle, sfx } from '../../audio';
@@ -40,9 +40,13 @@ function Planner({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   // 目標條跟著進度變：第一句是現在要做的事，規則放後面（點「說明」展開）
   const rule = '每年三區種三種不一樣的，每區三年都要輪到一次水稻，每年的水不能超過水庫放的水。';
   const goal = ok ? '排好了！'
-    : untouched ? `先在上面選一種作物，再點下面的格子種下去。${rule}`
+    : untouched ? `選一種作物，再點格子種下去。${rule}`
     : !full ? `還有 ${empties} 格空著，選作物再點格子。${rule}`
     : `排滿了！按下面的「這樣種三年」。${rule}`;
+
+  // 手指：照解法指下一格；作物不對先指作物
+  const miss = r.flatMap((row, y) => row.map((c, z) => ({ c, y, z }))).find((q) => q.c !== sol[q.y][q.z]);
+  const handAt = ok ? null : !miss ? '.ch7-rota-foot .btn.green' : crop !== sol[miss.y][miss.z] ? `.ch7-crop[data-c="${sol[miss.y][miss.z]}"]` : `.ch7-rcell[data-cell="${miss.y}-${miss.z}"]`;
 
   const put = (y: number, z: number) => {
     if (ok) return;
@@ -71,11 +75,12 @@ function Planner({ oops, onDone }: { oops: () => void; onDone: () => void }) {
 
   return (
     <div className="ch7-rota-wrap">
-      <Goal floating text={goal} />
+      <Hand at={handAt} first={!fails && untouched} />
+      <Goal floating id="rota" text={goal} />
       <div className="ch7-rota-board panel">
         <div className="ch7-crops">
           {CROPS.map((c) => (
-            <button key={c} className={`ch7-crop ${crop === c ? 'on' : ''}`} onClick={() => { sfx('SE-01'); setCrop(c); }}>
+            <button key={c} data-c={c} className={`ch7-crop ${crop === c ? 'on' : ''}`} onClick={() => { sfx('SE-01'); setCrop(c); }}>
               <img src={CROP_IMG[c]} alt="" /><b>{CROP_NAME[c]}</b><small>每塊田 {WATER[c]} 份水</small>
             </button>
           ))}
@@ -102,11 +107,10 @@ function Planner({ oops, onDone }: { oops: () => void; onDone: () => void }) {
                 <tr key={y} className={marks.mix.includes(y) ? 'bad' : ''}>
                   <th>第 {y + 1} 年</th>
                   {row.map((c, z) => {
-                    const hint = fails >= 3 && y === 0 && c !== sol[0][z] ? sol[0][z] : null;
+                    const hint = fails >= 2 && y === 0 && c !== sol[0][z] ? sol[0][z] : null;
                     return (
                       <td key={z}>
-                        <button className={`ch7-rcell ${c ?? 'empty'} ${hint ? 'ch7-hint' : ''} ${marks.repeat.includes(z) ? 'bad' : ''}`} onClick={() => put(y, z)}>
-                          {untouched && !fails && y === 0 && z === 0 && <em className="tap-me" aria-hidden>👆</em>}
+                        <button data-cell={`${y}-${z}`} className={`ch7-rcell ${c ?? 'empty'} ${hint ? 'ch7-hint' : ''} ${marks.repeat.includes(z) ? 'bad' : ''}`} onClick={() => put(y, z)}>
                           {c ? <><img src={CROP_IMG[c]} alt="" /><small>{CROP_NAME[c]} {ROTA.areas[z] * WATER[c]}</small></> : hint ? <small>試試{CROP_NAME[hint]}</small> : <small>＋</small>}
                         </button>
                       </td>
@@ -129,7 +133,7 @@ function Planner({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           <button className={`btn green ${full ? 'go-ready' : 'wait'}`} disabled={ok} onClick={check}>這樣種三年</button>
         </div>
       </div>
-      {fails >= 5 && !ok && <button className="btn demo corner-btn" onClick={() => setR(sol.map((row) => [...row]))}>看示範</button>}
+      {fails >= 3 && !ok && <button className="btn demo corner-btn" onClick={() => setR(sol.map((row) => [...row]))}>看示範</button>}
       <Say line={say} />
     </div>
   );

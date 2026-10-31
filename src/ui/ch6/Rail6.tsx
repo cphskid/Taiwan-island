@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { railBegin, railCh, railDone, railGoal, railH, railSolve, railStep, railUsed, type Pt, type RailStep } from '../../core/railway';
 import { RAIL_DONE, RAIL_INTRO, RAIL_RULE, RAIL_SAY, RAILS, art6 } from '../../data/ch6';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Beacon, Goal } from '../Guide';
+import { Beacon, Goal, Hand } from '../Guide';
 import { Terrain, jitter } from '../Terrain';
 import { NewCards6, type Step6Props } from '../Ch6';
 import { Decide6, Jump6 } from './Story6';
@@ -39,7 +39,8 @@ function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: ()
   const [bad, setBad] = useState<Pt | null>(null);
   const [train, setTrain] = useState<number | null>(null);
   const [say, setSay] = useState<Line | null>(null);
-  const sol = fails >= 3 ? railSolve(lv) : null;
+  const plan = useMemo(() => railSolve(lv), [lv]);
+  const sol = fails >= 2 ? plan : null;
   const W = lv.map[0].length, H = lv.map.length;
   const used = railUsed(path);
   const done = railDone(lv, path);
@@ -81,7 +82,12 @@ function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: ()
   const pos = train === null ? null : path[Math.min(train, path.length - 1)].at;
   return (
     <div className="ch6-rail-wrap">
-      <Goal floating text={`把鐵路從基隆鋪到臺北。${RAIL_RULE}`} />
+      <Goal floating text={`從基隆點旁邊的格子，一格一格鋪到臺北。${RAIL_RULE}`} />
+      <Hand at={done || !plan ? null : (() => {
+        const ok = path.every((q, i) => plan[i] && same(q.at, plan[i].at));
+        const nx = ok ? plan[path.length] : null;
+        return nx ? `.rl[data-cell="${nx.at.x},${nx.at.y}"]` : null;
+      })()} first={!fails && path.length < 3} />
       <div className="ch6-rail-board panel">
         <div className="ch6-rail-bar">
           <span className={used.rails >= lv.rails ? 'out' : ''}><img src={art6('g-07-track')} alt="" />鐵軌 {lv.rails - used.rails} / {lv.rails}</span>
@@ -124,7 +130,7 @@ function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: ()
             const label = ch === 'K' ? '基隆' : ch === 'P' ? '臺北' : ch === '~' ? '河' : H_NAME[h];
             const stn = ch === 'K' || ch === 'P';
             return (
-              <button key={`${x},${y}`} className={`rl rl-${ch === '~' ? 'river' : stn ? 'stn' : `h${h}`} ${st ? `on ${st.kind}` : ''} ${near ? (nextOk ? 'near' : 'near no') : ''} ${hint ? 'hint' : ''} ${bad && same(bad, c) ? 'bad' : ''}`}
+              <button key={`${x},${y}`} data-cell={`${x},${y}`} className={`rl rl-${ch === '~' ? 'river' : stn ? 'stn' : `h${h}`} ${st ? `on ${st.kind}` : ''} ${near ? (nextOk ? 'near' : 'near no') : ''} ${hint ? 'hint' : ''} ${bad && same(bad, c) ? 'bad' : ''}`}
                 onClick={() => tap(c)} aria-label={label}>
                 {!stn && ch !== '~' && !st && <i className="rl-n">{h}</i>}
                 {near && !stn && (nextOk ? next.kind !== 'land' : true) && <i className={`rl-h ${nextOk ? next.kind : 'no'}`}>{NO_NAME[nextOk ? next.kind : next as string] ?? '不行'}</i>}
@@ -147,7 +153,7 @@ function Track({ way, onDone, oops }: { way: 0 | 1; onDone: () => void; oops: ()
           <button className="btn orange" disabled={done || path.length < 2} onClick={() => { sfx('SE-02'); setPath(railBegin(lv)); setBad(null); }}>重鋪</button>
         </div>
       </div>
-      {fails >= 5 && !done && <button className="btn demo corner-btn" onClick={() => { setPath(railSolve(lv)!.slice(0, -1)); setBad(null); setSay(RAIL_SAY.hint); }}>看示範</button>}
+      {fails >= 3 && !done && <button className="btn demo corner-btn" onClick={() => { setPath(railSolve(lv)!.slice(0, -1)); setBad(null); setSay(RAIL_SAY.hint); }}>看示範</button>}
       <Say line={say} />
     </div>
   );

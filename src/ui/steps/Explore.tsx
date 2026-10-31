@@ -4,7 +4,7 @@ import type { Cell } from '../../core/iso';
 import { useBoard } from '../useBoard';
 import { CardPop, Say, Talk } from '../Talk';
 import { Legend } from './Legend';
-import { Goal } from '../Guide';
+import { BoardBeacon, Goal, Hand, useIdle } from '../Guide';
 import type { StepProps } from '../Chapter';
 
 // 撥開以 c 為中心的 3×3 雲霧
@@ -73,11 +73,33 @@ export function Explore({ p, set, next }: StepProps) {
   useEffect(() => { if (allFound && !done && !pop.length) setAsk(true); }, [allFound, done, pop.length]);
 
   const card = pop[0] ? CARDS[pop[0]] : null;
+  // 手指：一開始和停住時，指一塊靠近下一個地點的雲霧；全找到後指地形眼鏡
+  const busy = intro || !!card || ask;
+  const idle = useIdle(!allFound && !busy);
+  const fresh = revealed.size <= around(CHAPTER.start, 2).length;
+  const fogTip = (() => {
+    if (allFound || busy || !(fresh || idle)) return null;
+    const goal = PLACES.find((pl) => !p.found.includes(pl.id))?.cells[0];
+    if (!goal) return null;
+    let best: Cell | null = null, bd = Infinity;
+    for (const k of revealed) {
+      const [col, row] = k.split(',').map(Number);
+      for (const n of around({ col, row })) {
+        if (revealed.has(n)) continue;
+        const [c2, r2] = n.split(',').map(Number);
+        const d = Math.hypot(c2 - goal.col, r2 - goal.row);
+        if (d < bd) { bd = d; best = { col: c2, row: r2 }; }
+      }
+    }
+    return best;
+  })();
   return (
     <div className="board-wrap">
       <div className="board full" ref={host} />
+      <Goal floating text={!allFound ? '點白色雲霧撥開。找到下面 5 個地點。' : !done ? (contours ? '點地圖上最高的地方。' : '按「地形眼鏡」。') + '找到地圖上最高的地方。' : '地形都認識了！'} />
+      {fogTip && <BoardBeacon key={key(fogTip)} board={board} cell={fogTip} label="點雲霧撥開" small />}
+      <Hand at={allFound && !done && !contours && !busy ? '.tools .tool' : null} />
       <div className="checklist">
-        <Goal text={!allFound ? '點白色雲霧撥開，找到下面 5 個地點' : !done ? '戴上地形眼鏡，點地圖上最高的地方' : '地形都認識了！'} />
         <b>找到 {p.found.length} / {PLACES.length}</b>
         {PLACES.map((pl) => <span key={pl.id} className={p.found.includes(pl.id) ? 'got' : ''}>{CARDS[pl.card].title}</span>)}
         {allFound && <span className={done ? 'got' : ''}>最高的地方</span>}

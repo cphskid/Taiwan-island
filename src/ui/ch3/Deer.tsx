@@ -3,7 +3,7 @@ import { herdEasyGrow, herdEasyRun, herdRun } from '../../core/tayouan';
 import { DEER_EASY_INTRO, DEER_EASY_SAY, DEER_INTRO, DEER_SAY, HERD, HERD_DEMO, HERD_EASY, HERD_EASY_DEMAND, art3 } from '../../data/ch3';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { ChallengeOffer, ChallengeTag } from '../Challenge';
 import { challengeDone } from '../Medal';
 import { NewCards3, type Step3Props } from '../Ch3';
@@ -96,7 +96,8 @@ function HerdEasy({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const shownN = over || won ? run.end : g.grown;
   return (
     <div className="ch3-herd-wrap">
-      <Goal floating text={demo ? '先看烏瑪收第一年的鹿皮。' : `點鹿收鹿皮：四年收到 ${lv.need} 群，鹿群不能比 ${lv.start} 群少。發亮的是今年剛生的小鹿。`} />
+      {!demo && <Hand at={busy || won || over ? null : picked.length ? '.herd-easy .ch3-herd-foot .btn.green' : '.herd-deer:not(.on):not(:disabled)'} first={!fails && takes.length <= 1 && !picked.length} />}
+      <Goal floating text={demo ? '先看烏瑪收第一年的鹿皮。' : `點鹿收鹿皮，再按「過一年」。四年收到 ${lv.need} 群，鹿群不能比 ${lv.start} 群少。發亮的是今年剛生的小鹿。`} />
       <div className="ch3-herd panel herd-easy">
         <div className="herd-easy-head">
           <b>{over || won ? '四年過完了' : `第 ${year + 1} 年${demo ? '（烏瑪示範）' : ''}`}</b>
@@ -183,7 +184,7 @@ function HerdPlan({ oops, onDone }: { oops: () => void; onDone: () => void }) {
       <div className="ch3-herd panel">
         <div className="ch3-years">
           {takes.map((t, y) => (
-            <div key={y} className={`ch3-year ${shown > y ? 'shown' : ''} ${fails >= 3 && y === 0 ? 'ch3-hint' : ''}`}>
+            <div key={y} className={`ch3-year ${shown > y ? 'shown' : ''} ${fails >= 2 && y === 0 ? 'ch3-hint' : ''}`}>
               <b>第 {y + 1} 年</b>
               <span className="herd-n"><img src={DEER_IMG} alt="" />年初 {shown > y || y === 0 ? startOf(y) : '?'} 群</span>
               <div className="stepper">
@@ -204,7 +205,7 @@ function HerdPlan({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           <button className="btn green" disabled={going || won} onClick={() => go()}>照這樣過四年</button>
         </div>
       </div>
-      {fails >= 5 && !won && <button className="btn demo corner-btn" disabled={going} onClick={demo}>看示範</button>}
+      {fails >= 3 && !won && <button className="btn demo corner-btn" disabled={going} onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );

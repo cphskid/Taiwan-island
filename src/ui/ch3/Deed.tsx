@@ -5,7 +5,7 @@ import {
 } from '../../data/ch3';
 import { PEOPLE, type Line } from '../../data/babao-chapter';
 import { Face, Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards3, type Step3Props } from '../Ch3';
 import { Decide3 } from './Story3';
 import { jingle, sfx } from '../../audio';
@@ -52,7 +52,8 @@ function Decode({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const all = UNKNOWN.every((w) => guess[w]);
   return (
     <div className="ch3-deed-wrap">
-      <Goal floating text="猜出三個不認得的方向字。查單字表，再讀讀下面的句子。" />
+      <Goal floating id="deed" text={all ? '都猜好了，按「讀讀看」。' : '點方向，猜出三個不認得的字。查右邊的單字表，再讀讀上面的句子。'} />
+      <Hand at={won ? null : all ? '.ch3-deed-head .btn' : '.ch3-guess-row button'} first={!fails && (!Object.keys(guess).length || all)} />
       <div className="ch3-deed panel">
         <div className="ch3-deed-head"><h3>📜 社裡的契約</h3><button className={`btn green ${all ? 'go-ready' : 'wait'}`} disabled={won} onClick={() => all ? check() : (sfx('SE-04'), setSay({ who: 'uma', text: `還有 ${UNKNOWN.filter((w) => !guess[w]).length} 個字沒猜。每個不認得的字，都在下面點一個方向。` }))}>讀讀看</button></div>
         <ol className="ch3-contract">
@@ -69,7 +70,7 @@ function Decode({ oops, onDone }: { oops: () => void; onDone: () => void }) {
             <div key={w} className={`ch3-guess-row ${wrong.includes(w) ? 'wrong' : ''}`}>
               <b>{w}</b><span>是</span>
               {DIRS.map((d) => (
-                <button key={d} className={`${guess[w] === d ? 'on' : ''} ${fails >= 3 && SECRET[w] === d ? 'ch3-hint' : ''}`} onClick={() => pick(w, d)} disabled={won}>{DIR_NAME[d]}</button>
+                <button key={d} className={`${guess[w] === d ? 'on' : ''} ${fails >= 2 && SECRET[w] === d ? 'ch3-hint' : ''}`} onClick={() => pick(w, d)} disabled={won}>{DIR_NAME[d]}</button>
               ))}
             </div>
           ))}
@@ -83,7 +84,7 @@ function Decode({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           <div key={c.text} className="ch3-clue"><Face who={c.who} small /><span><b style={{ color: PEOPLE[c.who].color }}>{PEOPLE[c.who].name}</b>{c.text}</span></div>
         ))}
       </div>
-      {fails >= 5 && !won && <button className="btn demo corner-btn" onClick={() => { const g = { ...SECRET }; setGuess(g); setTimeout(() => check(g), 600); }}>看示範</button>}
+      {fails >= 3 && !won && <button className="btn demo corner-btn" onClick={() => { const g = { ...SECRET }; setGuess(g); setTimeout(() => check(g), 600); }}>看示範</button>}
       <Say line={say} />
     </div>
   );
@@ -128,7 +129,8 @@ function Trace({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const pts = path.slice(0, k + 1).map((s) => xy(s).join(',')).join(' ');
   return (
     <div className="ch3-deed-wrap trace">
-      <Goal floating text={done ? '界線找到了！' : `第 ${k + 1} 句：${line.words.join(' ')}（${line.words.map((w) => gloss(w, SECRET)).join('')}）`} />
+      <Hand at={done ? null : `.ch3-spot[data-id="${want.id}"]`} first={k === 0 && !fails} />
+      <Goal floating id="trace" text={done ? '界線找到了！' : `點地圖上的下一個地標。第 ${k + 1} 句：${line.words.join(' ')}（${line.words.map((w) => gloss(w, SECRET)).join('')}）`} />
       <div className="ch3-land">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="ch3-land-svg">
           <path className="river" d={`M ${(RIVER_X / COLS) * 100} 0 C ${(RIVER_X / COLS) * 100 + 4} 30, ${(RIVER_X / COLS) * 100 - 4} 60, ${(RIVER_X / COLS) * 100 + 2} 100`} />
@@ -143,7 +145,7 @@ function Trace({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           const at = path[k].id === s.id;
           const passed = path.slice(0, k + 1).some((q) => q.id === s.id);
           return (
-            <button key={s.id} className={`ch3-spot ${s.kind} ${at ? 'at' : ''} ${passed ? 'passed' : ''} ${bad === s.id ? 'bad' : ''} ${fails >= 3 && !done && want.id === s.id ? 'ch3-hint' : ''}`}
+            <button key={s.id} data-id={s.id} className={`ch3-spot ${s.kind} ${at ? 'at' : ''} ${passed ? 'passed' : ''} ${bad === s.id ? 'bad' : ''} ${fails >= 2 && !done && want.id === s.id ? 'ch3-hint' : ''}`}
               style={{ left: `${x}%`, top: `${y}%` }} onClick={() => tap(s)} aria-label={WORDS[s.kind]}>
               {icon.startsWith('/') || icon.includes('.webp') ? <img src={icon} alt="" /> : <i>{icon || '💧'}</i>}
               <small>{s.kind}</small>
@@ -152,7 +154,7 @@ function Trace({ oops, onDone }: { oops: () => void; onDone: () => void }) {
         })}
         <div className="ch3-rose"><b>北</b><span>西 ✛ 東</span><b>南</b></div>
       </div>
-      {fails >= 5 && !done && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && !done && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );

@@ -1,17 +1,18 @@
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPE, type WheelEvent as RWE } from 'react';
 import {
-  AREAS, BUILDINGS, BUILD_ORDER, COMBOS, GOODS, JOB_ART, MONTH_SEASON, PLAZA, SEASON_NAME, STAR_AT, TAGS, TUTORIAL, TUTORIAL_END,
+  AREAS, BUILDINGS, BUILD_ORDER, CATCHES, COMBOS, GOODS, JOB_ART, MONTH_SEASON, PLAZA, SEASON_NAME, STAR_AT, TAGS, TUTORIAL,
   VH, VW, VILLAGE_LINES, dist, vimg, type Good, type Kind,
 } from '../data/village';
 import {
   PREPARE, REPAIR, WEATHER, advance, assign, build, canDive, canFestival, canPlace, canSeine, dive, festival, hasDiver, capacity, checkQuests, combosOf, currentQuest,
   demolish, freshVillage, idle, loadVillage, move, prepare, rating, repair, saveVillage, seine, seineFish, stars, threat, unassign,
-  workerOf, type Bld, type MonthReport, type Village as V,
+  workerOf, yearGoal, bestSlot, snapTo, refundOf, monthIndex, yearGoalDone, type Bld, type MonthReport, type Village as V,
 } from '../core/village';
 import type { Pt } from '../core/world';
 import { pushCloud } from '../net/cloud';
+import { SLOTS, SLOT_H, SLOT_W } from '../data/villageSlots';
 import { sfx } from '../audio';
-import { Beacon, Goal } from './Guide';
+import { Beacon, Goal, Hand } from './Guide';
 import { Say } from './Talk';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
@@ -32,6 +33,9 @@ type Placing = { kind: Kind; id?: number; at: Pt } | null;
 type Alert = { kind: 'typhoon' | 'cold' | 'festival' } | null;
 type Cam = { x: number; y: number; z: number }; // 畫面中央是地圖上的哪一點、1 個地圖單位幾 px
 
+// 每個任務建議蓋哪一棟（手指用）
+const QUEST_KIND: Record<string, Kind | undefined> = { house: 'brick', pier: 'pier', market: 'market', star2: 'brick', seine: 'netshed', typhoon: 'shelter', star3: 'garden', festival: 'temple' };
+
 export function Village({ onExit }: { onExit: () => void }) {
   const [s, setS] = useState<V>(loadVillage);
   useEffect(() => { saveVillage(s); pushCloud('village', s); }, [s]);
@@ -49,14 +53,27 @@ export function Village({ onExit }: { onExit: () => void }) {
   const [toast, setToast] = useState<string[]>([]);
   const [pops, setPops] = useState<{ key: number; id: number; text: string }[]>([]);
   const [restart, setRestart] = useState(false);
+  const [card, setCard] = useState<MonthReport | null>(null); // 月底結算卡
+  const [dexOpen, setDexOpen] = useState(false);
   const live = useRef(s);
   live.current = s;
   // 進場：底圖、已經蓋好的建築、村民的圖先讀好才掀開
   const ready = useImagesReady(() => villageImages(live.current), '漁村的圖讀好');
 
   const tut = s.tut < TUTORIAL.length ? TUTORIAL[s.tut] : null; // 教學中：這一步要蓋哪一棟
-  const tutEnd = s.tut === TUTORIAL.length; // 三棟蓋完，最後一段說明
-  const paused = ready < 1 || speed === 0 || intro >= 0 || !!alert || seining || !!game || !!tut || tutEnd || restart;
+  const tutEnd = s.tut === TUTORIAL.length; // 三棟蓋完：再帶兩小步（點碼頭看誰在工作 → 按快轉看第一次月底結算）
+  const [endStep, setEndStep] = useState<'look' | 'speed' | 'wait'>('look');
+  const paused = ready < 1 || speed === 0 || intro >= 0 || !!alert || seining || !!game || !!tut || (tutEnd && endStep !== 'wait') || restart;
+
+  useEffect(() => { if (tutEnd && endStep === 'look' && pick !== null && s.b.find((b) => b.id === pick)?.kind === 'pier') setTimeout(() => setEndStep('speed'), 1500); }, [pick]); // eslint-disable-line react-hooks/exhaustive-deps
+  const waitFrom = useRef(0);
+  useEffect(() => { if (endStep === 'wait') waitFrom.current = s.month; }, [endStep]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!tutEnd || endStep !== 'wait' || s.month === waitFrom.current) return;
+    sfx('SE-36');
+    setS((o) => ({ ...o, tut: TUTORIAL.length + 1 }));
+    setSay('第一次結算完成！村子開張了，接下來照左下角的 🎯 目標玩下去。');
+  }, [s.month]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 鏡頭 ──
   const stage = useRef<HTMLDivElement>(null);
@@ -115,13 +132,13 @@ export function Village({ onExit }: { onExit: () => void }) {
     }
     if (!g.current.moved && Math.hypot(e.clientX - g.current.x, e.clientY - g.current.y) < 8) return;
     g.current.moved = true;
-    if (g.current.ghost && placing) { setPlacing({ ...placing, at: toMap(e.clientX, e.clientY) }); return; }
+    if (g.current.ghost && placing) { const at = snapTo(toMap(e.clientX, e.clientY)); if (at.x !== placing.at.x || at.y !== placing.at.y) setPlacing({ ...placing, at }); return; }
     setCam((c0) => { const c = clamp(c0); return { ...c, x: c.x - (e.clientX - old.x) / c.z, y: c.y - (e.clientY - old.y) / c.z }; });
   };
   const onUp = (e: RPE) => {
     ptrs.current.delete(e.pointerId);
     if (ptrs.current.size) return;
-    if (!g.current.moved && placing) setPlacing({ ...placing, at: toMap(e.clientX, e.clientY) });
+    if (!g.current.moved && placing) setPlacing({ ...placing, at: snapTo(toMap(e.clientX, e.clientY)) });
   };
   const onWheel = (e: RWE) => {
     const r = stage.current!.getBoundingClientRect();
@@ -158,6 +175,7 @@ export function Village({ onExit }: { onExit: () => void }) {
   // 一進來剛好碰上颱風／寒流月，也要先跳警報
   useEffect(() => { const th = threat(s); if (th && !s.prepared && s.tut > TUTORIAL.length) setAlert({ kind: th }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const cardT = useRef(0);
   const flash = (msgs: string[]) => { setToast(msgs); setTimeout(() => setToast([]), 4000); };
   const report = (r: MonthReport) => {
     if (r.pops.length) {
@@ -169,7 +187,10 @@ export function Village({ onExit }: { onExit: () => void }) {
     const msgs = [...r.arrived.map((n) => `🏠 ${n}搬回村子了！`), ...(r.quest ? [`🎯 任務完成！${r.quest.split('。')[0]}`] : [])];
     if (msgs.length) flash(msgs);
     if (r.quest) sfx('SE-36');
-    if (r.news.length) setSay(r.news.join(''));
+    // 月底結算卡：5 秒自己收起來（點一下也收）
+    if (live.current.tut > TUTORIAL.length) { setCard(r); clearTimeout(cardT.current); cardT.current = window.setTimeout(() => setCard(null), 5500); }
+    else if (r.news.length) setSay(r.news.join(''));
+    if (r.dex.length) sfx('SE-36');
   };
 
   // 蓋、搬完馬上檢查任務（不用等月底）
@@ -198,10 +219,10 @@ export function Village({ onExit }: { onExit: () => void }) {
     if (tut && k !== tut.kind) { sfx('SE-04'); setSay(`先蓋${BUILDINGS[tut.kind].name}，教完就能蓋別的了。`); return; }
     if (stars(s) < d.stars || s.coins < d.cost) { sfx('SE-04'); return; }
     sfx('SE-03'); setMenu(false); setPick(null);
-    // 要蓋的建築先出現在畫面中間（教學時放在目標旁邊一點，讓小朋友學會點、拖）
-    const start = tut ? { x: tut.at.x + 170, y: tut.at.y - 110 } : { x: view.x, y: view.y };
+    // 要蓋的建築先放在畫面中間附近、能蓋的格子上（教學時放在目標旁邊另一格，讓小朋友學會點、拖）
+    const start = (tut ? bestSlot(s, k, tut.at, tut.at) : bestSlot(s, k, { x: view.x, y: view.y })) ?? snapTo({ x: view.x, y: view.y });
     setPlacing({ kind: k, at: start });
-    if (tut) flyTo({ x: tut.at.x + 80, y: tut.at.y - 40 });
+    flyTo(tut ? { x: (tut.at.x + start.x) / 2, y: (tut.at.y + start.y) / 2 } : start);
   };
 
   const st = stars(s), rt = rating(s);
@@ -215,13 +236,22 @@ export function Village({ onExit }: { onExit: () => void }) {
 
   // 教學這一小步要指哪裡
   const tStep = !tut || intro >= 0 ? null
-    : placing?.kind === tut.kind && !placing.id ? (check?.ok && dist(placing.at, tut.at) < 140 ? 'confirm' : 'place')
+    : placing?.kind === tut.kind && !placing.id ? (check?.ok && dist(placing.at, tut.at) < 20 ? 'confirm' : 'place')
     : menu ? 'pick' : 'open';
   const coach = !tut || !tStep ? null
-    : tStep === 'open' ? `${tut.say}點右下角的「🔨 蓋」。`
+    : tStep === 'open' ? `點右下角的「🔨 蓋」。${tut.say}`
     : tStep === 'pick' ? `選「${BUILDINGS[tut.kind].name}」。`
-    : tStep === 'place' ? `點地圖上發亮的地方，${BUILDINGS[tut.kind].name}就會移過去（也可以按住它拖）。`
-    : '綠色代表這裡可以蓋，按「蓋在這裡」！';
+    : tStep === 'place' ? `點地圖上發亮的地方。${BUILDINGS[tut.kind].name}會移過去，也可以按住它拖。`
+    : '按「蓋在這裡」。綠色代表這裡可以蓋。';
+  // 教完三棟的兩小步
+  const endGoal = !tutEnd || intro >= 0 ? null
+    : endStep === 'look' ? '點碼頭，看看誰在工作。每一棟都可以點開看。'
+    : endStep === 'speed' ? '按右上角的「⏩」快轉。時間會走，每個月底結算一次。'
+    : '等月底結算：碼頭捕魚、市場把魚賣成錢。';
+  // 教學後的任務：停住時手指指「蓋」，選單打開就指建議蓋的那棟
+  const questKind = quest ? QUEST_KIND[quest.id] : undefined;
+  const questHand = tut || tutEnd || intro >= 0 || placing || !quest || !questKind ? null
+    : menu ? `.v-item[data-kind="${questKind}"]:not(.lock)` : picked ? null : '.v-build';
 
   // 建築：只有村子、選到哪棟、放大縮小有變才重做（拖地圖、村民走路都不用重畫它們）
   const placingNow = useRef(placing);
@@ -229,7 +259,7 @@ export function Village({ onExit }: { onExit: () => void }) {
   const buildings = useMemo(() => s.b.filter((b) => b.id !== placing?.id).map((b) => {
       const d = BUILDINGS[b.kind], lack = d.job && b.worker === null && !b.broken;
       return (
-        <button key={`b${b.id}`} className={`v-bld ${b.broken ? 'broken' : ''} ${pick === b.id ? 'on' : ''}`}
+        <button key={`b${b.id}`} data-kind={b.kind} className={`v-bld ${b.broken ? 'broken' : ''} ${pick === b.id ? 'on' : ''}`}
           style={{ ...pct(b.at), width: wpct(d.width), zIndex: Math.round(b.at.y) }}
           onClick={(e) => { e.stopPropagation(); if (placingNow.current || g.current.moved) return; sfx('SE-01'); setMenu(false); setPick(pick === b.id ? null : b.id); }}>
           <img src={vimg(d.art)} alt={d.name} draggable={false} />
@@ -256,6 +286,13 @@ export function Village({ onExit }: { onExit: () => void }) {
               <span>{a.name}<br />村子 {'⭐'.repeat(a.stars)} 就散開</span>
             </div>
           ))}
+          {placing && SLOTS.map((g) => {
+            // 蓋的時候把格子畫出來：能蓋的綠色、不能蓋的灰色，已經有房子的不畫
+            if (s.b.some((b) => b.id !== placing.id && Math.hypot(b.at.x - g.x, b.at.y - g.y) < 40)) return null;
+            const ok = canPlace(s, placing.kind, g, placing.id).ok, here = g.x === placing.at.x && g.y === placing.at.y;
+            return <i key={`g${g.x},${g.y}`} className={`v-slot ${g.lot ? 'lot' : ''} ${ok ? 'ok' : 'no'} ${here ? 'here' : ''}`}
+              style={{ ...pct(g), width: wpct(SLOT_W), height: `${(SLOT_H / VH) * 100}%`, zIndex: 2 }} />;
+          })}
           {placing && (
             <div className={`v-ghost ${check?.ok ? 'ok' : 'bad'}`} style={{ ...pct(placing.at), width: wpct(BUILDINGS[placing.kind].width), zIndex: 4000 }}>
               <img src={vimg(BUILDINGS[placing.kind].art)} alt="" draggable={false} />
@@ -284,21 +321,55 @@ export function Village({ onExit }: { onExit: () => void }) {
           <span>{'⭐'.repeat(st)}<em>{'☆'.repeat(5 - st)}</em></span>
           {nextAt !== null && <i className="v-month"><i style={{ width: `${Math.min(1, (rt - STAR_AT[st - 1]) / (nextAt - STAR_AT[st - 1])) * 100}%` }} /></i>}
         </div>
+        {s.tut > TUTORIAL.length && <button className="v-chip v-dex" onClick={() => { sfx('SE-03'); setDexOpen(true); }}>📖 漁獲 {s.dex.length}/{CATCHES.length}</button>}
         <div className="v-chip v-speed">
-          {([0, 1, 2] as const).map((v) => <button key={v} className={speed === v ? 'on' : ''} aria-label={['暫停', '播放', '快轉'][v]} onClick={() => { sfx('SE-01'); setSpeed(v); }}>{['⏸', '▶', '⏩'][v]}</button>)}
+          {([0, 1, 2] as const).map((v) => <button key={v} className={speed === v ? 'on' : ''} aria-label={['暫停', '播放', '快轉'][v]} onClick={() => { sfx('SE-01'); setSpeed(v); if (tutEnd && endStep === 'speed' && v > 0) { setEndStep('wait'); setPick(null); } }}>{['⏸', '▶', '⏩'][v]}</button>)}
         </div>
         <SoundToggle className="v-chip v-sound" />
         <ReportButton className="v-chip v-sound" screen="village" />
       </header>
 
-      {coach && (
-        <div className="v-coach">
-          <img src={`${import.meta.env.BASE_URL}img/tick/happy.webp`} alt="" />
-          <p><b>教學 {s.tut + 1}/{TUTORIAL.length}</b>{coach}</p>
+      {coach && <Goal floating id={`tut${s.tut}-${tStep}`} text={`${coach}（教學 ${s.tut + 1}/${TUTORIAL.length}）`} />}
+      {endGoal && ready >= 1 && <>
+        <Goal floating id={`tutEnd-${endStep}`} text={endGoal} />
+        <Hand at={endStep === 'look' ? (picked ? null : '.v-bld[data-kind="pier"]') : endStep === 'speed' ? '.v-speed button[aria-label="快轉"]' : null} first />
+      </>}
+      <Hand at={questHand} first={!!menu} />
+      {!tut && !tutEnd && quest && intro < 0 && !placing && <Goal id={quest.id} text={quest.text} floating />}
+      {s.done && !quest && intro < 0 && !placing && (() => {
+        const yg = yearGoal(s);
+        return yg && <Goal floating id={`year${s.year}-${yearGoalDone(s)}`} text={yearGoalDone(s) ? `今年的挑戰完成了！明年還有新挑戰。漁獲圖鑑 ${s.dex.length}/${CATCHES.length}。` : `第 ${s.year} 年挑戰・${yg.text}。完成送 💰${yg.reward}。`} />;
+      })()}
+      {card && (
+        <div className="v-report panel" onClick={() => setCard(null)}>
+          <b>📅 {card.month} 月結算</b>
+          <p>
+            {(Object.keys(card.made) as Good[]).map((gd) => <span key={gd}>{GOODS[gd].icon}+{card.made[gd]}</span>)}
+            {card.earned > 0 && <span>💰+{card.earned}</span>}
+            {!Object.keys(card.made).length && !card.earned && <span>這個月沒有收成</span>}
+          </p>
+          {card.dex.map((id) => { const c = CATCHES.find((x) => x.id === id)!; return <p key={id} className="new">🆕 圖鑑：{c.icon}{c.name}</p>; })}
+          {card.arrived.length > 0 && <p>🏠 {card.arrived.join('、')}搬回來了</p>}
+          {card.year && <p className="new">🏅 年度挑戰完成：{card.year}</p>}
+          {card.news[0] && <p className="news">{card.news[0]}</p>}
+          {card.tip && <p className="tip">💡 {card.tip}</p>}
         </div>
       )}
-      {!tut && !tutEnd && quest && intro < 0 && !placing && <Goal text={quest.text} floating />}
-      {s.done && !quest && <div className="quest floating"><i>🎉</i><span>五顆星！漁村又熱鬧起來了</span></div>}
+      {dexOpen && (
+        <div className="talk-cover t-cover" onClick={() => setDexOpen(false)}>
+          <div className="v-alert panel v-dexbook" onClick={(e) => e.stopPropagation()}>
+            <h2>📖 漁獲圖鑑 {s.dex.length}/{CATCHES.length}</h2>
+            <div className="v-dexgrid">
+              {CATCHES.map((c) => { const got = s.dex.includes(c.id); return (
+                <div key={c.id} className={`v-dexitem ${got ? 'got' : ''}`}>
+                  <i>{got ? c.icon : '❔'}</i><b>{got ? c.name : '？？？'}</b><small>{got ? c.fact : `提示：${c.hint}`}</small>
+                </div>
+              ); })}
+            </div>
+            <button className="btn green" onClick={() => setDexOpen(false)}>關起來</button>
+          </div>
+        </div>
+      )}
 
       <div className="v-zoom">
         <button onClick={() => zoomAt(1.3)} aria-label="放大">＋</button>
@@ -334,7 +405,7 @@ export function Village({ onExit }: { onExit: () => void }) {
             const d = BUILDINGS[k], lock = st < d.stars, poor = s.coins < d.cost, other = !!tut && k !== tut.kind;
             return (
               <span key={k} className="v-point-wrap">
-                <button className={`v-item ${lock ? 'lock' : poor ? 'poor' : ''} ${other ? 'dim' : ''}`} onClick={() => startBuild(k)}>
+                <button data-kind={k} className={`v-item ${lock ? 'lock' : poor ? 'poor' : ''} ${other ? 'dim' : ''}`} onClick={() => startBuild(k)}>
                   <img src={vimg(d.art)} alt="" />
                   <b>{d.name}</b>
                   <em>{TAGS[k]}</em>
@@ -431,19 +502,6 @@ export function Village({ onExit }: { onExit: () => void }) {
       {game === 'drum' && <Drum onDone={(hits) => { setGame(null); if (hits >= 0) commit(festival(s, hits)); }} />}
       {seining && <Seine people={s.people.length} fish={(gd) => seineFish(s, gd)}
         onDone={(good) => { setSeining(false); if (good >= 0) commit(seine(s, good)); }} />}
-
-      {ready >= 1 && tutEnd && intro < 0 && (
-        <div className="talk-cover" onClick={() => { sfx('SE-36'); setS({ ...s, tut: TUTORIAL.length + 1 }); }}>
-          <div className="talk">
-            <div className="face small tick"><img src={`${import.meta.env.BASE_URL}img/tick/happy.webp`} alt="" /></div>
-            <div className="talk-body">
-              <b style={{ color: '#ffc23d' }}>滴答</b>
-              <p>{TUTORIAL_END}</p>
-              <span className="talk-next">點一下開始經營 ▶</span>
-            </div>
-          </div>
-        </div>
-      )}
 
       <PlaceLoading pct={ready} label="漁村準備中" />
 
@@ -563,6 +621,8 @@ function BuildingCard({ s, b, onAssign, onUnassign, onRepair, onMove, onDemolish
   const combos = combosOf(s, b);
   const can = COMBOS.filter(([x, y]) => x === b.kind || y === b.kind).map(([x, y]) => BUILDINGS[x === b.kind ? y : x].name);
   const [sure, setSure] = useState(false);
+  // 這個月剛蓋的（蓋錯了）：一按就收回、全額退；蓋好一陣子的才要再確認一次、退一半
+  const fresh = b.builtAt === monthIndex(s), refund = refundOf(s, b);
   const free = idle(s);
   return (
     <div className="v-card panel" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
@@ -584,7 +644,8 @@ function BuildingCard({ s, b, onAssign, onUnassign, onRepair, onMove, onDemolish
       {!combos.length && can.length > 0 && <p className="v-hint">搬到 {[...new Set(can)].join('、')} 旁邊會有加成</p>}
       <div className="v-card-btns">
         <button className="btn" onClick={onMove}>搬家</button>
-        {sure ? <button className="btn red" onClick={onDemolish}>真的拆（退 💰{Math.floor(d.cost / 2)}）</button>
+        {fresh ? <button className="btn orange" onClick={onDemolish}>收回（退 💰{refund}）</button>
+          : sure ? <button className="btn red" onClick={onDemolish}>真的拆（退 💰{refund}）</button>
           : <button className="btn" onClick={() => setSure(true)}>拆掉</button>}
       </div>
     </div>

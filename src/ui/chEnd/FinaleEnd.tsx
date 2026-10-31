@@ -3,7 +3,7 @@ import { BACK_TODAY, CARDS_END, CHOICES_END, KEEPSAKE_END, QUESTIONS_END, TRUTH_
 import { PEOPLE } from '../../data/babao-chapter';
 import { Face, Talk } from '../Talk';
 import { freshEnd, starsEnd } from '../../core/saveEnd';
-import { PARK_URL } from '../../net/park';
+import { PARK_MAP, PARK_URL } from '../../net/park';
 import { NewCardsEnd, type StepEndProps } from '../ChEnd';
 import { ambience, jingle, sfx } from '../../audio';
 
@@ -122,7 +122,7 @@ export function FinaleEnd({ p, set, exit }: StepEndProps) {
             <div className="row">
               <button className="btn green" onClick={exit}>回大地圖看看</button>
               <button className="btn orange" onClick={() => set((o) => ({ ...freshEnd(), friends: o.friends, keepsakes: o.keepsakes, note: o.note, cards: o.cards, revealed: o.revealed }))}>從頭再玩</button>
-              {PARK_URL && <a className="btn orange" href={PARK_URL}>回樂園</a>}
+              {PARK_URL && <a className="btn orange" href={PARK_MAP ?? undefined}>回樂園</a>}
             </div>
           </div>
         </div>

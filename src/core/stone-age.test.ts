@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
-  canStrike, cut, endSeason, fire, fireSolve, flake, forestOf, forestOver, grind, grindDone, grindSolve, knapDone, knapSolve,
+  canStrike, cut, easyFired, endSeason, fire, fireEasySolve, fireSolve, flake, forestOf, forestOver, grind, grindDone, grindSolve, knapDone, knapSolve,
   plant, slideCols, smelt, stoneOf, strike, tooThin, type Forest,
 } from './stone-age';
 import { FIRES, FOREST, GRINDS, KNAPS } from '../data/ch1';
@@ -40,6 +40,16 @@ describe('野燒', () => {
     expect(p).not.toBeNull();
     expect(fire(lv, p).result).toBe('ok');
     lv.wet.forEach((w) => expect(p[w] ?? 0).toBe(0));
+  });
+  test.each(FIRES.map((f, i) => [i + 1, f.level] as const))('故事版第 %i 窯有解、不放濕地', (_, lv) => {
+    const p = fireEasySolve(lv)!;
+    expect(p).not.toBeNull();
+    expect(easyFired(lv, p)).toBe(true);
+    lv.wet.forEach((w) => expect(p[w] ?? 0).toBe(0));
+  });
+  test('故事版有風的那一窯，四面正面各 2 捆不夠（要多照顧風那面）', () => {
+    expect(easyFired(FIRES[0].level, { N: 2, E: 2, S: 2, W: 2 })).toBe(true);
+    expect(easyFired(FIRES[1].level, { N: 2, E: 2, S: 2, W: 2 })).toBe(false);
   });
 });
 

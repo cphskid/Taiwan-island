@@ -151,9 +151,9 @@ export const TAGS: Record<Kind, string> = {
 
 // 新手教學：照順序蓋這三棟（時間先停著），每一棟都有「點蓋 → 選它 → 點發亮的地方 → 按蓋在這裡」四小步
 export const TUTORIAL: { kind: Kind; at: Pt; say: string }[] = [
-  { kind: 'brick', at: { x: 700, y: 560 }, say: '阿海伯家太擠了（上面的 👥 3/2 是紅的），先蓋一間紅磚厝。' },
-  { kind: 'pier', at: { x: 1060, y: 660 }, say: '有地方住了，接著要賺錢：在海灣邊蓋漁港碼頭，派人出海捕魚。' },
-  { kind: 'market', at: { x: 910, y: 590 }, say: '魚要賣掉才有錢。在碼頭旁邊蓋市場，擺在一起有加成。' },
+  { kind: 'brick', at: { x: 735, y: 568 }, say: '阿海伯家太擠了（上面的 👥 3/2 是紅的），先蓋一間紅磚厝。' },
+  { kind: 'pier', at: { x: 880, y: 705 }, say: '有地方住了，接著要賺錢：在海灣邊蓋漁港碼頭，派人出海捕魚。' },
+  { kind: 'market', at: { x: 908, y: 587 }, say: '魚要賣掉才有錢。在碼頭旁邊蓋市場，擺在一起有加成。' },
 ];
 export const TUTORIAL_END = '太棒了，村子開張了！時間會自己走，每個月底結算一次：碼頭捕魚、市場把魚賣成錢。點任何建築，可以看它在做什麼、誰在工作。右上角可以暫停或快轉。接下來照上面的 🎯 目標玩下去！';
 
@@ -198,6 +198,28 @@ export const QUESTS: Quest[] = [
   { id: 'star4', text: '讓村子評價到 ⭐⭐⭐⭐，後面山坡會打開', reward: 60 },
   { id: 'star5', text: '讓村子評價到 ⭐⭐⭐⭐⭐，漁村又熱鬧起來了！', reward: 100 },
 ];
+
+// 漁獲圖鑑（漁村四季）：哪個季節、哪一棟在工作才會捕到。內容待老師審（季節漁業的說法）
+export interface Catch { id: string; name: string; icon: string; hint: string; fact: string }
+export const CATCHES: Catch[] = [
+  { id: 'squid', name: '小卷（鎖管）', icon: '🦑', hint: '夏天（6～8 月）的漁港碼頭', fact: '夏天晚上，漁船點亮集魚燈，小卷會朝著燈光游過來。' },
+  { id: 'eel', name: '鰻苗', icon: '🪱', hint: '冬天（11～2 月）的漁港碼頭', fact: '冬天透明的鰻魚寶寶會游到河口，漁民在河口撈，又叫「白金」。' },
+  { id: 'milkfish', name: '虱目魚', icon: '🐟', hint: '魚塭（寒流月份不行）', fact: '虱目魚養在魚塭裡，最怕冷，寒流來之前要把水加深。' },
+  { id: 'agar', name: '石花菜', icon: '🌿', hint: '春夏（3～9 月）的海女小屋', fact: '退潮時海女在礁岩上採石花菜，煮成石花凍很消暑。' },
+  { id: 'urchin', name: '海膽', icon: '🟣', hint: '夏天（6～8 月）的海女小屋', fact: '夏天海女潛到礁岩下抓海膽，要小心刺。' },
+  { id: 'anchovy', name: '丁香魚', icon: '🐠', hint: '全村一起牽罟', fact: '牽罟拉上岸的小魚，是全村一起拉網的收穫。' },
+  { id: 'salt', name: '海鹽', icon: '🧂', hint: '晴天的鹽田', fact: '把海水引進鹽田，晴天曬乾就變成鹽；下雨就曬不出來。' },
+];
+
+// 五顆星之後：每一年一個小挑戰（照年份輪流）
+export interface YearGoal { id: string; text: string; reward: number }
+export const YEAR_GOALS: YearGoal[] = [
+  { id: 'safe', text: '平安的一年：今年颱風來都不讓建築被吹壞（記得先做防颱）', reward: 60 },
+  { id: 'fish', text: '豐收年：今年碼頭和魚塭捕到 150 條魚', reward: 60 },
+  { id: 'drum', text: '熱鬧廟會：今年三月自己打鼓，打中 10 下以上', reward: 60 },
+  { id: 'seine', text: '全村出動：今年牽罟 3 次', reward: 60 },
+];
+export const YEAR_FISH = 150, YEAR_DRUM = 10, YEAR_SEINE = 3;
 
 export const VILLAGE_LINES = {
   intro: [

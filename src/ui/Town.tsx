@@ -8,6 +8,7 @@ import { pushCloud } from '../net/cloud';
 import { sfx } from '../audio';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
+import { Goal, Hand } from './Guide';
 import { PlaceLoading, useImagesReady } from './Ready';
 import imgList from 'virtual:img-list';
 
@@ -111,6 +112,15 @@ export function Town({ onExit }: { onExit: () => void }) {
         </div>
       </div>
 
+      {!run && !dist && <>
+        <Hand at=".t-pin" first={!solvedCount(s)} />
+        <Goal floating id="town" text="點一個地方，接一個案子。" />
+      </>}
+      {!run && dist && <Hand at=".t-case:not(.done)" first={!solvedCount(s)} />}
+      {run?.phase === 'visit' && <>
+        <Hand at={allFound ? '.t-board .btn.green' : visiting ? '.t-spot:not(.done)' : '.t-sus:not(.on)'} first={!found.length || allFound} />
+        <Goal floating id={`case-${run.c.id}`} text={allFound ? '線索齊了！按「開始推理」。' : `${visiting ? '點街上的「❓」問問看。' : '點訊息裡奇怪的地方。'}找齊 ${clues.length} 條線索。`} />
+      </>}
       <header className="v-hud">
         <button className="v-chip v-back" onClick={() => { sfx('SE-02'); if (run) setRun(null); else onExit(); }}>{run ? '← 先不辦了' : '← 大地圖'}</button>
         <span className="v-chip">🕵️ 規則小鎮</span>

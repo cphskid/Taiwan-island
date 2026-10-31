@@ -3,7 +3,7 @@ import { colOf, damCheck, damSolve, damStart, isFixed, used, type Dam as DamGrid
 import { DAM, DAM_DONE, DAM_HINT, DAM_INTRO, DAM_SAY, art7 } from '../../data/ch7';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCards7, type Step7Props } from '../Ch7';
 import { EraJump7 } from './Story7';
 import { jingle, sfx } from '../../audio';
@@ -37,7 +37,13 @@ function Builder({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const [water, setWater] = useState<'none' | 'leak' | 'full'>('none');
   const u = used(DAM, d);
   const sol = damSolve(DAM);
-  const showAnswer = fails >= 3;
+  const showAnswer = fails >= 2;
+  // 手指：找第一格還沒放對的；材料不對先指材料
+  const cells = d.flatMap((r, row) => r.map((m, i) => ({ m, row, i }))).filter((c) => !isFixed(DAM, c.row, c.i));
+  const untouched = cells.every((c) => c.m === null);
+  const full = cells.every((c) => c.m !== null);
+  const miss = cells.find((c) => c.m !== sol[c.row][c.i]);
+  const handAt = water === 'full' ? null : !miss ? '.ch7-dam-foot .btn.green' : mat !== sol[miss.row][miss.i] ? `.ch7-mat[data-m="${sol[miss.row][miss.i]}"]` : `.ch7-cell[data-cell="${miss.row}-${miss.i}"]`;
 
   const put = (row: number, i: number) => {
     if (isFixed(DAM, row, i) || water === 'full') return;
@@ -76,11 +82,12 @@ function Builder({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const rows = d.map((r, row) => ({ r, row })).reverse();
   return (
     <div className="ch7-dam-wrap">
-      <Goal floating text="把大壩填滿：每層中間放黏土，黏土兩旁放砂，材料剛好用完。填好按「放水試試看」" />
+      <Hand at={handAt} first={!fails && untouched} />
+      <Goal floating id="dam" text={`${full ? '填滿了！按「放水試試看」。' : '先選材料，再點空格填進去。'}每層中間放黏土，黏土兩旁放砂，材料剛好用完。`} />
       <div className="ch7-dam-board panel">
         <div className="ch7-mats">
           {MATS.map((m) => (
-            <button key={m} className={`ch7-mat ${mat === m ? 'on' : ''}`} onClick={() => { sfx('SE-01'); setMat(m); }}>
+            <button key={m} data-m={m} className={`ch7-mat ${mat === m ? 'on' : ''}`} onClick={() => { sfx('SE-01'); setMat(m); }}>
               <img src={MAT_IMG[m]} alt="" />
               <b>{MAT_NAME[m]}</b>
               <small>剩 {DAM.stock[m] - u[m]}</small>
@@ -96,7 +103,7 @@ function Builder({ oops, onDone }: { oops: () => void; onDone: () => void }) {
                   const fixed = isFixed(DAM, row, i);
                   const ans = showAnswer && !fixed && m !== sol[row][i] ? sol[row][i] : null;
                   return (
-                    <button key={i} className={`ch7-cell m-${m ?? 'empty'} ${fixed ? 'fixed' : ''} ${ans ? `ans ans-${ans}` : ''}`}
+                    <button key={i} data-cell={`${row}-${i}`} className={`ch7-cell m-${m ?? 'empty'} ${fixed ? 'fixed' : ''} ${ans ? `ans ans-${ans}` : ''}`}
                       style={{ gridColumn: colOf(DAM, row, i) + 1 }} onClick={() => put(row, i)} aria-label={m ? MAT_NAME[m] : '空格'}>
                       {m && <img src={MAT_IMG[m]} alt="" />}
                     </button>
@@ -113,7 +120,7 @@ function Builder({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           <button className="btn green" disabled={water === 'full'} onClick={test}>放水試試看</button>
         </div>
       </div>
-      {fails >= 5 && water !== 'full' && <button className="btn demo corner-btn" onClick={() => { setD(sol.map((r) => [...r])); setBad(-1); setWater('none'); }}>看示範</button>}
+      {fails >= 3 && water !== 'full' && <button className="btn demo corner-btn" onClick={() => { setD(sol.map((r) => [...r])); setBad(-1); setWater('none'); }}>看示範</button>}
       <Say line={say} />
     </div>
   );

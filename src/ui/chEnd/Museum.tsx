@@ -4,7 +4,7 @@ import { glanceChapter } from '../../core/saveEnd';
 import { EXHIBIT_SHUFFLE, EXHIBITS, MUSEUM_DONE, MUSEUM_INTRO, MUSEUM_SAY, artE, type Exhibit } from '../../data/chEnd';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { NewCardsEnd, type StepEndProps } from '../ChEnd';
 import { jingle, sfx } from '../../audio';
 
@@ -61,18 +61,22 @@ export function Museum({ p, set, next, oops }: StepEndProps) {
   };
   const demo = () => { setPlaced({ ...ANSWER }); setWrong([]); setPick(null); };
   const done = allPlaced(EXHIBITS.map((e) => e.id), placed);
+  // 手指：沒拿展品時指第一樣；拿了只在錯兩次後指答案
+  const handAt = phase !== 'sort' || passed ? null : done ? '.end-museum-tray .btn.green' : !pick ? `.end-museum-item[data-id="${left[0]}"]`
+    : fails >= 2 ? `.end-museum-slot[data-i="${ANSWER[pick]}"]` : null;
   return (
     <div className="scene end-museum">
       <img className="scene-bg" src={artE('s-27')} alt="" />
       {phase === 'intro' && <Talk lines={MUSEUM_INTRO} onDone={() => setPhase('sort')} />}
       {phase !== 'intro' && (
         <div className="end-museum-wrap">
-          {phase === 'sort' && <Goal floating text={left.length ? `把展品放到對的年代：還有 ${left.length} 樣` : '都放好了，按「這樣對嗎？」'} />}
+          <Hand at={handAt} first={!fails && !Object.keys(placed).length && !pick} />
+          {phase === 'sort' && <Goal floating id="museum" text={!left.length ? '都放好了，按「這樣對嗎？」。' : !pick ? `點一樣展品，讀它的說明。放到對的年代，還有 ${left.length} 樣。` : `再點它屬於的年代台子。還有 ${left.length} 樣。`} />}
           {!passed && <div className="end-museum-tray panel">
             {left.map((id) => {
               const e = exOf(id);
               return (
-                <button key={id} className={`end-museum-item ${pick === id ? 'on' : ''} ${brought.has(id) ? 'brought' : ''}`} onClick={() => { sfx('SE-01'); setPick(pick === id ? null : id); }}>
+                <button key={id} data-id={id} className={`end-museum-item ${pick === id ? 'on' : ''} ${brought.has(id) ? 'brought' : ''}`} onClick={() => { sfx('SE-01'); setPick(pick === id ? null : id); }}>
                   <img src={e.img} alt="" />
                 </button>
               );
@@ -86,7 +90,7 @@ export function Museum({ p, set, next, oops }: StepEndProps) {
               const id = atSlot(i);
               const e = id ? exOf(id) : null;
               return (
-                <div key={i} role="button" className={`end-museum-slot ${pick ? 'ready' : ''} ${id && wrong.includes(id) ? 'wrong' : ''} ${fails >= 3 && pick && ANSWER[pick] === String(i) ? 'glow' : ''}`} onClick={() => put(i)}>
+                <div key={i} data-i={i} role="button" className={`end-museum-slot ${pick ? 'ready' : ''} ${id && wrong.includes(id) ? 'wrong' : ''} ${fails >= 2 && pick && ANSWER[pick] === String(i) ? 'glow' : ''}`} onClick={() => put(i)}>
                   <div className="end-museum-glass">{e && <img className={brought.has(e.id) ? 'brought' : ''} src={e.img} alt="" />}</div>
                   <b>{slotEx.when}</b>
                   {passed && <small>{slotEx.era}</small>}
@@ -97,7 +101,7 @@ export function Museum({ p, set, next, oops }: StepEndProps) {
           </div>
         </div>
       )}
-      {fails >= 5 && !passed && phase === 'sort' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
+      {fails >= 3 && !passed && phase === 'sort' && <button className="btn demo corner-btn" onClick={demo}>看示範</button>}
       {phase === 'done' && <Talk lines={MUSEUM_DONE} onDone={() => setPhase('cards')} />}
       {phase === 'cards' && <NewCardsEnd ids={['eras', 'today']} p={p} set={set} onDone={next} />}
       <Say line={phase === 'sort' ? say : null} />

@@ -3,7 +3,7 @@ import { teaGood, teaRun, type TeaRun } from '../../core/railway';
 import { TEA, TEA_DONE, TEA_EASY_INTRO, TEA_EASY_SAY, TEA_INTRO, TEA_RULE, TEA_SAY, TEA_STEPS, art6 } from '../../data/ch6';
 import type { Line } from '../../data/babao-chapter';
 import { Say, Talk } from '../Talk';
-import { Goal } from '../Guide';
+import { Goal, Hand } from '../Guide';
 import { ChallengeOffer, ChallengeTag } from '../Challenge';
 import { challengeDone } from '../Medal';
 import { NewCards6, type Step6Props } from '../Ch6';
@@ -69,7 +69,8 @@ function Journey({ oops, onDone }: { oops: () => void; onDone: () => void }) {
   const step = (id: string) => TEA_STEPS.find((t) => t.id === id)!;
   return (
     <div className="ch6-tea-wrap">
-      <Goal floating text={demo ? '先看阿春放第一站。' : '點卡片，照順序排出一片茶葉從茶園到外國的旅程。'} />
+      <Goal floating text={demo ? '先看阿春放第一站。' : '點下一站的卡片。照順序排出一片茶葉從茶園到外國的旅程。'} />
+      <Hand at={demo || !want ? null : `.tea-card[data-id="${want.id}"]`} first={placed.length === 1 && !miss} />
       <div className="panel tea-journey">
         <div className="tea-road">
           {TEA_STEPS.map((t, i) => {
@@ -86,7 +87,7 @@ function Journey({ oops, onDone }: { oops: () => void; onDone: () => void }) {
           {SHUFFLE.filter((id) => !placed.includes(id)).map((id) => {
             const t = step(id);
             return (
-              <button key={id} className={`tea-card ${bad === id ? 'bad' : ''} ${miss >= 2 && id === want?.id ? 'hint' : ''}`} disabled={demo || done} onClick={() => tap(id)}>
+              <button key={id} data-id={id} className={`tea-card ${bad === id ? 'bad' : ''} ${miss >= 2 && id === want?.id ? 'hint' : ''}`} disabled={demo || done} onClick={() => tap(id)}>
                 <img src={art6(t.img)} alt="" />
                 <b>{t.name}</b>
                 <small>{t.text}</small>
@@ -135,7 +136,7 @@ function Schedule({ onDone, oops, night }: { onDone: () => void; oops: () => voi
             {TEA.batches.map((b) => {
               const k = order.indexOf(b.id);
               return (
-                <button key={b.id} className={`ch6-batch ${k >= 0 ? 'on' : ''} ${fails >= 3 && k < 0 && good[order.length] === b.id ? 'hint' : ''}`}
+                <button key={b.id} className={`ch6-batch ${k >= 0 ? 'on' : ''} ${fails >= 2 && k < 0 && good[order.length] === b.id ? 'hint' : ''}`}
                   onClick={() => (k >= 0 ? drop(b.id) : add(b.id))} style={{ ['--tint' as string]: TEA_TINT[b.id] }}>
                   {k >= 0 && <em className="ch6-batch-n">{k + 1}</em>}
                   <img src={art6(TEA_IMG[b.id])} alt="" />
@@ -183,7 +184,7 @@ function Schedule({ onDone, oops, night }: { onDone: () => void; oops: () => voi
           <button className={`btn green ${left.length ? 'wait' : 'go-ready'}`} disabled={!!run} onClick={() => left.length ? (sfx('SE-04'), setSay({ who: 'chun', mood: 'thinking', text: `還有 ${left.length} 批茶沒排進去喔！把每一批都點進順序裡，才能開工。` })) : start()}>開工！</button>
         </div>
       </div>
-      {fails >= 5 && !run?.ok && <button className="btn demo corner-btn" onClick={() => { setOrder(good); setRun(null); }}>看示範</button>}
+      {fails >= 3 && !run?.ok && <button className="btn demo corner-btn" onClick={() => { setOrder(good); setRun(null); }}>看示範</button>}
       <Say line={say} />
     </div>
   );

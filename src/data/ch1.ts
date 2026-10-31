@@ -112,10 +112,10 @@ export const STONES_INTRO: Line[] = [
   { who: 'yan', mood: 'happy', text: '到海邊了！月亮好亮。點一點石頭，敲敲看哪一顆聲音最清脆。' },
   { who: 'yan', mood: 'determined', text: '要一顆硬的當材料、一顆圓的當槌子。阿爸說，好石頭會「叩」一聲。' },
 ];
-// 海灘上的石頭：soft 一敲就碎、hard 當材料、hammer 當槌子
+// 海灘上的石頭：soft 一敲就碎、hard 當材料、hammer 當槌子（左下角留給目標條，不要擺石頭）
 export const BEACH: { kind: 'soft' | 'hard' | 'hammer'; x: number; y: number }[] = [
-  { kind: 'soft', x: 0.22, y: 0.78 }, { kind: 'hard', x: 0.38, y: 0.86 }, { kind: 'soft', x: 0.55, y: 0.8 },
-  { kind: 'hammer', x: 0.7, y: 0.88 }, { kind: 'soft', x: 0.84, y: 0.76 }, { kind: 'hard', x: 0.46, y: 0.72 },
+  { kind: 'soft', x: 0.18, y: 0.72 }, { kind: 'hard', x: 0.34, y: 0.74 }, { kind: 'soft', x: 0.54, y: 0.8 },
+  { kind: 'hammer', x: 0.7, y: 0.86 }, { kind: 'soft', x: 0.82, y: 0.6 }, { kind: 'hard', x: 0.5, y: 0.64 },
 ];
 export const STONE_SAY = {
   soft: { who: 'yan', mood: 'frown', text: '沙沙的、一敲就碎，這種軟石頭不行。' } as Line,
@@ -123,8 +123,8 @@ export const STONE_SAY = {
   hammer: { who: 'yan', mood: 'thumbs', text: '圓圓的、拿起來剛好，這顆當槌子！' } as Line,
 };
 export const KNAP_INTRO: Line[] = [
-  { who: 'yan', mood: 'determined', text: '虛線是要留下來的形狀。點石頭邊邊的一格，再選從哪一邊敲。' },
-  { who: 'tick', mood: 'thinking', text: '小心，石片很大片，會連後面那一格一起掉下來。先看黃色的預告再敲！' },
+  { who: 'yan', mood: 'determined', text: '看到石頭上的虛線嗎？虛線裡面要留下來，外面的都要敲掉。' },
+  { who: 'tick', mood: 'thinking', text: '一敲會掉一大片，連後面那一格一起掉。跟著手指先敲一下試試！' },
 ];
 export const KNAPS: { name: string; use: string; tool: string; level: KnapLevel }[] = [
   { name: '砍砸器', use: '可以砍樹枝、敲開貝殼', tool: art('g-03-chopper'), level: { rows: ['.oooo.', 'oo##oo', 'o####o', 'o####o', '.oooo.'] } },
@@ -175,6 +175,23 @@ export const FIRES: { level: FireLevel; tip: string }[] = [
   { level: { wood: 7, wind: 'N', wet: [] }, tip: '北邊吹來冷風，北面會少 1 分。' },
   { level: { wood: 7, wind: 'NE', wet: ['S'] }, tip: '東北季風來了，北面和東面各少 1 分；南邊地上濕濕的，不能放柴。' },
 ];
+// 故事版野燒（2026-10-29 遊戲設計原則：不算數學）：沒有分數、柴不限量，罐子每一面直接變色，四面都剛好就自己點火。
+// 每一窯一個關鍵決定：第一窯學正面燒一面、角落燒兩面；第二窯風吹來那面要多放；第三窯濕地不能放，用旁邊角落燒南面。
+// 原本算分數、柴要剛好用完的版本留作⭐⭐⭐再挑戰（FIRES、FIRE_INTRO）。
+export const FIRE_EASY_INTRO: Line[] = [
+  { who: 'potter', text: '我們不用窯，把柴堆在罐子四周直接燒，叫做野燒。' },
+  { who: 'potter', text: '罐子四面都要燒成紅褐色才算剛好。太冷燒不熟，太燙就會裂開。' },
+];
+export const FIRE_EASY_TIPS = [
+  '正面的柴燒一面，角落的柴同時燒兩面。',
+  '北風吹過來，北面比較冷，要多放一點柴。',
+  '東北季風吹過來，北面和東面比較冷。南邊地上濕濕的不能放柴，用旁邊的角落燒南面。',
+];
+export const FIRE_EASY_SAY = {
+  hot: { who: 'potter', text: '啪啦——那一面太燙，陶土快裂開了！柴不要全堆在同一邊。' } as Line,
+  wind: { who: 'yan', mood: 'thinking', text: '風一直吹，北面好像怎麼燒都不夠熱……那邊多放一點柴？' } as Line,
+  wet: { who: 'yan', mood: 'thinking', text: '南邊放不了柴，那旁邊的兩個角落呢？角落可以同時燒到南面。' } as Line,
+};
 export const FIRE_FAIL = {
   cold: { who: 'potter', text: '有一面還是灰灰的，沒燒熟。那一面附近再多放一點柴。' } as Line,
   crack: { who: 'potter', text: '啪！太燙的那一面裂了。柴不要全堆在同一邊。' } as Line,
