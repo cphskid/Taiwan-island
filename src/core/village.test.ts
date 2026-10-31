@@ -1,7 +1,7 @@
 import sql from '../../supabase/island_pioneer.sql?raw';
 import { describe, expect, it } from 'vitest';
 import {
-  advance, assign, build, canDive, canFestival, canPlace, canSeine, capacity, combosOf, dive, festival, festivalCoins,
+  advance, assign, build, demolish, canDive, canFestival, canPlace, canSeine, capacity, combosOf, dive, festival, festivalCoins,
   freshVillage, idle, loadVillage, monthIndex, toSlots, prepare, rating, rollWeather, seine, stars, yearGoal, type Village,
 } from './village';
 import { SLOTS } from '../data/villageSlots';
@@ -253,5 +253,17 @@ describe('月底結算、漁獲圖鑑、年度小挑戰', () => {
     const old = loadVillage({ getItem: () => JSON.stringify({ v: 1, intro: true, tut: 9 }) });
     expect(old.dex).toEqual([]);
     expect(old.ys.fish).toBe(0);
+  });
+});
+
+describe('蓋錯了', () => {
+  it('這個月剛蓋的拆掉全額退，過了月底只退一半', () => {
+    let s = rich();
+    const c0 = s.coins;
+    s = build(s, 'brick', { x: 735, y: 568 });
+    const id = s.b[1].id;
+    expect(demolish(s, id).coins).toBe(c0);
+    const later = advance(s, () => 0.9).s;
+    expect(demolish(later, id).coins - later.coins).toBe(Math.floor(BUILDINGS.brick.cost / 2));
   });
 });

@@ -19,7 +19,7 @@ export const WEATHER: Record<Weather, { icon: string; name: string }> = {
   cold: { icon: '🥶', name: '寒流' },
 };
 
-export interface Bld { id: number; kind: Kind; at: Pt; worker: number | null; broken?: boolean }
+export interface Bld { id: number; kind: Kind; at: Pt; worker: number | null; broken?: boolean; builtAt?: number } // builtAt：哪個月蓋的（這個月剛蓋的拆掉全額退）
 export interface Villager { id: number; name: string; kid?: boolean }
 
 export interface Village {
@@ -152,7 +152,7 @@ export function toSlots(s: Village): Village {
 export function build(s: Village, kind: Kind, at: Pt): Village {
   const def = BUILDINGS[kind];
   if (s.coins < def.cost || stars(s) < def.stars || !canPlace(s, kind, at).ok) return s;
-  const b: Bld = { id: s.next, kind, at, worker: null };
+  const b: Bld = { id: s.next, kind, at, worker: null, builtAt: monthIndex(s) };
   const free = def.job ? idle(s)[0] : undefined;
   if (free) b.worker = free.id;
   return { ...s, coins: s.coins - def.cost, b: [...s.b, b], next: s.next + 1 };
@@ -162,10 +162,12 @@ export const move = (s: Village, id: number, at: Pt): Village => {
   if (!b || !canPlace(s, b.kind, at, id).ok) return s;
   return { ...s, b: s.b.map((x) => (x.id === id ? { ...x, at } : x)) };
 };
+// 拆掉退一半；這個月剛蓋的（蓋錯了）全額退
+export const refundOf = (s: Village, b: Bld) => (b.builtAt === monthIndex(s) ? BUILDINGS[b.kind].cost : Math.floor(BUILDINGS[b.kind].cost / 2));
 export const demolish = (s: Village, id: number): Village => {
   const b = s.b.find((x) => x.id === id);
   if (!b) return s;
-  return { ...s, coins: s.coins + Math.floor(BUILDINGS[b.kind].cost / 2), b: s.b.filter((x) => x.id !== id) };
+  return { ...s, coins: s.coins + refundOf(s, b), b: s.b.filter((x) => x.id !== id) };
 };
 export const REPAIR = 15;
 export const repair = (s: Village, id: number): Village =>

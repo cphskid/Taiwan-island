@@ -6,7 +6,7 @@ import {
 import {
   PREPARE, REPAIR, WEATHER, advance, assign, build, canDive, canFestival, canPlace, canSeine, dive, festival, hasDiver, capacity, checkQuests, combosOf, currentQuest,
   demolish, freshVillage, idle, loadVillage, move, prepare, rating, repair, saveVillage, seine, seineFish, stars, threat, unassign,
-  workerOf, yearGoal, bestSlot, snapTo, yearGoalDone, type Bld, type MonthReport, type Village as V,
+  workerOf, yearGoal, bestSlot, snapTo, refundOf, monthIndex, yearGoalDone, type Bld, type MonthReport, type Village as V,
 } from '../core/village';
 import type { Pt } from '../core/world';
 import { pushCloud } from '../net/cloud';
@@ -621,6 +621,8 @@ function BuildingCard({ s, b, onAssign, onUnassign, onRepair, onMove, onDemolish
   const combos = combosOf(s, b);
   const can = COMBOS.filter(([x, y]) => x === b.kind || y === b.kind).map(([x, y]) => BUILDINGS[x === b.kind ? y : x].name);
   const [sure, setSure] = useState(false);
+  // 這個月剛蓋的（蓋錯了）：一按就收回、全額退；蓋好一陣子的才要再確認一次、退一半
+  const fresh = b.builtAt === monthIndex(s), refund = refundOf(s, b);
   const free = idle(s);
   return (
     <div className="v-card panel" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
@@ -642,7 +644,8 @@ function BuildingCard({ s, b, onAssign, onUnassign, onRepair, onMove, onDemolish
       {!combos.length && can.length > 0 && <p className="v-hint">搬到 {[...new Set(can)].join('、')} 旁邊會有加成</p>}
       <div className="v-card-btns">
         <button className="btn" onClick={onMove}>搬家</button>
-        {sure ? <button className="btn red" onClick={onDemolish}>真的拆（退 💰{Math.floor(d.cost / 2)}）</button>
+        {fresh ? <button className="btn orange" onClick={onDemolish}>收回（退 💰{refund}）</button>
+          : sure ? <button className="btn red" onClick={onDemolish}>真的拆（退 💰{refund}）</button>
           : <button className="btn" onClick={() => setSure(true)}>拆掉</button>}
       </div>
     </div>
