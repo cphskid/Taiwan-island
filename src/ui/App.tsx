@@ -64,10 +64,11 @@ export function App() {
   return (
     <div className="app">
       <header className="top">
+        {/* 回樂園用樂園提供的共用按鈕樣式（css/park-back.css），各遊戲長得一樣 */}
+        {PARK_URL && <link rel="stylesheet" href={`${PARK_URL}css/park-back.css`} />}
         {PARK_URL && (
-          <a className="park-btn" href={PARK_MAP ?? undefined} title="回樂園">
-            <img src={`${BASE}img/park.webp`} alt="" />
-            <span>回樂園</span>
+          <a className="park-back" href={PARK_MAP ?? undefined}>
+            <img src={`${BASE}img/park.webp`} alt="" />回樂園
           </a>
         )}
         <h1>穿越吧！島嶼開拓者</h1>

@@ -3,7 +3,7 @@ import { BACK7, CARD_ORDER7, CHOICES7, homeLines7, KEEPSAKE7, keepsakeText, QUES
 import { PEOPLE, img } from '../../data/babao-chapter';
 import { Face, Talk } from '../Talk';
 import { fresh7, stars7 } from '../../core/save7';
-import { PARK_URL } from '../../net/park';
+import { PARK_MAP, PARK_URL } from '../../net/park';
 import { NewCards7, type Step7Props } from '../Ch7';
 import { ambience, jingle, sfx } from '../../audio';
 
@@ -133,7 +133,7 @@ export function Finale7({ p, set, exit }: Step7Props) {
             <div className="row">
               <button className="btn green" onClick={exit}>回大地圖看看</button>
               <button className="btn orange" onClick={() => set((o) => ({ ...fresh7(), friends: o.friends, keepsakes: o.keepsakes, cards: o.cards }))}>從頭再玩</button>
-              {PARK_URL && <a className="btn orange" href={PARK_URL}>回樂園</a>}
+              {PARK_URL && <a className="btn orange" href={PARK_MAP ?? undefined}>回樂園</a>}
             </div>
           </div>
         </div>

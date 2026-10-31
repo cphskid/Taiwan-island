@@ -9,7 +9,6 @@ import { ambience, jingle, music, preload, sfx, type SeCode } from '../audio';
 import { SoundToggle } from './Sound';
 import { ReportButton } from './Report';
 import { NOW_LINES, NOW_ON, NOW_PLACES, NOW_URL, unlockNow, type Era, type NowPlace } from '../data/now';
-import { PARK_MAP } from '../net/park';
 import { warm } from './warm';
 import { mark } from '../perf';
 
@@ -387,9 +386,6 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
           <button className="nav-btn" onClick={() => { sfx('SE-03'); setBook(true); }}>
             <span className="nav-icon">📖</span><span>圖鑑 {CARD_ORDER.filter((id) => world.cards.includes(id)).length}</span>
           </button>
-          <a className="nav-btn" href={PARK_MAP ?? undefined}>
-            <img src={`${BASE}img/park.webp`} alt="" /><span>回樂園</span>
-          </a>
         </nav>
       )}
       {eraWarp > 0 && <div key={eraWarp} className={`era-warp to-${era}`} />}
