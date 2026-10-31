@@ -6,10 +6,11 @@ import {
 import {
   PREPARE, REPAIR, WEATHER, advance, assign, build, canDive, canFestival, canPlace, canSeine, dive, festival, hasDiver, capacity, checkQuests, combosOf, currentQuest,
   demolish, freshVillage, idle, loadVillage, move, prepare, rating, repair, saveVillage, seine, seineFish, stars, threat, unassign,
-  workerOf, yearGoal, yearGoalDone, type Bld, type MonthReport, type Village as V,
+  workerOf, yearGoal, bestSlot, snapTo, yearGoalDone, type Bld, type MonthReport, type Village as V,
 } from '../core/village';
 import type { Pt } from '../core/world';
 import { pushCloud } from '../net/cloud';
+import { SLOTS, SLOT_H, SLOT_W } from '../data/villageSlots';
 import { sfx } from '../audio';
 import { Beacon, Goal, Hand } from './Guide';
 import { Say } from './Talk';
@@ -131,13 +132,13 @@ export function Village({ onExit }: { onExit: () => void }) {
     }
     if (!g.current.moved && Math.hypot(e.clientX - g.current.x, e.clientY - g.current.y) < 8) return;
     g.current.moved = true;
-    if (g.current.ghost && placing) { setPlacing({ ...placing, at: toMap(e.clientX, e.clientY) }); return; }
+    if (g.current.ghost && placing) { const at = snapTo(toMap(e.clientX, e.clientY)); if (at.x !== placing.at.x || at.y !== placing.at.y) setPlacing({ ...placing, at }); return; }
     setCam((c0) => { const c = clamp(c0); return { ...c, x: c.x - (e.clientX - old.x) / c.z, y: c.y - (e.clientY - old.y) / c.z }; });
   };
   const onUp = (e: RPE) => {
     ptrs.current.delete(e.pointerId);
     if (ptrs.current.size) return;
-    if (!g.current.moved && placing) setPlacing({ ...placing, at: toMap(e.clientX, e.clientY) });
+    if (!g.current.moved && placing) setPlacing({ ...placing, at: snapTo(toMap(e.clientX, e.clientY)) });
   };
   const onWheel = (e: RWE) => {
     const r = stage.current!.getBoundingClientRect();
@@ -218,10 +219,10 @@ export function Village({ onExit }: { onExit: () => void }) {
     if (tut && k !== tut.kind) { sfx('SE-04'); setSay(`先蓋${BUILDINGS[tut.kind].name}，教完就能蓋別的了。`); return; }
     if (stars(s) < d.stars || s.coins < d.cost) { sfx('SE-04'); return; }
     sfx('SE-03'); setMenu(false); setPick(null);
-    // 要蓋的建築先出現在畫面中間（教學時放在目標旁邊一點，讓小朋友學會點、拖）
-    const start = tut ? { x: tut.at.x + 170, y: tut.at.y - 110 } : { x: view.x, y: view.y };
+    // 要蓋的建築先放在畫面中間附近、能蓋的格子上（教學時放在目標旁邊另一格，讓小朋友學會點、拖）
+    const start = (tut ? bestSlot(s, k, tut.at, tut.at) : bestSlot(s, k, { x: view.x, y: view.y })) ?? snapTo({ x: view.x, y: view.y });
     setPlacing({ kind: k, at: start });
-    if (tut) flyTo({ x: tut.at.x + 80, y: tut.at.y - 40 });
+    flyTo(tut ? { x: (tut.at.x + start.x) / 2, y: (tut.at.y + start.y) / 2 } : start);
   };
 
   const st = stars(s), rt = rating(s);
@@ -235,7 +236,7 @@ export function Village({ onExit }: { onExit: () => void }) {
 
   // 教學這一小步要指哪裡
   const tStep = !tut || intro >= 0 ? null
-    : placing?.kind === tut.kind && !placing.id ? (check?.ok && dist(placing.at, tut.at) < 140 ? 'confirm' : 'place')
+    : placing?.kind === tut.kind && !placing.id ? (check?.ok && dist(placing.at, tut.at) < 20 ? 'confirm' : 'place')
     : menu ? 'pick' : 'open';
   const coach = !tut || !tStep ? null
     : tStep === 'open' ? `點右下角的「🔨 蓋」。${tut.say}`
@@ -285,6 +286,13 @@ export function Village({ onExit }: { onExit: () => void }) {
               <span>{a.name}<br />村子 {'⭐'.repeat(a.stars)} 就散開</span>
             </div>
           ))}
+          {placing && SLOTS.map((g) => {
+            // 蓋的時候把格子畫出來：能蓋的綠色、不能蓋的灰色，已經有房子的不畫
+            if (s.b.some((b) => b.id !== placing.id && Math.hypot(b.at.x - g.x, b.at.y - g.y) < 40)) return null;
+            const ok = canPlace(s, placing.kind, g, placing.id).ok, here = g.x === placing.at.x && g.y === placing.at.y;
+            return <i key={`g${g.x},${g.y}`} className={`v-slot ${g.lot ? 'lot' : ''} ${ok ? 'ok' : 'no'} ${here ? 'here' : ''}`}
+              style={{ ...pct(g), width: wpct(SLOT_W), height: `${(SLOT_H / VH) * 100}%`, zIndex: 2 }} />;
+          })}
           {placing && (
             <div className={`v-ghost ${check?.ok ? 'ok' : 'bad'}`} style={{ ...pct(placing.at), width: wpct(BUILDINGS[placing.kind].width), zIndex: 4000 }}>
               <img src={vimg(BUILDINGS[placing.kind].art)} alt="" draggable={false} />

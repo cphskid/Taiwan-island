@@ -4,7 +4,7 @@
 
 import type { Pt } from './world';
 import { keyFor } from './owner';
-import { onRoad } from '../data/villageRoads';
+import { SLOTS, nearestSlot, slotAt } from '../data/villageSlots';
 import {
   AREAS, BUILDINGS, CATCHES, COMBOS, COMBO_R, GOODS, NAMES, QUESTS, STAR_AT, YEAR_DRUM, YEAR_FISH, YEAR_GOALS, YEAR_SEINE, areaAt, dist, isHouse, zoneAt,
   type Area, type Good, type Kind,
@@ -56,7 +56,7 @@ const freshYear = (): YearStat => ({ fish: 0, broken: 0, drum: 0, seines: 0 });
 export const freshVillage = (): Village => ({
   v: 1, year: 1, month: 4, weather: 'sun', prepared: false, coins: 160,
   goods: { fish: 0, veg: 0, salt: 0, weed: 0 },
-  b: [{ id: 1, kind: 'stilt', at: { x: 760, y: 440 }, worker: null }],
+  b: [{ id: 1, kind: 'stilt', at: { x: 792, y: 447 }, worker: null }],
   people: [{ id: 2, name: '阿海伯' }, { id: 3, name: '春花姨' }, { id: 4, name: '小孫子', kid: true }],
   next: 5, quests: [], seineAt: -1, seines: 0, diveAt: -1, dives: 0, festAt: -1, typhoons: 0, festivals: 0, tyYear: 0, scared: 0, intro: false, tut: 0, done: false,
   dex: [], yrs: [], ys: freshYear(),
@@ -105,24 +105,48 @@ export const starsOf = (r: number) => STAR_AT.filter((t) => r >= t).length;
 export const stars = (s: Village) => starsOf(rating(s));
 export const areaOpen = (s: Village, a: Area) => a === 'core' || stars(s) >= AREAS[a].stars;
 
-// ── 擺放 ──
-const footR = (k: Kind) => BUILDINGS[k].width * 0.34;
+// ── 擺放：只能蓋在格子上（data/villageSlots.ts），一格一棟 ──
 const ZONE_WORD = { sea: '海', stream: '小溪', beach: '沙灘', land: '平地', hill: '山坡' } as const;
+const takenBy = (s: Village, at: Pt, ignore?: number) => s.b.find((o) => o.id !== ignore && Math.hypot(o.at.x - at.x, o.at.y - at.y) < 40) ?? null;
 
 export function canPlace(s: Village, kind: Kind, at: Pt, ignore?: number): { ok: boolean; why?: string } {
   const def = BUILDINGS[kind];
+  const slot = slotAt(at);
+  if (!slot) return { ok: false, why: '要放在地上的格子裡' };
   const area = areaAt(at);
   if (area !== 'core' && !areaOpen(s, area)) return { ok: false, why: `雲霧還沒散開（村子要 ${'⭐'.repeat(AREAS[area].stars)}）` };
-  const z = zoneAt(at);
-  if (!def.zones.includes(z)) return { ok: false, why: z === 'sea' || z === 'stream' ? `這裡是${ZONE_WORD[z]}，不能蓋` : `${def.name}要蓋在${def.zones.map((x) => ZONE_WORD[x]).join('或')}上` };
-  if (kind !== 'pier') {
-    const w = def.width * 0.3;
-    for (const dx of [-w, w]) { const zz = zoneAt({ x: at.x + dx, y: at.y }); if (zz === 'sea' || zz === 'stream') return { ok: false, why: '太靠近水了，往裡面一點' }; }
-  }
+  if (slot.pond && kind !== 'pond') return { ok: false, why: '這是魚塭池，只能蓋魚塭' };
+  if (!def.zones.includes(slot.z)) return { ok: false, why: `${def.name}要蓋在${def.zones.map((x) => ZONE_WORD[x]).join('或')}上` };
   if (def.near && dist(at, def.near.at) > def.near.r) return { ok: false, why: def.near.text };
-  if (onRoad(at)) return { ok: false, why: '這是村子的大馬路，蓋了大家就走不過去' };
-  for (const o of s.b) if (o.id !== ignore && dist(o.at, at) < footR(o.kind) + footR(kind)) return { ok: false, why: `跟${BUILDINGS[o.kind].name}疊在一起了` };
+  const o = takenBy(s, at, ignore);
+  if (o) return { ok: false, why: `這格已經有${BUILDINGS[o.kind].name}了` };
   return { ok: true };
+}
+// 拖到哪裡就吸到最近的格子
+export const snapTo = (p: Pt): Pt => { const g = nearestSlot(p); return g ? { x: g.x, y: g.y } : p; };
+// 這種建築現在能蓋的格子，離 p 最近的（開始蓋時先放這裡）
+export function bestSlot(s: Village, kind: Kind, p: Pt, avoid?: Pt): Pt | null {
+  let best: Pt | null = null, bd = Infinity;
+  for (const g of SLOTS) {
+    if (avoid && g.x === avoid.x && g.y === avoid.y) continue;
+    if (!canPlace(s, kind, g).ok) continue;
+    const d = Math.hypot(g.x - p.x, g.y - p.y);
+    if (d < bd) { bd = d; best = { x: g.x, y: g.y }; }
+  }
+  return best;
+}
+// 改成格子以前的存檔：每一棟搬到最近、還空著、地形合的格子（找不到就留在原地）
+export function toSlots(s: Village): Village {
+  if (s.b.every((b) => slotAt(b.at))) return s;
+  const placed: Bld[] = [];
+  for (const b of s.b) {
+    if (slotAt(b.at) && !placed.some((o) => o.at.x === b.at.x && o.at.y === b.at.y)) { placed.push(b); continue; }
+    const tmp = { ...s, b: [...placed, ...s.b.filter((o) => o !== b && slotAt(o.at))] };
+    const free = SLOTS.filter((g) => !takenBy(tmp, g) && !(g.pond && b.kind !== 'pond') && BUILDINGS[b.kind].zones.includes(g.z))
+      .sort((g1, g2) => dist(g1, b.at) - dist(g2, b.at))[0];
+    placed.push(free ? { ...b, at: { x: free.x, y: free.y } } : b);
+  }
+  return { ...s, b: placed };
 }
 
 export function build(s: Village, kind: Kind, at: Pt): Village {
@@ -363,7 +387,7 @@ export function loadVillage(store: Pick<Storage, 'getItem'> | undefined = global
     if (!raw) return freshVillage();
     const p = JSON.parse(raw) as Partial<Village>;
     // 教學是後來加的：之前玩過的人不用再教一次
-    return p.v === 1 ? { ...freshVillage(), ...(p.intro && p.tut === undefined ? { tut: 99 } : {}), ...p, ys: { ...freshYear(), ...p.ys } } : freshVillage();
+    return p.v === 1 ? toSlots({ ...freshVillage(), ...(p.intro && p.tut === undefined ? { tut: 99 } : {}), ...p, ys: { ...freshYear(), ...p.ys } }) : freshVillage();
   } catch {
     return freshVillage();
   }
@@ -371,7 +395,7 @@ export function loadVillage(store: Pick<Storage, 'getItem'> | undefined = global
 // 換平板登入：本機和雲端兩份，留玩得比較久的那份
 export function pickVillage(local: Village, cloud: Partial<Village> | null | undefined): Village {
   if (!cloud || cloud.v !== 1) return local;
-  const c = { ...freshVillage(), ...cloud, ys: { ...freshYear(), ...cloud.ys } } as Village;
+  const c = toSlots({ ...freshVillage(), ...cloud, ys: { ...freshYear(), ...cloud.ys } } as Village);
   const score = (x: Village) => monthIndex(x) * 100 + x.b.length;
   return score(c) > score(local) ? c : local;
 }

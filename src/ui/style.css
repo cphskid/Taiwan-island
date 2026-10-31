@@ -2912,3 +2912,10 @@ button.v-chip{cursor:pointer}
   .v-report{top:44px;padding:4px 10px!important}
   .v-report p{font-size:13px;margin:1px 0}
 }
+/* 漁村蓋房子的格子 */
+.v-slot{position:absolute;translate:-50% -50%;border-radius:10px;pointer-events:none;border:2px dashed rgba(255,255,255,.9);background:rgba(255,255,255,.12)}
+.v-slot.lot{border-style:solid;border-color:rgba(255,255,255,.55);transform:skewX(-14deg)}
+.v-slot.ok{background:rgba(110,210,80,.28);border-color:#e9ffd8}
+.v-slot.no{opacity:.35}
+.v-slot.here.ok{background:rgba(110,210,80,.55);box-shadow:0 0 0 3px #7ee05a,0 0 14px #7ee05a}
+.v-slot.here.no{background:rgba(224,64,42,.4);opacity:1}
