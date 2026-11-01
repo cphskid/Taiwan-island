@@ -2929,3 +2929,29 @@ button.v-chip{cursor:pointer}
   .nav-btn{min-width:56px;padding:2px 4px}
   .era-lever{margin:0 2px;padding:0 10px}
 }
+/* 離島巡航進場引導（2026-11-01）：題目卡放旁邊不擋地圖、選的島發亮、目標條在卡片上面、卡片讓出左下角 */
+.isle-ask{position:absolute;top:58px;z-index:3000;width:min(340px,max(240px,calc(50% - 190px)));max-height:calc(100% - 150px);overflow:auto;text-align:center;padding:12px 14px!important}
+.isle-ask.r{right:12px}.isle-ask.l{left:12px;max-height:calc(100% - 58px - 104px)}
+.isle-ask h2{margin:0 0 4px;font-size:20px}.isle-ask p{margin:0 0 8px}
+.isle-ask .t-opts{display:flex;flex-direction:column;gap:6px}
+.isle-ask .t-tick{margin:8px 0}
+.isle-pin.on{z-index:5}
+.isle-pin.on i{box-shadow:0 0 0 6px #ffe58a,0 0 0 14px rgba(255,229,138,.45),0 3px 8px rgba(0,0,0,.35);scale:1.15}
+.isle-pin.off{opacity:.55}
+.t-opt.hint{border-color:#f0b400;box-shadow:0 0 0 4px #ffe58a;animation:hintglow .8s ease-in-out infinite alternate}
+@keyframes hintglow{to{box-shadow:0 0 0 8px #ffe58a99}}
+.isles>.say.goal-dock{z-index:3100}
+.isles>.v-hud{z-index:3050}
+.isles>.t-cover{padding-top:64px;padding-bottom:84px}
+@media (max-height:600px){
+  .isle-ask{top:50px;max-height:calc(100% - 60px);padding:8px 10px!important}
+  .isle-ask.l{left:auto;right:12px;max-height:calc(100% - 60px)} /* 手機橫拿：地圖兩旁本來就是海，題目卡一律放右邊、不跟左下目標打架 */
+  .isle-ask h2{font-size:16px}.isle-ask p{font-size:14px}
+  .isles>.t-cover{padding-top:46px;padding-bottom:62px}
+  .isles>.say.goal-dock{bottom:4px}
+  .isles>.t-cover>.panel{padding:8px 12px!important}
+  .isles>.t-cover>.panel h2{font-size:17px;margin-bottom:2px}
+  .isles>.t-cover>.panel p{font-size:14px;margin:2px 0}
+  .isle-garden{width:min(300px,44vh)}
+  .isles .isle-sea{height:36vh}
+}

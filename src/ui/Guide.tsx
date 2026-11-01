@@ -196,7 +196,7 @@ export function Goal({ text, floating, id }: { text: string; floating?: boolean;
 }
 
 // 關卡裡能點的東西（目標條不能蓋住它們；蓋到了就讓開）
-const TAPPABLE = '.stage button:not(:disabled), .stage .hit, [data-cell], [data-dir], [data-slot], [data-col], .beach-stone, .dig-spot, .hill-tree';
+const TAPPABLE = '.stage button:not(:disabled), .isle-ask button:not(:disabled), .isle-event button:not(:disabled), .stage .hit, [data-cell], [data-dir], [data-slot], [data-col], .beach-stone, .dig-spot, .hill-tree';
 const IDLE_MS = 8000;
 // 停住 ms 毫秒沒點畫面就變 true；一點畫面就重算
 export function useIdle(on = true, ms = IDLE_MS) {
