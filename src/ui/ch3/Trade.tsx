@@ -53,16 +53,22 @@ function TradeBoard({ oops, onDone }: { oops: () => void; onDone: () => void }) 
         sfx('SE-71'); oops();
         const f = fails + 1;
         setFails(f);
-        setSay(f >= 3 ? TRADE_SAY.hint2 : f >= 2 ? TRADE_SAY.hint : TRADE_SAY.poor);
+        setSay(f >= 3 ? TRADE_SAY.hint2 : f >= 2 ? TRADE_SAY.hint : TRADE_SAY.short(could, lv.goal));
         setS(freshTrade(lv));
         setBusy(false);
       }, 1500);
+      return;
+    }
+    // 開船後的小提醒：空船回大員、或失敗過一次後到了最後一趟
+    if (n.legs > s.legs) {
+      if (!loaded(s) && n.at === 'tayouan' && n.legs < lv.legs) setSay(TRADE_SAY.empty);
+      else if (fails >= 1 && n.legs === lv.legs - 1 && n.at === 'tayouan') setSay(TRADE_SAY.last);
     }
   };
   const doBuy = (g: Good) => { const n = buy(lv, s, g); if (!n) { sfx('SE-04'); return; } sfx('SE-07'); after(n); };
   const doSell = (g: Good) => { const n = sell(lv, s, g); if (!n) { sfx('SE-04'); return; } sfx('SE-102'); after(n); };
   const doSail = (to: PortId) => { const n = sail(lv, s, to); if (!n) { sfx('SE-04'); return; } sfx('SE-101'); after(n); };
-  const restart = () => { sfx('SE-02'); setS(freshTrade(lv)); };
+  const restart = () => { sfx('SE-02'); setS(freshTrade(lv)); setSay(null); };
   const demo = async () => {
     setBusy(true);
     let n = freshTrade(lv);
@@ -133,7 +139,7 @@ function TradeBoard({ oops, onDone }: { oops: () => void; onDone: () => void }) 
         <h3>{PORT_INFO[s.at].name}的市場</h3>
         <div className="ch3-goods">
           {GOODS.filter((g) => port.buy[g] !== undefined || port.sell[g] !== undefined).map((g) => (
-            <div key={g} data-good={g} className={`ch3-good ${fails >= 2 && hot(s.at, g) ? 'ch3-hint' : ''}`}>
+            <div key={g} data-good={g} className={`ch3-good ${fails >= 1 && hot(s.at, g) ? 'ch3-hint' : ''}`}>
               <img src={GOOD_INFO[g].img} alt="" />
               <b>{GOOD_INFO[g].name}<small>{GOOD_INFO[g].from}</small></b>
               {port.buy[g] !== undefined && <button className="buy" disabled={lock || buy(lv, s, g) === null} onClick={() => doBuy(g)}>買 {port.buy[g]} 兩</button>}
@@ -144,11 +150,11 @@ function TradeBoard({ oops, onDone }: { oops: () => void; onDone: () => void }) 
         </div>
         <button className="ch3-reset" disabled={lock} onClick={restart}>↺ 從頭再來</button>
       </div>
-      {fails >= 3 && !won && <button className="btn demo corner-btn" disabled={busy} onClick={demo}>看示範</button>}
+      {fails >= 2 && !won && <button className="btn demo corner-btn" disabled={busy} onClick={demo}>看示範</button>}
       <Say line={say} />
     </div>
   );
 }
 
-// 第 3 次失敗後，標出示範路線會在這個港口買的貨
+// 失敗 1 次後，標出示範路線會在這個港口買的貨
 const hot = (at: PortId, g: Good) => (at === 'tayouan' && (g === 'porcelain' || g === 'sugar' || g === 'silk')) || (at === 'batavia' && g === 'spice');
