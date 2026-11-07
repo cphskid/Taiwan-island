@@ -197,6 +197,10 @@ export const TRADE_INTRO: Line[] = [
 ];
 export const TRADE_SAY = {
   poor: { who: 'afu', mood: 'worried', text: '船都開完了，錢還不夠……我們再想一次？' } as Line,
+  // 第 1 次失敗：說賺到多少、差多少，順便提醒回程別空船
+  short: (got: number, goal: number): Line => ({ who: 'afu', mood: 'worried', text: `船都開完了，只賺到 ${got} 兩，還差 ${goal - got} 兩。回程別讓船空著！巴達維亞的香料很便宜，載回大員可以賣 4 兩。` }),
+  empty: { who: 'clerk', text: '空船開回來好可惜！下次在出發的港口看看有沒有便宜的貨，順便載回來賣。' } as Line,
+  last: { who: 'clerk', text: '最後一趟了！看看哪樣貨「買價」和「賣價」差最多？生絲在大員買 4 兩，到日本可以賣 9 兩。' } as Line,
   hint: { who: 'clerk', text: '生絲在日本最值錢，可是太貴，一開始買不起。先用便宜的貨把錢變多，最後一趟再載生絲去日本。' } as Line,
   hint2: { who: 'afu', mood: 'thinking', text: '瓷器和蔗糖在巴達維亞賣得好，那邊的香料又便宜，運回大員有人要……' } as Line,
   good: { who: 'clerk', text: '45 兩銀以上！你們真懂得做生意。這就是大員的「轉口貿易」。' } as Line,
