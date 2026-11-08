@@ -1743,7 +1743,8 @@ img.flip{transform:scaleX(-1)}
 
 /* 轉口貿易 */
 .ch3-trade{position:absolute;inset:0;display:grid;grid-template-columns:1fr minmax(300px,380px);gap:12px;padding:56px 12px 12px}
-.ch3-seamap{position:relative;padding:0;overflow:hidden;background:#3b9fcf}
+/* 地圖底下讓出左下角的任務目標條，不然港口說明被它蓋住（問題回報 #56） */
+.ch3-seamap{position:relative;padding:0;overflow:hidden;background:#3b9fcf;margin-bottom:54px}
 .ch3-seamap .ch3-sea-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
 .ch3-isle{position:absolute;translate:-50% -46%;width:22%;max-width:200px;pointer-events:none;filter:drop-shadow(0 4px 4px rgba(0,40,80,.3))}
 .ch3-isle.tayouan{width:28%;max-width:250px}
@@ -2968,4 +2969,7 @@ button.v-chip{cursor:pointer}
   .end-lot-group p{font-size:12px;line-height:1.25}
   .end-lot-group p b{font-size:13px}
   .end-lot-foot{bottom:-6px;margin:0 -10px -6px;padding:4px 10px 6px}
+}/* 轉口貿易：矮螢幕港口說明縮成一行，別蓋住港口（問題回報 #56） */
+@media (max-height:500px){
+  .ch3-note{font-size:12px;padding:2px 8px;bottom:4px;left:6px;right:6px;line-height:1.35}
 }
