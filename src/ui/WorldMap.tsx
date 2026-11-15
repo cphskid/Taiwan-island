@@ -39,6 +39,9 @@ function riftStates(w: WorldSave): Partial<Record<ChapterId, RiftState>> {
   return s;
 }
 
+const ERA_KEY = 'island.era.v1';
+const lastEra = (): Era | null => { try { const v = localStorage.getItem(ERA_KEY); return v === 'now' || v === 'past' ? v : null; } catch { return null; } };
+
 // 選章畫面：被時光雲霧蓋住的台灣。點裂縫穿越進那一章，過關回來那一區的雲霧散開、活起來
 export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, startNow }: Props) {
   const host = useRef<HTMLDivElement>(null);
@@ -58,7 +61,9 @@ export function WorldMap({ world, setWorld, onEnter, back, onPrologue, onPlace, 
   const [book, setBook] = useState(false);
   const [flyGear, setFlyGear] = useState<number | null>(null); // 正在飛向時鐘的齒輪孔
   // 過去／現在（現在先藏在 ?now=1 後面）
-  const [era, setEra] = useState<Era>(startNow && NOW_ON ? 'now' : 'past');
+  // 從樂園再進來時，停在上次離開的時代（上次在「現在」玩，就直接到現在）；從某一章回來一定是過去
+  const [era, setEra] = useState<Era>(() => (NOW_ON && (startNow || (!back && lastEra() === 'now')) ? 'now' : 'past'));
+  useEffect(() => { try { localStorage.setItem(ERA_KEY, era); } catch { /* 無痕模式存不了就算了 */ } }, [era]);
   const [eraWarp, setEraWarp] = useState(0); // 切換時的穿梭光，數字變了就重播
   const [place, setPlace] = useState<NowPlace | null>(null);
   // 地點卡一打開就先抓那個地點的圖（排到最前面），按「出發！」時多半已經讀好了
