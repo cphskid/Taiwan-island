@@ -2786,6 +2786,8 @@ button.v-chip{cursor:pointer}
 @media (max-height:600px) and (min-width:700px){.pc-write{flex-wrap:nowrap;align-items:flex-start}.pc-write .pc-post{width:min(400px,48vw)}.pc-write .pc-panel.small{width:46vw}.pc-write .pc-steps{display:none}.pc-front span{font-size:44px}}
 /* 規則小鎮：地區看板（zIndex 2000）不能蓋過彈出的面板 */
 .town>.talk-cover{z-index:3000}
+/* 上排按鈕（← 大地圖、聲音、問題回報）要在彈出面板上面，不然選關畫面時按不到、回不了大地圖（2026-11-21 問題回報 #80 天空港） */
+.town>.v-hud{z-index:3050}
 /* 「💬 問題回報」縮小一點，不搶其他按鈕的位置 */
 .v-hud .report-btn{font-size:13px;padding:4px 10px;gap:2px}
 .v-hud .report-btn .tool-icon{font-size:14px}
