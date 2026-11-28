@@ -33,6 +33,9 @@ export function Sky({ onExit }: { onExit: () => void }) {
   const [bad, setBad] = useState<Pt[] | null>(null);
   const [flash, setFlash] = useState<{ k: number; at: Pt; text: string }[]>([]);
   const map = useRef<HTMLDivElement>(null);
+  // 畫線的時候，左下的目標條和說話框淡掉、手指穿過去，不擋住線和出口（回報 #97 貓咪）
+  useEffect(() => { document.body.classList.toggle('sky-drawing', !!draw); }, [draw]);
+  useEffect(() => () => document.body.classList.remove('sky-drawing'), []);
   // 一個螢幕 px 是幾個地圖單位：手機上整張圖縮很小，抓、到達、排隊都要用手指的大小來算
   const upx = () => { const w = map.current?.getBoundingClientRect().width; return w ? SKY_W / w : 1; };
   const grabR = () => Math.max(GRAB, 30 * upx());

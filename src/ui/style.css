@@ -2975,3 +2975,7 @@ button.v-chip{cursor:pointer}
 @media (max-height:500px){
   .ch3-note{font-size:12px;padding:2px 8px;bottom:4px;left:6px;right:6px;line-height:1.35}
 }
+
+/* 天空港畫線時：左下目標條、說話框淡掉並讓手指穿過，線和出口不被擋住（0.16.9，回報 #97 貓咪） */
+body.sky-drawing .say{opacity:.1!important;pointer-events:none!important;transition:opacity .15s}
+body.sky-drawing .say *{pointer-events:none!important}
